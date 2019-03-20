@@ -119,6 +119,90 @@ func (jo *JsonObject) GetValue(name string) (*JsonValue, error) {
 	}
 }
 
+func (jo *JsonObject) GetString(name string) (string, error) {
+	jv, err := jo.GetValue(name)
+	if err != nil {
+		return "", err
+	}
+
+	s, err := jv.GetString()
+	if err != nil {
+		return "", err
+	}
+
+	return s, nil
+}
+
+func (jo *JsonObject) GetInt(name string) (int, error) {
+	jv, err := jo.GetValue(name)
+	if err != nil {
+		return 0, err
+	}
+
+	i, err := jv.GetInt()
+	if err != nil {
+		return 0, err
+	}
+
+	return i, nil
+}
+
+func (jo *JsonObject) GetFloat(name string) (float64, error) {
+	jv, err := jo.GetValue(name)
+	if err != nil {
+		return 0, err
+	}
+
+	f, err := jv.GetFloat()
+	if err != nil {
+		return 0, err
+	}
+
+	return f, nil
+}
+
+func (jo *JsonObject) GetBoolean(name string) (bool, error) {
+	jv, err := jo.GetValue(name)
+	if err != nil {
+		return false, err
+	}
+
+	b, err := jv.GetBoolean()
+	if err != nil {
+		return false, err
+	}
+
+	return b, nil
+}
+
+func (jo *JsonObject) GetObject(name string) (*JsonObject, error) {
+	jv, err := jo.GetValue(name)
+	if err != nil {
+		return nil, err
+	}
+
+	obj, err := jv.GetObject()
+	if err != nil {
+		return nil, err
+	}
+
+	return obj, nil
+}
+
+func (jo *JsonObject) GetArray(name string) (*JsonArray, error) {
+	jv, err := jo.GetValue(name)
+	if err != nil {
+		return nil, err
+	}
+
+	ja, err := jv.GetArray()
+	if err != nil {
+		return nil, err
+	}
+
+	return ja, nil
+}
+
 func (jo *JsonObject) IsEmpty() bool {
 	if jo.Properties == nil || len(jo.Properties) == 0 {
 		return true

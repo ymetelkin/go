@@ -11,16 +11,11 @@ func TestObjectAdd(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		jv, err := jo.GetValue("id")
+		id, err := jo.GetInt("id")
 		if err != nil {
 			t.Error(err.Error())
 		} else {
-			id, err := jv.GetInt()
-			if err != nil {
-				t.Error(err.Error())
-			} else {
-				fmt.Printf("id: %d\n", id)
-			}
+			fmt.Printf("id: %d\n", id)
 		}
 	}
 
@@ -28,16 +23,11 @@ func TestObjectAdd(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		jv, err := jo.GetValue("name")
+		name, err := jo.GetString("name")
 		if err != nil {
 			t.Error(err.Error())
 		} else {
-			name, err := jv.GetString()
-			if err != nil {
-				t.Error(err.Error())
-			} else {
-				fmt.Printf("name: %s\n", name)
-			}
+			fmt.Printf("name: %s\n", name)
 		}
 	}
 
@@ -45,16 +35,11 @@ func TestObjectAdd(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		jv, err := jo.GetValue("cool")
+		cool, err := jo.GetBoolean("cool")
 		if err != nil {
 			t.Error(err.Error())
 		} else {
-			cool, err := jv.GetBoolean()
-			if err != nil {
-				t.Error(err.Error())
-			} else {
-				fmt.Printf("cool: %t\n", cool)
-			}
+			fmt.Printf("cool: %t\n", cool)
 		}
 	}
 
@@ -64,16 +49,11 @@ func TestObjectAdd(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		jv, err := jo.GetValue("child")
+		c, err := jo.GetObject("child")
 		if err != nil {
 			t.Error(err.Error())
 		} else {
-			c, err := jv.GetObject()
-			if err != nil {
-				t.Error(err.Error())
-			} else {
-				fmt.Printf("child: %s\n", c.ToString(false))
-			}
+			fmt.Printf("child: %s\n", c.ToString(false))
 		}
 	}
 
@@ -84,16 +64,11 @@ func TestObjectAdd(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		jv, err := jo.GetValue("products")
+		products, err := jo.GetArray("products")
 		if err != nil {
 			t.Error(err.Error())
 		} else {
-			products, err := jv.GetArray()
-			if err != nil {
-				t.Error(err.Error())
-			} else {
-				fmt.Printf("products: %s\n", products.ToString(false))
-			}
+			fmt.Printf("products: %s\n", products.ToString(false))
 		}
 	}
 
