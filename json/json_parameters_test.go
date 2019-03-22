@@ -185,4 +185,44 @@ func TestJsonObjectWithParametersParsing(t *testing.T) {
 	} else {
 		fmt.Printf("%s\n", jo.ToString(true))
 	}
+
+	s = `{"id":"${id}","name":"${name}", "child":{"age":"${age}"}, "params":{"id":1,"name":"YM"}}`
+	jo, err = ParseJsonObjectWithParameters(s)
+	if err != nil {
+		t.Error(err.Error())
+	} else {
+		fmt.Printf("%s\n", jo.ToString(true))
+	}
+
+	s = `{"${id_prefix}_id":"${id}","name":"${name}", "child":{"name":"${name} Jr.", "age":"${age}"}, "params":{"id_prefix":"user","id":1,"name":"YM"}}`
+	jo, err = ParseJsonObjectWithParameters(s)
+	if err != nil {
+		t.Error(err.Error())
+	} else {
+		fmt.Printf("%s\n", jo.ToString(true))
+	}
+
+	s = `{"${id_prefix}_id":"${id}","name":"${name}", "child":{"name":"${name} Jr.", "age":"${age}"}, "params":{"id_prefix1":"user","id":1,"name":"YM"}}`
+	jo, err = ParseJsonObjectWithParameters(s)
+	if err != nil {
+		t.Error(err.Error())
+	} else {
+		fmt.Printf("%s\n", jo.ToString(true))
+	}
+
+	s = `{"template":{"query":{"query_string":{"query":"${query}","fields":"${fields}"}}},"params":{"query":"test","fields":["head","body"]}}`
+	jo, err = ParseJsonObjectWithParameters(s)
+	if err != nil {
+		t.Error(err.Error())
+	} else {
+		fmt.Printf("%s\n", jo.ToString(true))
+	}
+
+	s = `{"template":{"_source":["headline","${field1}","${field2}","${field3}"],"params":{"field1":"type","field2":"date"}}}`
+	jo, err = ParseJsonObjectWithParameters(s)
+	if err != nil {
+		t.Error(err.Error())
+	} else {
+		fmt.Printf("%s\n", jo.ToString(true))
+	}
 }

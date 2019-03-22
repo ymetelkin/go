@@ -9,7 +9,6 @@ import (
 type JsonObject struct {
 	names      []string
 	pnames     map[string]ParameterizedString
-	pvalues    map[string]ParameterizedString
 	Properties map[string]JsonValue
 }
 

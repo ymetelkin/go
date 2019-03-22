@@ -135,12 +135,16 @@ func addProperty(jo *JsonObject, runes []rune, size int, index int, parameterize
 		}
 
 		if pvalue.Value != "" {
-			value = &JsonValue{Value: pvalue.Value, Type: STRING}
+			if pvalue.IsParameterized {
+				value = &JsonValue{Value: pvalue, Type: PARAMETERIZED}
+			} else {
+				value = &JsonValue{Value: pvalue.Value, Type: STRING}
+			}
 		}
 
 		if value != nil {
 			if pname.IsParameterized || pvalue.IsParameterized {
-				jo.AddWithParameters(pname, pvalue, value)
+				jo.AddWithParameters(pname, value)
 			} else {
 				jo.Add(name, *value)
 			}
@@ -373,8 +377,12 @@ func addValue(ja *JsonArray, runes []rune, size int, index int, parameterize boo
 			return r, index, err
 		}
 
-		if ps.IsParameterized {
-
+		if ps.Value != "" {
+			if ps.IsParameterized {
+				value = &JsonValue{Value: ps, Type: PARAMETERIZED}
+			} else {
+				value = &JsonValue{Value: ps.Value, Type: STRING}
+			}
 		}
 
 		if value != nil {

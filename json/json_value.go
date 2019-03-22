@@ -15,6 +15,7 @@ const (
 	STRING
 	NUMBER
 	BOOLEAN
+	PARAMETERIZED
 	NULL
 )
 
@@ -42,6 +43,8 @@ func NewJsonValue(value interface{}) (*JsonValue, error) {
 		return &JsonValue{Value: value, Type: ARRAY}, nil
 	case bool:
 		return &JsonValue{Value: value, Type: BOOLEAN}, nil
+	case ParameterizedString:
+		return &JsonValue{Value: value, Type: PARAMETERIZED}, nil
 	case int, int8, int16, int32, int64:
 		return &JsonValue{Value: value, Type: NUMBER}, nil
 	case float32, float64:
@@ -177,6 +180,24 @@ func (jv *JsonValue) GetArray() (*JsonArray, error) {
 
 	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
 	return nil, errors.New(err)
+}
+
+func (jv JsonValue) GetParameterizedString() (ParameterizedString, error) {
+	if jv.Type == PARAMETERIZED {
+		ps, ok := jv.Value.(ParameterizedString)
+		if ok {
+			return ps, nil
+		} else {
+			return ParameterizedString{}, errors.New("Cannot read string value")
+		}
+	}
+
+	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
+	return ParameterizedString{}, errors.New(err)
+}
+
+func (jv *JsonValue) ToString() string {
+	return jv.toString(true, 0)
 }
 
 func (jv *JsonValue) toString(pretty bool, level int) string {

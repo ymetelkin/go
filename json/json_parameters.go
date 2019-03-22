@@ -28,7 +28,7 @@ func (ps ParameterizedString) IsOneParameter() bool {
 	return p.StartIndex == 0 && p.EndIndex == len(ps.Value)
 }
 
-func (jo *JsonObject) AddWithParameters(pname ParameterizedString, pvalue ParameterizedString, value *JsonValue) error {
+func (jo *JsonObject) AddWithParameters(pname ParameterizedString, value *JsonValue) error {
 	name := pname.Value
 	name = strings.Trim(name, " ")
 	if name == "" {
@@ -59,14 +59,6 @@ func (jo *JsonObject) AddWithParameters(pname ParameterizedString, pvalue Parame
 		jo.pnames[name] = pname
 	}
 
-	if pvalue.IsParameterized {
-		if jo.pvalues == nil {
-			jo.pvalues = make(map[string]ParameterizedString)
-		}
-
-		jo.pvalues[name] = pvalue
-	}
-
 	return nil
 }
 
@@ -95,31 +87,59 @@ func ParseJsonObjectWithParameters(s string) (*JsonObject, error) {
 	return jo, nil
 }
 
-func (jo *JsonObject) setObjectParameters(params map[string]JsonValue) {
-	if jo.pvalues != nil {
-		for name, ps := range jo.pvalues {
-			jv, ok := jo.Properties[name]
-			if ok && jv.Type == STRING {
-				s, err := jv.GetString()
-				if err == nil {
-					update := setValueParameters(s, ps, params)
-					if update == nil {
-						jo.Remove(name)
-					} else {
-						jo.Set(name, *update)
-					}
+func (jo *JsonObject) setObjectParameters(props map[string]JsonValue) {
+	if jo.IsEmpty() {
+		return
+	}
+
+	if len(props) == 0 {
+		params, err := jo.GetObject("params")
+		if err == nil && params != nil && !params.IsEmpty() {
+			props = params.Properties
+		}
+	}
+
+	remove := []string{}
+
+	for name, jv := range jo.Properties {
+		if jv.Type == PARAMETERIZED {
+			ps, err := jv.GetParameterizedString()
+			if err == nil {
+				update := setValueParameters(ps.Value, ps, props)
+				if update == nil {
+					jo.Remove(name)
+				} else {
+					jo.Set(name, *update)
+				}
+			}
+		} else if jv.Type == OBJECT {
+			child, err := jv.GetObject()
+			if err == nil {
+				child.setObjectParameters(props)
+				if child.IsEmpty() {
+					remove = append(remove, name)
+				}
+			}
+		} else if jv.Type == ARRAY {
+			ja, err := jv.GetArray()
+			if err == nil {
+				ja.setArrayParameters(props)
+				if ja.IsEmpty() {
+					remove = append(remove, name)
 				}
 			}
 		}
 	}
 
-	jo.pvalues = nil
+	for _, name := range remove {
+		jo.Remove(name)
+	}
 
 	if jo.pnames != nil {
 		for name, ps := range jo.pnames {
 			jv, ok := jo.Properties[name]
 			if ok {
-				update := setValueParameters(name, ps, params)
+				update := setValueParameters(name, ps, props)
 				if update == nil {
 					jo.Remove(name)
 				} else {
@@ -144,18 +164,38 @@ func (jo *JsonObject) setObjectParameters(params map[string]JsonValue) {
 		}
 	}
 
-	jo.pvalues = nil
+	jo.pnames = nil
+}
 
-	if jo.Properties != nil {
-		for _, jv := range jo.Properties {
-			if jv.Type == OBJECT {
-				child, err := jv.GetObject()
-				if err == nil {
-					child.setObjectParameters(params)
+func (ja *JsonArray) setArrayParameters(params map[string]JsonValue) {
+	values := []JsonValue{}
+
+	for _, jv := range ja.Values {
+		if jv.Type == PARAMETERIZED {
+			ps, err := jv.GetParameterizedString()
+			if err == nil {
+				add := setValueParameters(ps.Value, ps, params)
+				if add != nil {
+					values = append(values, *add)
 				}
 			}
+		} else if jv.Type == OBJECT {
+			jo, err := jv.GetObject()
+			if err == nil {
+				jo.setObjectParameters(params)
+				if !jo.IsEmpty() {
+					add, err := NewJsonValue(*jo)
+					if err == nil {
+						values = append(values, *add)
+					}
+				}
+			}
+		} else {
+			values = append(values, jv)
 		}
 	}
+
+	ja.Values = values
 }
 
 func setValueParameters(s string, ps ParameterizedString, params map[string]JsonValue) *JsonValue {
@@ -164,6 +204,30 @@ func setValueParameters(s string, ps ParameterizedString, params map[string]Json
 		jv, ok := params[p.Name]
 		if ok {
 			return &jv
+		}
+	} else {
+		runes := []rune(s)
+		replace := make(map[string]string)
+
+		for _, p := range ps.Parameters {
+			key := string(runes[p.StartIndex:p.EndIndex])
+			jv, ok := params[p.Name]
+			if ok && (jv.Type == STRING || jv.Type == NUMBER || jv.Type == BOOLEAN) {
+				replace[key] = fmt.Sprintf("%v", jv.Value)
+			} else {
+				replace[key] = ""
+			}
+		}
+
+		for key, value := range replace {
+			s = strings.ReplaceAll(s, key, value)
+		}
+
+		if len(s) > 0 {
+			jv, err := NewJsonValue(s)
+			if err == nil {
+				return jv
+			}
 		}
 	}
 
@@ -291,51 +355,3 @@ func parseParameters(runes []rune, index int, r rune, start int, pstart int, pde
 
 	return pstart, pdef, params
 }
-
-/*
-func (jo *JsonObject) SetParameters(parameters map[string]interface{}) (*JsonObject, error) {
-	if jo == nil || jo.IsEmpty() || parameters == nil || len(parameters) == 0 {
-		return jo, nil
-	}
-
-	copy := JsonObject{}
-
-	for name, value := range jo.Properties {
-		jv, err := setParameter(&value, parameters)
-		if err != nil {
-			return nil, err
-		}
-		if jv != nil {
-			copy.Add(name, jv)
-		}
-	}
-
-	return &copy, nil
-}
-
-func setParameter(jv *JsonValue, parameters map[string]interface{}) (*JsonValue, error) {
-	if jv.Type == STRING {
-		s, err := jv.GetString()
-		if err != nil {
-			return nil, err
-		}
-		v, err := trySetParameter(s, parameters)
-		if err != nil {
-			return nil, err
-		}
-		return v, nil
-	} else if jv.Type == OBJECT {
-
-	} else if jv.Type == ARRAY {
-
-	} else {
-		return jv, nil
-	}
-	return nil, nil
-}
-
-func trySetParameter(s string, parameters map[string]interface{}) (*JsonValue, error) {
-
-	return nil, nil
-}
-*/
