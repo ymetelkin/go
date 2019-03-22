@@ -18,12 +18,14 @@ const (
 	TOKEN_CR           rune = 13
 	TOKEN_SPACE        rune = 32
 	TOKEN_QUOTE        rune = 34
+	TOKEN_DOLLAR       rune = 36
 	TOKEN_COMMA        rune = 44
 	TOKEN_MINUS        rune = 45
 	TOKEN_PERIOD       rune = 46
 	TOKEN_0            rune = 48
 	TOKEN_9            rune = 57
 	TOKEN_COLON        rune = 58
+	TOKEN_QUESTION     rune = 63
 	TOKEN_E_UPPER      rune = 69
 	TOKEN_LEFT_SQUARE  rune = 91
 	TOKEN_BACKSLASH    rune = 92
@@ -43,7 +45,7 @@ const (
 	TOKEN_RIGHT_CURLY  rune = 125
 )
 
-func Parse(s string) (*JsonValue, error) {
+func Parse(s string, parameterize bool) (*JsonValue, error) {
 	s = strings.Trim(s, " ")
 	if s == "" {
 		return nil, errors.New("Missing string input")
@@ -57,14 +59,14 @@ func Parse(s string) (*JsonValue, error) {
 	}
 
 	if runes[0] == TOKEN_LEFT_CURLY {
-		jo, _, err := parseObject(runes, size, 0)
+		jo, _, err := parseObject(runes, size, 0, parameterize)
 
 		if err != nil {
 			return nil, err
 		}
 		return &JsonValue{Value: *jo, Type: OBJECT}, nil
 	} else if runes[0] == TOKEN_LEFT_SQUARE {
-		ja, _, err := parseArray(runes, size, 0)
+		ja, _, err := parseArray(runes, size, 0, false)
 
 		if err != nil {
 			return nil, err
@@ -76,7 +78,11 @@ func Parse(s string) (*JsonValue, error) {
 }
 
 func ParseJsonObject(s string) (*JsonObject, error) {
-	jv, err := Parse(s)
+	return parseJsonObject(s, false)
+}
+
+func parseJsonObject(s string, parameterize bool) (*JsonObject, error) {
+	jv, err := Parse(s, parameterize)
 	if err != nil {
 		return nil, err
 	} else {
@@ -90,7 +96,7 @@ func ParseJsonObject(s string) (*JsonObject, error) {
 }
 
 func ParseJsonArray(s string) (*JsonArray, error) {
-	jv, err := Parse(s)
+	jv, err := Parse(s, false)
 	if err != nil {
 		return nil, err
 	} else {
@@ -103,23 +109,41 @@ func ParseJsonArray(s string) (*JsonArray, error) {
 	}
 }
 
-func addProperty(jo *JsonObject, runes []rune, size int, index int) (rune, int, error) {
+func addProperty(jo *JsonObject, runes []rune, size int, index int, parameterize bool) (rune, int, error) {
 	index++
 	r, index := skipWhitespace(runes, size, index)
 
 	if r == TOKEN_QUOTE {
-		name, index, err := parsePropertyName(runes, size, index)
-		if err != nil {
-			return r, index, err
+		var name string
+		var err error
+		var pname ParameterizedString
+
+		if parameterize {
+			pname, index, err = parsePropertyNameWithParameters(runes, size, index)
+			name = pname.Value
+		} else {
+			name, index, err = parsePropertyName(runes, size, index)
 		}
-		index++ //skip colon
-		value, index, err := parseValue(runes, size, index)
 		if err != nil {
 			return r, index, err
 		}
 
+		index++ //skip colon
+		value, index, pvalue, err := parseValue(runes, size, index, parameterize)
+		if err != nil {
+			return r, index, err
+		}
+
+		if pvalue.Value != "" {
+			value = &JsonValue{Value: pvalue.Value, Type: STRING}
+		}
+
 		if value != nil {
-			jo.Add(name, *value)
+			if pname.IsParameterized || pvalue.IsParameterized {
+				jo.AddWithParameters(pname, pvalue, value)
+			} else {
+				jo.Add(name, *value)
+			}
 		}
 		index++
 		r, index = skipWhitespace(runes, size, index)
@@ -138,7 +162,7 @@ func parsePropertyName(runes []rune, size int, index int) (string, int, error) {
 	r := TOKEN_NULL
 	start := index
 
-	for 1 == 1 {
+	for index < size {
 		r = runes[index]
 
 		if r == TOKEN_QUOTE {
@@ -161,61 +185,70 @@ func parsePropertyName(runes []rune, size int, index int) (string, int, error) {
 	return "", index, errors.New(err)
 }
 
-func parseValue(runes []rune, size int, index int) (*JsonValue, int, error) {
+func parseValue(runes []rune, size int, index int, parameterize bool) (*JsonValue, int, ParameterizedString, error) {
 	r, index := skipWhitespace(runes, size, index)
 
 	if r == TOKEN_QUOTE {
 		index++
-		var sb strings.Builder
 
-		for index < size {
-			r := runes[index]
-
-			if r == TOKEN_BACKSLASH {
-				index++
-				if index < size {
-					test := runes[index]
-					if test == TOKEN_R {
-						sb.WriteRune(TOKEN_CR)
-					} else if test == TOKEN_N {
-						sb.WriteRune(TOKEN_LF)
-					} else if test == TOKEN_T {
-						sb.WriteRune(TOKEN_HT)
-					} else if test == TOKEN_B {
-						sb.WriteRune(TOKEN_BS)
-					} else if test == TOKEN_F {
-						sb.WriteRune(TOKEN_FF)
-					} else if test == TOKEN_A {
-						sb.WriteRune(TOKEN_BL)
-					} else if test == TOKEN_V {
-						sb.WriteRune(TOKEN_VT)
-					}
-				}
-			} else if r == TOKEN_QUOTE {
-				return &JsonValue{Value: sb.String(), Type: STRING}, index, nil
-			} else {
-				sb.WriteRune(r)
+		if parameterize {
+			ps, index, err := parseTextValueWithParameters(runes, size, index)
+			if err != nil {
+				return nil, index, ps, err
 			}
+			return nil, index, ps, nil
+		} else {
+			var sb strings.Builder
 
-			index++
+			for index < size {
+				r := runes[index]
+
+				if r == TOKEN_BACKSLASH {
+					index++
+					if index < size {
+						test := runes[index]
+						if test == TOKEN_R {
+							sb.WriteRune(TOKEN_CR)
+						} else if test == TOKEN_N {
+							sb.WriteRune(TOKEN_LF)
+						} else if test == TOKEN_T {
+							sb.WriteRune(TOKEN_HT)
+						} else if test == TOKEN_B {
+							sb.WriteRune(TOKEN_BS)
+						} else if test == TOKEN_F {
+							sb.WriteRune(TOKEN_FF)
+						} else if test == TOKEN_A {
+							sb.WriteRune(TOKEN_BL)
+						} else if test == TOKEN_V {
+							sb.WriteRune(TOKEN_VT)
+						}
+					}
+				} else if r == TOKEN_QUOTE {
+					return &JsonValue{Value: sb.String(), Type: STRING}, index, ParameterizedString{}, nil
+				} else {
+					sb.WriteRune(r)
+				}
+
+				index++
+			}
+			return nil, index, ParameterizedString{}, nil
 		}
-		return nil, index, nil
 	}
 
 	if r == TOKEN_LEFT_CURLY {
-		jo, index, err := parseObject(runes, size, index)
+		jo, index, err := parseObject(runes, size, index, parameterize)
 		if err != nil {
-			return nil, index, err
+			return nil, index, ParameterizedString{}, err
 		}
-		return &JsonValue{Value: *jo, Type: OBJECT}, index, nil
+		return &JsonValue{Value: *jo, Type: OBJECT}, index, ParameterizedString{}, nil
 	}
 
 	if r == TOKEN_LEFT_SQUARE {
-		ja, index, err := parseArray(runes, size, index)
+		ja, index, err := parseArray(runes, size, index, parameterize)
 		if err != nil {
-			return nil, index, err
+			return nil, index, ParameterizedString{}, err
 		}
-		return &JsonValue{Value: *ja, Type: ARRAY}, index, nil
+		return &JsonValue{Value: *ja, Type: ARRAY}, index, ParameterizedString{}, nil
 	}
 
 	if r == TOKEN_T {
@@ -225,7 +258,7 @@ func parseValue(runes []rune, size int, index int) (*JsonValue, int, error) {
 			if index < size && runes[index] == TOKEN_U {
 				index++
 				if index < size && runes[index] == TOKEN_E {
-					return &JsonValue{Value: true, Type: BOOLEAN}, index, nil
+					return &JsonValue{Value: true, Type: BOOLEAN}, index, ParameterizedString{}, nil
 				}
 			}
 		}
@@ -238,7 +271,7 @@ func parseValue(runes []rune, size int, index int) (*JsonValue, int, error) {
 				if index < size && runes[index] == TOKEN_S {
 					index++
 					if index < size && runes[index] == TOKEN_E {
-						return &JsonValue{Value: false, Type: BOOLEAN}, index, nil
+						return &JsonValue{Value: false, Type: BOOLEAN}, index, ParameterizedString{}, nil
 					}
 				}
 			}
@@ -250,7 +283,7 @@ func parseValue(runes []rune, size int, index int) (*JsonValue, int, error) {
 			if index < size && runes[index] == TOKEN_L {
 				index++
 				if index < size && runes[index] == TOKEN_L {
-					return &JsonValue{Value: nil, Type: NULL}, index, nil
+					return &JsonValue{Value: nil, Type: NULL}, index, ParameterizedString{}, nil
 				}
 			}
 		}
@@ -288,33 +321,33 @@ func parseValue(runes []rune, size int, index int) (*JsonValue, int, error) {
 		if floating {
 			f, err := strconv.ParseFloat(s, 64)
 			if err == nil {
-				return &JsonValue{Value: f, Type: NUMBER}, index, nil
+				return &JsonValue{Value: f, Type: NUMBER}, index, ParameterizedString{}, nil
 			}
 		} else {
 			i, err := strconv.ParseInt(s, 0, 64)
 			if err == nil {
-				return &JsonValue{Value: i, Type: NUMBER}, index, nil
+				return &JsonValue{Value: i, Type: NUMBER}, index, ParameterizedString{}, nil
 			}
 		}
 
 		err := fmt.Sprintf("Expected number, found '%s'", s)
-		return nil, index, errors.New(err)
+		return nil, index, ParameterizedString{}, errors.New(err)
 	}
 
 	err := fmt.Sprintf("Unexpected character: '%c'", r)
-	return nil, index, errors.New(err)
+	return nil, index, ParameterizedString{}, errors.New(err)
 }
 
-func parseObject(runes []rune, size int, index int) (*JsonObject, int, error) {
+func parseObject(runes []rune, size int, index int, parameterize bool) (*JsonObject, int, error) {
 	jo := JsonObject{}
 
-	r, index, err := addProperty(&jo, runes, size, index)
+	r, index, err := addProperty(&jo, runes, size, index, parameterize)
 	if err != nil {
 		return nil, index, err
 	}
 
 	for r == TOKEN_COMMA {
-		r, index, err = addProperty(&jo, runes, size, index)
+		r, index, err = addProperty(&jo, runes, size, index, parameterize)
 		if err != nil {
 			return nil, index, err
 		}
@@ -328,16 +361,20 @@ func parseObject(runes []rune, size int, index int) (*JsonObject, int, error) {
 	return &jo, index, nil
 }
 
-func addValue(ja *JsonArray, runes []rune, size int, index int) (rune, int, error) {
+func addValue(ja *JsonArray, runes []rune, size int, index int, parameterize bool) (rune, int, error) {
 	index++
 	r, index := skipWhitespace(runes, size, index)
 
 	if r == TOKEN_RIGHT_SQUARE {
 		return r, index, nil
 	} else {
-		value, index, err := parseValue(runes, size, index)
+		value, index, ps, err := parseValue(runes, size, index, parameterize)
 		if err != nil {
 			return r, index, err
+		}
+
+		if ps.IsParameterized {
+
 		}
 
 		if value != nil {
@@ -349,16 +386,16 @@ func addValue(ja *JsonArray, runes []rune, size int, index int) (rune, int, erro
 	}
 }
 
-func parseArray(runes []rune, size int, index int) (*JsonArray, int, error) {
+func parseArray(runes []rune, size int, index int, parameterize bool) (*JsonArray, int, error) {
 	ja := JsonArray{}
 
-	r, index, err := addValue(&ja, runes, size, index)
+	r, index, err := addValue(&ja, runes, size, index, parameterize)
 	if err != nil {
 		return nil, index, err
 	}
 
 	for r == TOKEN_COMMA {
-		r, index, err = addValue(&ja, runes, size, index)
+		r, index, err = addValue(&ja, runes, size, index, parameterize)
 		if err != nil {
 			return nil, index, err
 		}
