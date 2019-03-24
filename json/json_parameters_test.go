@@ -225,4 +225,28 @@ func TestJsonObjectWithParametersParsing(t *testing.T) {
 	} else {
 		fmt.Printf("%s\n", jo.ToString(true))
 	}
+
+	s = `{"first_name":"${first_name?Yuri}","last_name":"${last_name?Metelkine}","params":{"last_name":"Metelkin"}}`
+	jo, err = ParseJsonObjectWithParameters(s)
+	if err != nil {
+		t.Error(err.Error())
+	} else {
+		fmt.Printf("%s\n", jo.ToString(true))
+	}
+
+	s = `{"name":"${first_name?Yuri} ${last_name?Metelkine}","params":{"last_name":"Metelkin"}}`
+	jo, err = ParseJsonObjectWithParameters(s)
+	if err != nil {
+		t.Error(err.Error())
+	} else {
+		fmt.Printf("%s\n", jo.ToString(true))
+	}
+
+	s = `{"template":{"_source":["headline","${field1}","${field2}","${field3?test}"],"params":{"field1":"type","field2":"date"}}}`
+	jo, err = ParseJsonObjectWithParameters(s)
+	if err != nil {
+		t.Error(err.Error())
+	} else {
+		fmt.Printf("%s\n", jo.ToString(true))
+	}
 }
