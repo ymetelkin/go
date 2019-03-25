@@ -24,6 +24,7 @@ type JsonValue struct {
 	Type  JsonType
 }
 
+/*
 func NewJsonValue(value interface{}) (*JsonValue, error) {
 	if value == nil {
 		return &JsonValue{Value: nil, Type: NULL}, nil
@@ -56,6 +57,7 @@ func NewJsonValue(value interface{}) (*JsonValue, error) {
 	err := fmt.Sprintf("Unsupported value type: %T", value)
 	return nil, errors.New(err)
 }
+*/
 
 func (jv JsonValue) GetInt() (int, error) {
 	if jv.Type == NUMBER {

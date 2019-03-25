@@ -39,12 +39,7 @@ func (jo *JsonObject) AddWithParameters(pname ParameterizedString, value *JsonVa
 		jo.Properties = make(map[string]JsonValue)
 	}
 
-	jv, err := NewJsonValue(*value)
-	if err != nil {
-		return err
-	}
-	jo.Properties[name] = *jv
-
+	jo.Properties[name] = *value
 	if jo.names == nil {
 		jo.names = []string{name}
 	} else {
@@ -102,7 +97,7 @@ func (jo *JsonObject) setObjectParameters(props map[string]JsonValue) bool {
 				if update == nil {
 					jo.Remove(name)
 				} else {
-					jo.Set(name, *update)
+					jo.Set(name, update)
 				}
 			}
 		} else if jv.Type == OBJECT {
@@ -113,7 +108,7 @@ func (jo *JsonObject) setObjectParameters(props map[string]JsonValue) bool {
 					if child.IsEmpty() {
 						remove = append(remove, name)
 					} else {
-						jo.Set(name, JsonValue{Value: *child, Type: OBJECT})
+						jo.Set(name, &JsonValue{Value: *child, Type: OBJECT})
 					}
 				}
 			}
@@ -125,7 +120,7 @@ func (jo *JsonObject) setObjectParameters(props map[string]JsonValue) bool {
 					if ja.IsEmpty() {
 						remove = append(remove, name)
 					} else {
-						jo.Set(name, JsonValue{Value: *ja, Type: ARRAY})
+						jo.Set(name, &JsonValue{Value: *ja, Type: ARRAY})
 					}
 				}
 			}

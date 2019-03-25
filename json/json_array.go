@@ -19,40 +19,29 @@ func (ja *JsonArray) Copy() *JsonArray {
 
 	if ja.Values != nil {
 		for _, jv := range ja.Values {
-			copy.Add(jv)
+			copy.Add(&jv)
 		}
 	}
 
 	return &copy
 }
 
-func (ja *JsonArray) Add(value interface{}) (int, error) {
-	jv, err := NewJsonValue(value)
-	if err != nil {
-		return -1, err
-	}
-
+func (ja *JsonArray) Add(value *JsonValue) (int, error) {
 	if ja.Values == nil {
-		ja.Values = []JsonValue{*jv}
+		ja.Values = []JsonValue{*value}
 	} else {
-		ja.Values = append(ja.Values, *jv)
+		ja.Values = append(ja.Values, *value)
 	}
 
 	return len(ja.Values) - 1, nil
 }
 
-func (ja *JsonArray) Set(index int, value interface{}) error {
+func (ja *JsonArray) Set(index int, value *JsonValue) error {
 	if ja.Values == nil || len(ja.Values) <= index {
 		err := fmt.Sprintf("Position [%d] does not exist", index)
 		return errors.New(err)
 	}
-
-	jv, err := NewJsonValue(value)
-	if err != nil {
-		return err
-	}
-	ja.Values[index] = *jv
-
+	ja.Values[index] = *value
 	return nil
 }
 

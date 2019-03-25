@@ -45,7 +45,25 @@ const (
 	TOKEN_RIGHT_CURLY  rune = 125
 )
 
-func Parse(s string, parameterize bool) (*JsonValue, error) {
+func ParseJsonObject(s string) (*JsonObject, error) {
+	return parseJsonObject(s, false)
+}
+
+func ParseJsonArray(s string) (*JsonArray, error) {
+	jv, err := parseJsonValue(s, false)
+	if err != nil {
+		return nil, err
+	} else {
+		ja, err := jv.GetArray()
+		if err != nil {
+			return nil, err
+		} else {
+			return ja, nil
+		}
+	}
+}
+
+func parseJsonValue(s string, parameterize bool) (*JsonValue, error) {
 	s = strings.Trim(s, " ")
 	if s == "" {
 		return nil, errors.New("Missing string input")
@@ -77,12 +95,8 @@ func Parse(s string, parameterize bool) (*JsonValue, error) {
 	}
 }
 
-func ParseJsonObject(s string) (*JsonObject, error) {
-	return parseJsonObject(s, false)
-}
-
 func parseJsonObject(s string, parameterize bool) (*JsonObject, error) {
-	jv, err := Parse(s, parameterize)
+	jv, err := parseJsonValue(s, parameterize)
 	if err != nil {
 		return nil, err
 	} else {
@@ -91,20 +105,6 @@ func parseJsonObject(s string, parameterize bool) (*JsonObject, error) {
 			return nil, err
 		} else {
 			return jo, nil
-		}
-	}
-}
-
-func ParseJsonArray(s string) (*JsonArray, error) {
-	jv, err := Parse(s, false)
-	if err != nil {
-		return nil, err
-	} else {
-		ja, err := jv.GetArray()
-		if err != nil {
-			return nil, err
-		} else {
-			return ja, nil
 		}
 	}
 }
@@ -146,7 +146,7 @@ func addProperty(jo *JsonObject, runes []rune, size int, index int, parameterize
 			if pname.IsParameterized || pvalue.IsParameterized {
 				jo.AddWithParameters(pname, value)
 			} else {
-				jo.Add(name, *value)
+				jo.Add(name, value)
 			}
 		}
 		index++
@@ -386,7 +386,7 @@ func addValue(ja *JsonArray, runes []rune, size int, index int, parameterize boo
 		}
 
 		if value != nil {
-			ja.Add(*value)
+			ja.Add(value)
 		}
 		index++
 		r, index = skipWhitespace(runes, size, index)
