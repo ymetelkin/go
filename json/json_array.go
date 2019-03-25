@@ -82,8 +82,12 @@ func (ja *JsonArray) Length() int {
 	return len(ja.Values)
 }
 
-func (ja *JsonArray) ToString(pretty bool) string {
-	return ja.toString(pretty, 0)
+func (ja *JsonArray) ToString() string {
+	return ja.toString(true, 0)
+}
+
+func (ja *JsonArray) ToInlineString(pretty bool) string {
+	return ja.toString(false, 0)
 }
 
 func (ja *JsonArray) toString(pretty bool, level int) string {

@@ -205,8 +205,12 @@ func (jo *JsonObject) IsEmpty() bool {
 	return false
 }
 
-func (jo *JsonObject) ToString(pretty bool) string {
-	return jo.toString(pretty, 0)
+func (jo *JsonObject) ToString() string {
+	return jo.toString(true, 0)
+}
+
+func (jo *JsonObject) ToInlineString() string {
+	return jo.toString(false, 0)
 }
 
 func (jo *JsonObject) toString(pretty bool, level int) string {
