@@ -97,7 +97,7 @@ func (jo *JsonObject) setObjectParameters(props map[string]JsonValue) bool {
 				if update == nil {
 					jo.Remove(name)
 				} else {
-					jo.Set(name, update)
+					jo.SetValue(name, update)
 				}
 			}
 		} else if jv.Type == OBJECT {
@@ -108,7 +108,7 @@ func (jo *JsonObject) setObjectParameters(props map[string]JsonValue) bool {
 					if child.IsEmpty() {
 						remove = append(remove, name)
 					} else {
-						jo.Set(name, &JsonValue{Value: *child, Type: OBJECT})
+						jo.SetValue(name, &JsonValue{Value: *child, Type: OBJECT})
 					}
 				}
 			}
@@ -120,7 +120,7 @@ func (jo *JsonObject) setObjectParameters(props map[string]JsonValue) bool {
 					if ja.IsEmpty() {
 						remove = append(remove, name)
 					} else {
-						jo.Set(name, &JsonValue{Value: *ja, Type: ARRAY})
+						jo.SetValue(name, &JsonValue{Value: *ja, Type: ARRAY})
 					}
 				}
 			}

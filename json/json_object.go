@@ -21,14 +21,14 @@ func (jo *JsonObject) Copy() *JsonObject {
 
 	if jo.Properties != nil {
 		for name, value := range jo.Properties {
-			copy.Add(name, &value)
+			copy.AddValue(name, &value)
 		}
 	}
 
 	return &copy
 }
 
-func (jo *JsonObject) Add(name string, value *JsonValue) error {
+func (jo *JsonObject) AddValue(name string, value *JsonValue) error {
 	name = strings.Trim(name, " ")
 	if name == "" {
 		return errors.New("Missing field name")
@@ -49,7 +49,15 @@ func (jo *JsonObject) Add(name string, value *JsonValue) error {
 	return nil
 }
 
-func (jo *JsonObject) Set(name string, value *JsonValue) error {
+func (jo *JsonObject) Add(name string, value interface{}) error {
+	jv, err := newJsonValue(value)
+	if err != nil {
+		return err
+	}
+	return jo.AddValue(name, jv)
+}
+
+func (jo *JsonObject) SetValue(name string, value *JsonValue) error {
 	name = strings.Trim(name, " ")
 	if name == "" {
 		return errors.New("Missing field name")
@@ -69,6 +77,14 @@ func (jo *JsonObject) Set(name string, value *JsonValue) error {
 	jo.Properties[name] = *value
 
 	return nil
+}
+
+func (jo *JsonObject) Set(name string, value interface{}) error {
+	jv, err := newJsonValue(value)
+	if err != nil {
+		return err
+	}
+	return jo.SetValue(name, jv)
 }
 
 func (jo *JsonObject) Remove(name string) error {

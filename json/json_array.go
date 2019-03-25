@@ -19,30 +19,46 @@ func (ja *JsonArray) Copy() *JsonArray {
 
 	if ja.Values != nil {
 		for _, jv := range ja.Values {
-			copy.Add(&jv)
+			copy.AddValue(&jv)
 		}
 	}
 
 	return &copy
 }
 
-func (ja *JsonArray) Add(value *JsonValue) (int, error) {
+func (ja *JsonArray) AddValue(value *JsonValue) int {
 	if ja.Values == nil {
 		ja.Values = []JsonValue{*value}
 	} else {
 		ja.Values = append(ja.Values, *value)
 	}
 
-	return len(ja.Values) - 1, nil
+	return len(ja.Values) - 1
 }
 
-func (ja *JsonArray) Set(index int, value *JsonValue) error {
+func (ja *JsonArray) Add(value interface{}) (int, error) {
+	jv, err := newJsonValue(value)
+	if err != nil {
+		return len(ja.Values) - 1, err
+	}
+	return ja.AddValue(jv), nil
+}
+
+func (ja *JsonArray) SetValue(index int, value *JsonValue) error {
 	if ja.Values == nil || len(ja.Values) <= index {
 		err := fmt.Sprintf("Position [%d] does not exist", index)
 		return errors.New(err)
 	}
 	ja.Values[index] = *value
 	return nil
+}
+
+func (ja *JsonArray) Set(index int, value interface{}) error {
+	jv, err := newJsonValue(value)
+	if err != nil {
+		return err
+	}
+	return ja.SetValue(index, jv)
 }
 
 func (ja *JsonArray) Remove(index int) error {
@@ -86,7 +102,7 @@ func (ja *JsonArray) ToString() string {
 	return ja.toString(true, 0)
 }
 
-func (ja *JsonArray) ToInlineString(pretty bool) string {
+func (ja *JsonArray) ToInlineString() string {
 	return ja.toString(false, 0)
 }
 

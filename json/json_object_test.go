@@ -53,7 +53,7 @@ func TestObjectAdd(t *testing.T) {
 		if err != nil {
 			t.Error(err.Error())
 		} else {
-			fmt.Printf("child: %s\n", c.ToString(false))
+			fmt.Printf("child: %s\n", c.ToInlineString())
 		}
 	}
 
@@ -68,7 +68,7 @@ func TestObjectAdd(t *testing.T) {
 		if err != nil {
 			t.Error(err.Error())
 		} else {
-			fmt.Printf("products: %s\n", products.ToString(false))
+			fmt.Printf("products: %s\n", products.ToInlineString())
 		}
 	}
 
@@ -77,7 +77,7 @@ func TestObjectAdd(t *testing.T) {
 		t.Error("Must not be empty")
 	}
 
-	fmt.Printf("%s\n", jo.ToString(true))
+	fmt.Printf("%s\n", jo.ToString())
 }
 
 func TestObjectCopy(t *testing.T) {
@@ -105,7 +105,7 @@ func TestObjectCopy(t *testing.T) {
 		t.Error("Must not be empty")
 	}
 
-	fmt.Printf("%s\n", jo.ToString(true))
+	fmt.Printf("%s\n", jo.ToString())
 }
 
 func TestObjectRemove(t *testing.T) {
@@ -128,5 +128,5 @@ func TestObjectRemove(t *testing.T) {
 		t.Error("Failed to fail to remove empty field")
 	}
 
-	fmt.Printf("%s\n", jo.ToString(true))
+	fmt.Printf("%s\n", jo.ToString())
 }

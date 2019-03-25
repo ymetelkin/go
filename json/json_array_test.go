@@ -77,7 +77,7 @@ func TestArrayAdd(t *testing.T) {
 			if err != nil {
 				t.Error(err.Error())
 			} else {
-				fmt.Printf("%d\t%s\n", i, obj.ToString(false))
+				fmt.Printf("%d\t%s\n", i, obj.ToInlineString())
 			}
 		}
 	}
@@ -87,7 +87,7 @@ func TestArrayAdd(t *testing.T) {
 		t.Error("Must not be empty")
 	}
 
-	s := ja.ToString(true)
+	s := ja.ToString()
 	fmt.Printf("%s\n", s)
 }
 
@@ -108,7 +108,7 @@ func TestArrayCopy(t *testing.T) {
 		t.Error("Must have same size as source")
 	}
 
-	s := copy.ToString(true)
+	s := copy.ToString()
 	fmt.Printf("%s\n", s)
 }
 
@@ -124,6 +124,6 @@ func TestArrayRemove(t *testing.T) {
 		t.Error("Must have size 2")
 	}
 
-	s := ja.ToString(true)
+	s := ja.ToString()
 	fmt.Printf("%s\n", s)
 }

@@ -6,7 +6,7 @@ import (
 )
 
 func TestNewJsonValue(t *testing.T) {
-	jv, err := NewJsonValue("test")
+	jv, err := newJsonValue("test")
 	fmt.Printf("%T\t%s %d\n", jv.Value, jv.Value, jv.Type)
 	if err != nil {
 		t.Error(err.Error())
@@ -22,7 +22,7 @@ func TestNewJsonValue(t *testing.T) {
 		fmt.Printf("%s; %s is not %d\n", err.Error(), jv.Value, i)
 	}
 
-	jv, err = NewJsonValue(123)
+	jv, err = newJsonValue(123)
 	fmt.Printf("%T\t%d %d\n", jv.Value, jv.Value, jv.Type)
 	if err != nil {
 		t.Error(err.Error())
@@ -38,7 +38,7 @@ func TestNewJsonValue(t *testing.T) {
 		fmt.Printf("Value of %d is %d\n", jv.Value, i)
 	}
 
-	jv, err = NewJsonValue(1.23)
+	jv, err = newJsonValue(1.23)
 	fmt.Printf("%T\t%f %d\n", jv.Value, jv.Value, jv.Type)
 	if err != nil {
 		t.Error(err.Error())
@@ -54,7 +54,7 @@ func TestNewJsonValue(t *testing.T) {
 		fmt.Printf("Value of %f is %d\n", jv.Value, i)
 	}
 
-	jv, err = NewJsonValue("1.23")
+	jv, err = newJsonValue("1.23")
 	i, err = jv.GetInt()
 	if err != nil {
 		t.Error(err.Error())
@@ -76,7 +76,7 @@ func TestNewJsonValue(t *testing.T) {
 		fmt.Printf("Value of %s is %s\n", jv.Value, s)
 	}
 
-	jv, err = NewJsonValue(true)
+	jv, err = newJsonValue(true)
 	b, err := jv.GetBoolean()
 	if err != nil {
 		t.Error(err.Error())
@@ -84,7 +84,7 @@ func TestNewJsonValue(t *testing.T) {
 		fmt.Printf("Value of %t is %t\n", jv.Value, b)
 	}
 
-	jv, err = NewJsonValue("true")
+	jv, err = newJsonValue("true")
 	b, err = jv.GetBoolean()
 	if err != nil {
 		t.Error(err.Error())

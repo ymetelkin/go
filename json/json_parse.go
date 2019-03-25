@@ -146,7 +146,7 @@ func addProperty(jo *JsonObject, runes []rune, size int, index int, parameterize
 			if pname.IsParameterized || pvalue.IsParameterized {
 				jo.AddWithParameters(pname, value)
 			} else {
-				jo.Add(name, value)
+				jo.AddValue(name, value)
 			}
 		}
 		index++
@@ -386,7 +386,7 @@ func addValue(ja *JsonArray, runes []rune, size int, index int, parameterize boo
 		}
 
 		if value != nil {
-			ja.Add(value)
+			ja.AddValue(value)
 		}
 		index++
 		r, index = skipWhitespace(runes, size, index)
