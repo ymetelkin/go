@@ -24,41 +24,6 @@ type JsonValue struct {
 	Type  JsonType
 }
 
-/*
-func NewJsonValue(value interface{}) (*JsonValue, error) {
-	if value == nil {
-		return &JsonValue{Value: nil, Type: NULL}, nil
-	}
-
-	switch value.(type) {
-	case JsonValue:
-		jv, ok := value.(JsonValue)
-		if ok {
-			return &jv, nil
-		}
-	case string:
-		return &JsonValue{Value: value, Type: STRING}, nil
-	case JsonObject:
-		return &JsonValue{Value: value, Type: OBJECT}, nil
-	case JsonArray:
-		return &JsonValue{Value: value, Type: ARRAY}, nil
-	case bool:
-		return &JsonValue{Value: value, Type: BOOLEAN}, nil
-	case ParameterizedString:
-		return &JsonValue{Value: value, Type: PARAMETERIZED}, nil
-	case int, int8, int16, int32, int64:
-		return &JsonValue{Value: value, Type: NUMBER}, nil
-	case float32, float64:
-		return &JsonValue{Value: value, Type: NUMBER}, nil
-	case uint, uint8, uint16, uint32, uint64:
-		return &JsonValue{Value: value, Type: NUMBER}, nil
-	}
-
-	err := fmt.Sprintf("Unsupported value type: %T", value)
-	return nil, errors.New(err)
-}
-*/
-
 func (jv JsonValue) GetInt() (int, error) {
 	if jv.Type == NUMBER {
 		i, ok := jv.Value.(int)
