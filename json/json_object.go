@@ -49,6 +49,30 @@ func (jo *JsonObject) AddValue(name string, value *JsonValue) error {
 	return nil
 }
 
+func (jo *JsonObject) AddString(name string, value string) error {
+	return jo.AddValue(name, &JsonValue{Value: value, Type: STRING})
+}
+
+func (jo *JsonObject) AddInt(name string, value int) error {
+	return jo.AddValue(name, &JsonValue{Value: value, Type: NUMBER})
+}
+
+func (jo *JsonObject) AddFloat(name string, value float64) error {
+	return jo.AddValue(name, &JsonValue{Value: value, Type: NUMBER})
+}
+
+func (jo *JsonObject) AddBoolean(name string, value bool) error {
+	return jo.AddValue(name, &JsonValue{Value: value, Type: BOOLEAN})
+}
+
+func (jo *JsonObject) AddObject(name string, value *JsonObject) error {
+	return jo.AddValue(name, &JsonValue{Value: *value, Type: OBJECT})
+}
+
+func (jo *JsonObject) AddArray(name string, value *JsonArray) error {
+	return jo.AddValue(name, &JsonValue{Value: *value, Type: ARRAY})
+}
+
 func (jo *JsonObject) Add(name string, value interface{}) error {
 	jv, err := newJsonValue(value)
 	if err != nil {
