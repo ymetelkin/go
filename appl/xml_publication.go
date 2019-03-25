@@ -5,7 +5,8 @@ import (
 )
 
 type XmlPublication struct {
-	Identification XmlIdentification
+	Identification        XmlIdentification
+	PublicationManagement XmlPublicationManagement
 }
 
 func (publication *XmlPublication) ToJson(jo *json.JsonObject) error {
@@ -15,6 +16,24 @@ func (publication *XmlPublication) ToJson(jo *json.JsonObject) error {
 	err := publication.Identification.ToJson(jo)
 	if err != nil {
 		return err
+	}
+
+	err = publication.PublicationManagement.ToJson(jo)
+	if err != nil {
+		return err
+	}
+
+	err = publication.getReferenceId(jo)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (publication *XmlPublication) getReferenceId(jo *json.JsonObject) error {
+	if publication.Identification.referenceid != "" {
+		return nil
 	}
 
 	return nil

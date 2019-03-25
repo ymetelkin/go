@@ -23,7 +23,14 @@ func TestIdentification(t *testing.T) {
 		<DefaultLanguage>en-us</DefaultLanguage>
 		<RecordSequenceNumber>2</RecordSequenceNumber>
 		<FriendlyKey>18212677756771</FriendlyKey>
-  	</Identification> 
+	  </Identification> 
+	  <PublicationManagement>
+		<RecordType>Change</RecordType>
+		<FilingType>Text</FilingType>
+		<FirstCreated UserAccount="APGBL" UserAccountSystem="APADS" UserName="APGBL\dcampbell"
+			Year="2012" Month="3" Day="12" Time="20:54:44"/>
+		<Status>Usable</Status>
+	  </PublicationManagement>
 </Publication>
 `
 	jo, err := XmlToJson(s)

@@ -11,13 +11,13 @@ import (
 type MediaType string
 
 const (
-	TEXT          MediaType = "text"
-	PHOTO         MediaType = "photo"
-	VIDEO         MediaType = "video"
-	AUDIO         MediaType = "audio"
-	GRAPHIC       MediaType = "graphic"
-	COMPLEXT_DATA MediaType = "complexdata"
-	UNKNOWN       MediaType = ""
+	MEDIATYPE_TEXT          MediaType = "text"
+	MEDIATYPE_PHOTO         MediaType = "photo"
+	MEDIATYPE_VIDEO         MediaType = "video"
+	MEDIATYPE_AUDIO         MediaType = "audio"
+	MEDIATYPE_GRAPHIC       MediaType = "graphic"
+	MEDIATYPE_COMPLEXT_DATA MediaType = "complexdata"
+	MEDIATYPE_UNKNOWN       MediaType = ""
 )
 
 type XmlIdentification struct {
@@ -32,28 +32,28 @@ type XmlIdentification struct {
 	RecordSequenceNumber int
 	FriendlyKey          string
 
-	mediaType MediaType
+	mediaType   MediaType
+	referenceid string
 }
 
 func (identification *XmlIdentification) GetMediaType() (MediaType, error) {
 	if identification.mediaType == "" {
-		s := strings.ToLower(identification.MediaType)
-		switch s {
-		case "text":
-			identification.mediaType = TEXT
-		case "photo":
-			identification.mediaType = PHOTO
-		case "video":
-			identification.mediaType = VIDEO
-		case "audio":
-			identification.mediaType = AUDIO
-		case "graphic":
-			identification.mediaType = GRAPHIC
-		case "complexdata":
-			identification.mediaType = COMPLEXT_DATA
-		default:
-			e := fmt.Sprintf("Invalid media type [%s]", s)
-			return UNKNOWN, errors.New(e)
+		left := identification.MediaType
+		if strings.EqualFold(left, "text") {
+			identification.mediaType = MEDIATYPE_TEXT
+		} else if strings.EqualFold(left, "photo") {
+			identification.mediaType = MEDIATYPE_PHOTO
+		} else if strings.EqualFold(left, "video") {
+			identification.mediaType = MEDIATYPE_VIDEO
+		} else if strings.EqualFold(left, "audio") {
+			identification.mediaType = MEDIATYPE_AUDIO
+		} else if strings.EqualFold(left, "graphic") {
+			identification.mediaType = MEDIATYPE_GRAPHIC
+		} else if strings.EqualFold(left, "complexdata") {
+			identification.mediaType = MEDIATYPE_COMPLEXT_DATA
+		} else {
+			e := fmt.Sprintf("Invalid media type [%s]", identification.MediaType)
+			return MEDIATYPE_UNKNOWN, errors.New(e)
 		}
 	}
 
@@ -62,16 +62,16 @@ func (identification *XmlIdentification) GetMediaType() (MediaType, error) {
 
 func (identification *XmlIdentification) ToJson(jo *json.JsonObject) error {
 	if identification.ItemId == "" {
-		return errors.New("[ItemId] is missing")
+		return errors.New("[Identification.ItemId] is missing")
 	}
 	if identification.RecordId == "" {
-		return errors.New("[RecordId] is missing")
+		return errors.New("[Identification.RecordId] is missing")
 	}
 	if identification.CompositeId == "" {
-		return errors.New("[CompositeId] is missing")
+		return errors.New("[Identification.CompositeId] is missing")
 	}
 	if identification.CompositionType == "" {
-		return errors.New("[CompositionType] is missing")
+		return errors.New("[Identification.CompositionType] is missing")
 	}
 
 	t, err := identification.GetMediaType()
@@ -99,18 +99,17 @@ func (identification *XmlIdentification) ToJson(jo *json.JsonObject) error {
 		jo.AddInt("recordsequencenumber", identification.RecordSequenceNumber)
 	}
 	if identification.FriendlyKey != "" {
-		jo.AddString("friendlykey ", identification.FriendlyKey)
+		jo.AddString("friendlykey", identification.FriendlyKey)
 	}
 
-	referenceid := ""
-	if t == PHOTO || t == GRAPHIC {
+	if t == MEDIATYPE_PHOTO || t == MEDIATYPE_GRAPHIC {
 		if identification.FriendlyKey == "" {
-			referenceid = identification.ItemId
+			identification.referenceid = identification.ItemId
 		} else {
-			referenceid = identification.FriendlyKey
+			identification.referenceid = identification.FriendlyKey
 		}
 	}
-	jo.AddString("referenceid", referenceid)
+	jo.AddString("referenceid", identification.referenceid)
 
 	return nil
 }

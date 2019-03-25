@@ -36,6 +36,30 @@ func (ja *JsonArray) AddValue(value *JsonValue) int {
 	return len(ja.Values) - 1
 }
 
+func (ja *JsonArray) AddString(value string) int {
+	return ja.AddValue(&JsonValue{Value: value, Type: STRING})
+}
+
+func (ja *JsonArray) AddInt(value int) int {
+	return ja.AddValue(&JsonValue{Value: value, Type: NUMBER})
+}
+
+func (ja *JsonArray) AddFloat(value float64) int {
+	return ja.AddValue(&JsonValue{Value: value, Type: NUMBER})
+}
+
+func (ja *JsonArray) AddBoolean(value bool) int {
+	return ja.AddValue(&JsonValue{Value: value, Type: BOOLEAN})
+}
+
+func (ja *JsonArray) AddObject(value *JsonObject) int {
+	return ja.AddValue(&JsonValue{Value: *value, Type: OBJECT})
+}
+
+func (ja *JsonArray) AddArray(value *JsonArray) int {
+	return ja.AddValue(&JsonValue{Value: *value, Type: ARRAY})
+}
+
 func (ja *JsonArray) Add(value interface{}) (int, error) {
 	jv, err := newJsonValue(value)
 	if err != nil {
