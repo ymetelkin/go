@@ -8,6 +8,7 @@ import (
 	"github.com/ymetelkin/go/json"
 )
 
+/*
 type MediaType string
 
 const (
@@ -19,6 +20,7 @@ const (
 	MEDIATYPE_COMPLEXT_DATA MediaType = "complexdata"
 	MEDIATYPE_UNKNOWN       MediaType = ""
 )
+*/
 
 type XmlIdentification struct {
 	ItemId               string

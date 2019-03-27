@@ -7,18 +7,20 @@ import (
 
 func TestManagement(t *testing.T) {
 	s := `
-<Publication 
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-   	Version="5.0.0.9"
-	   xmlns="http://ap.org/schemas/03/2005/appl">
-	<Identification>
-		<ItemId>1</ItemId>
-		<RecordId>2</RecordId>
-		<CompositeId>3</CompositeId>
-		<CompositionType>StandardPrintPhoto</CompositionType>
-		<MediaType>Photo</MediaType>
-	 </Identification> 
+<Publication>
+	<PublicationManagement>
+  	</PublicationManagement> 
+</Publication>
+`
+	_, err := XmlToJson(s)
+	if err == nil {
+		t.Error("Must throw")
+	} else {
+		fmt.Printf("%s\n", err.Error())
+	}
+
+	s = `
+<Publication>
 	<PublicationManagement>
 		<RecordType>Change</RecordType>
 		<FilingType>Text</FilingType>
@@ -70,33 +72,48 @@ func TestManagement(t *testing.T) {
 	 </PublicationManagement>   
 </Publication>
 `
-	jo, err := XmlToJson(s)
+	pub, _ := NewXml(s)
+	aj := ApplJson{Xml: pub}
+
+	err = pub.PublicationManagement.parse(&aj)
 	if err != nil {
 		t.Error(err.Error())
-	} else if s, _ := jo.GetString("recordtype"); s != "Change" {
-		t.Error("Mismatch: [recordtype]")
-	} else if s, _ := jo.GetString("filingtype"); s != "Text" {
-		t.Error("Mismatch: [type]")
-	} else {
-		fmt.Printf("%s\n", jo.ToString())
 	}
-}
 
-func TestManagementValidation(t *testing.T) {
-	s := `
-<Publication 
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-   	Version="5.0.0.9"
-	   xmlns="http://ap.org/schemas/03/2005/appl">
-	<PublicationManagement>
-  	</PublicationManagement> 
-</Publication>
-`
-	_, err := XmlToJson(s)
-	if err == nil {
-		t.Error("Must throw")
-	} else {
-		fmt.Printf("%s\n", err.Error())
+	if string(aj.PubStatus) != "usable" {
+		t.Error("[pubstatus:usable] is expected")
 	}
+	if aj.FirstCreatedYear == 0 {
+		t.Error("[firstcreated.year] is expected")
+	}
+	if aj.FirstCreated == "" {
+		t.Error("[firstcreated] is expected")
+	}
+	if aj.RefersTo == "" {
+		t.Error("[refersto] is expected")
+	}
+	if aj.Embargoed == "" {
+		t.Error("[embargoed] is expected")
+	}
+	if aj.Signals.IsEmpty() {
+		t.Error("[signals] is expected")
+	}
+	if aj.OutingInstructions.IsEmpty() {
+		t.Error("[outinginstructions] is expected")
+	}
+	if aj.EditorialTypes.IsEmpty() {
+		t.Error("[editorialtypes] is expected")
+	}
+	if aj.TimeRestrictions == nil || len(aj.TimeRestrictions) == 0 {
+		t.Error("[timerestrictions] is expected")
+	}
+	if aj.Associations == nil || len(aj.Associations) == 0 {
+		t.Error("[associations] is expected")
+	}
+
+	jo, err := aj.ToJson()
+	if err != nil {
+		t.Error(err.Error())
+	}
+	fmt.Printf("%s\n", jo.ToString())
 }
