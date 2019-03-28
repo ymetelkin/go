@@ -26,6 +26,7 @@ func (us *UniqueStrings) IsEmpty() bool {
 	return us.values == nil
 }
 
+/*
 func (us *UniqueStrings) Size() int {
 	if us.values == nil {
 		return 0
@@ -33,6 +34,7 @@ func (us *UniqueStrings) Size() int {
 
 	return len(us.values)
 }
+*/
 
 func (us *UniqueStrings) Values() []string {
 	return us.values
@@ -50,4 +52,21 @@ func (us *UniqueStrings) ToJson() *json.JsonArray {
 	}
 
 	return &ja
+}
+
+func codeNamesToJsonArray(hash map[string]string) (*json.JsonArray, bool) {
+	if hash == nil || len(hash) == 0 {
+		return nil, false
+	}
+
+	ja := json.JsonArray{}
+
+	for code, name := range hash {
+		jo := json.JsonObject{}
+		jo.AddString("code", code)
+		jo.AddString("name", name)
+		ja.AddObject(&jo)
+	}
+
+	return &ja, true
 }

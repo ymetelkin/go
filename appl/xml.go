@@ -8,6 +8,7 @@ type Publication struct {
 	NewsLines              NewsLines
 	AdministrativeMetadata AdministrativeMetadata
 	RightsMetadata         RightsMetadata
+	DescriptiveMetadata    DescriptiveMetadata
 	FilingMetadata         []FilingMetadata
 }
 
@@ -95,6 +96,17 @@ type AdministrativeMetadata struct {
 type RightsMetadata struct {
 	Copyright   Copyright
 	UsageRights []UsageRights
+}
+
+type DescriptiveMetadata struct {
+	Description            []string
+	DateLineLocation       DateLineLocation
+	SubjectClassification  []Classification `xml:"SubjectClassification"`
+	EntityClassification   []Classification
+	AudienceClassification []Classification
+	SalesClassification    []Classification
+	Comment                []Classification
+	ThirdPartyMeta         []Classification
 }
 
 type FilingMetadata struct {
@@ -214,6 +226,32 @@ type Group struct {
 	Value string `xml:",chardata"`
 	Id    string `xml:"Id,attr"`
 	Type  string `xml:"Type,attr"`
+}
+
+type DateLineLocation struct {
+	City            string
+	CountryArea     string
+	CountryAreaName string
+	Country         string
+	CountryName     string
+	LatitudeDD      float64
+	LongitudeDD     float64
+}
+
+type Classification struct {
+	SystemVersion    string `xml:"SystemVersion,attr"`
+	AuthorityVersion string `xml:"AuthorityVersion,attr"`
+	System           string `xml:"System,attr"`
+	Authority        string `xml:"Authority,attr"`
+	Occurrence       []Occurrence
+}
+
+type Occurrence struct {
+	Id          string `xml:"Id,attr"`
+	Value       string `xml:"Value,attr"`
+	ActualMatch bool   `xml:"ActualMatch,attr"`
+	ParentId    string `xml:"ParentId,attr"`
+	TopParent   bool   `xml:"TopParent,attr"`
 }
 
 type ForeignKeys struct {

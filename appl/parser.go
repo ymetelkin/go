@@ -61,6 +61,13 @@ type ApplJson struct {
 	Fixture              ApplFixture
 	InPackages           UniqueStrings
 	UsageRights          []ApplUsageRights
+	Descriptions         UniqueStrings
+	Generators           []ApplGenerator
+	Categories           map[string]string
+	SuppCategories       map[string]string
+	AlertCategories      UniqueStrings
+	Subjects             []ApplSubject
+	Organizations        []ApplSubject
 	Filings              []ApplFiling
 }
 
@@ -148,6 +155,20 @@ type ApplGroup struct {
 	Type string
 }
 
+type ApplGenerator struct {
+	Name    string
+	Version string
+}
+
+type ApplSubject struct {
+	Name      string
+	Code      string
+	Creator   string
+	Rels      UniqueStrings
+	ParentIds UniqueStrings
+	TopParent bool
+}
+
 type ApplFiling struct {
 	Xml         *FilingMetadata
 	ForeignKeys map[string]string
@@ -183,6 +204,11 @@ func XmlToJson(s string) (*json.JsonObject, error) {
 	}
 
 	err = pub.RightsMetadata.parse(&aj)
+	if err != nil {
+		return nil, err
+	}
+
+	err = pub.DescriptiveMetadata.parse(&aj)
 	if err != nil {
 		return nil, err
 	}
@@ -695,5 +721,100 @@ func (aj *ApplJson) ToJson() (*json.JsonObject, error) {
 		jo.AddArray("usagerights", &usagerights)
 	}
 
+	desc := aj.Xml.DescriptiveMetadata
+
+	if !aj.Descriptions.IsEmpty() {
+		descriptions := aj.Descriptions.ToJson()
+		jo.AddArray("descriptions", descriptions)
+	}
+
+	has_geo := desc.DateLineLocation.LatitudeDD != 0 && desc.DateLineLocation.LongitudeDD != 0
+	if desc.DateLineLocation.City != "" || desc.DateLineLocation.Country != "" || desc.DateLineLocation.CountryArea != "" || desc.DateLineLocation.CountryAreaName != "" || desc.DateLineLocation.CountryName != "" || has_geo {
+		datelinelocation := json.JsonObject{}
+		if desc.DateLineLocation.City != "" {
+			datelinelocation.AddString("city", desc.DateLineLocation.City)
+		}
+		if desc.DateLineLocation.CountryArea != "" {
+			datelinelocation.AddString("countryareacode", desc.DateLineLocation.CountryArea)
+		}
+		if desc.DateLineLocation.CountryAreaName != "" {
+			datelinelocation.AddString("countryareaname", desc.DateLineLocation.CountryAreaName)
+		}
+		if desc.DateLineLocation.Country != "" {
+			datelinelocation.AddString("countrycode", desc.DateLineLocation.Country)
+		}
+		if desc.DateLineLocation.CountryName != "" {
+			datelinelocation.AddString("countryname", desc.DateLineLocation.CountryName)
+		}
+		if has_geo {
+			coordinates := json.JsonArray{}
+			coordinates.AddFloat(desc.DateLineLocation.LongitudeDD)
+			coordinates.AddFloat(desc.DateLineLocation.LatitudeDD)
+			geo := json.JsonObject{}
+			geo.AddString("type", "Point")
+			geo.AddArray("coordinates", &coordinates)
+
+			datelinelocation.AddObject("geometry_geojson", &geo)
+		}
+	}
+
+	if aj.Generators != nil && len(aj.Generators) > 0 {
+		generators := json.JsonArray{}
+		for _, g := range aj.Generators {
+			generator := json.JsonObject{}
+			generator.AddString("name", g.Name)
+			generator.AddString("version", g.Version)
+			generators.AddObject(&generator)
+		}
+		jo.AddArray("generators", &generators)
+	}
+
+	if aj.Categories != nil && len(aj.Categories) > 0 {
+		categories, ok := codeNamesToJsonArray(aj.Categories)
+		if ok {
+			jo.AddArray("categories", categories)
+		}
+	}
+
+	if aj.SuppCategories != nil && len(aj.SuppCategories) > 0 {
+		suppcategories, ok := codeNamesToJsonArray(aj.SuppCategories)
+		if ok {
+			jo.AddArray("suppcategories", suppcategories)
+		}
+	}
+
+	if !aj.AlertCategories.IsEmpty() {
+		alertcategories := aj.AlertCategories.ToJson()
+		jo.AddArray("alertcategories", alertcategories)
+	}
+
+	addSubjects(&aj.Subjects, &jo, "subject")
+	addSubjects(&aj.Organizations, &jo, "organizations")
+
 	return &jo, nil
+}
+
+func addSubjects(items *[]ApplSubject, jo *json.JsonObject, field string) {
+	values := *items
+	if values != nil && len(values) > 0 {
+		subjects := json.JsonArray{}
+		for _, sbj := range values {
+			subject := json.JsonObject{}
+			subject.AddString("name", sbj.Name)
+			subject.AddString("scheme", "http://cv.ap.org/id/")
+			subject.AddString("code", sbj.Code)
+			if sbj.Creator != "" {
+				subject.AddString("creator", sbj.Creator)
+			}
+			if !sbj.Rels.IsEmpty() {
+				subject.AddArray("rels", sbj.Rels.ToJson())
+			}
+			if !sbj.ParentIds.IsEmpty() {
+				subject.AddArray("parentids", sbj.ParentIds.ToJson())
+			}
+			subject.AddBoolean("topparent", sbj.TopParent)
+			subjects.AddObject(&subject)
+		}
+		jo.AddArray(field, &subjects)
+	}
 }
