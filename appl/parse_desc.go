@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/ymetelkin/go/json"
 )
 
 func (desc *DescriptiveMetadata) parse(aj *ApplJson) error {
@@ -15,12 +17,12 @@ func (desc *DescriptiveMetadata) parse(aj *ApplJson) error {
 
 func getDescriptions(aj *ApplJson) {
 	descs := aj.Xml.DescriptiveMetadata.Description
-	if descs == nil || len(descs) == 0 {
-		return
-	}
-
-	for _, desc := range descs {
-		aj.Descriptions.Add(desc)
+	if descs != nil {
+		descriptions := UniqueStrings{}
+		for _, desc := range descs {
+			descriptions.Add(desc)
+		}
+		aj.Descriptions = descriptions.ToJsonProperty("descriptions")
 	}
 }
 
@@ -68,12 +70,15 @@ func getClassification(aj *ApplJson) {
 							aj.AlertCategories.Add(o.Id)
 						}
 					}
-				} else if aj.Fixture.IsEmpty && authority == "ap audio cut number code" {
+				} else if aj.Fixture == nil && authority == "ap audio cut number code" {
 					for _, o := range c.Occurrence {
 						if o.Id != "" && o.Value != "" {
 							i, err := strconv.ParseInt(o.Id, 0, 64)
 							if err == nil && i >= 900 {
-								aj.Fixture = ApplFixture{Code: o.Id, Name: o.Value}
+								fixture := json.JsonObject{}
+								fixture.AddString("code", o.Id)
+								fixture.AddString("name", o.Value)
+								aj.Fixture = &json.JsonProperty{Field: "fixture", Value: &json.JsonObjectValue{Value: fixture}}
 								break
 							}
 						}

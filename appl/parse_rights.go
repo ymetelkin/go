@@ -1,5 +1,7 @@
 package appl
 
+import "github.com/ymetelkin/go/json"
+
 func (rights *RightsMetadata) parse(aj *ApplJson) error {
 	getUsageRights(aj)
 
@@ -12,79 +14,64 @@ func getUsageRights(aj *ApplJson) {
 		return
 	}
 
-	usagerights := []ApplUsageRights{}
+	usagerights := json.JsonArray{}
 
 	for _, ur := range urs {
-		empty := true
-		usageright := ApplUsageRights{}
-
+		usageright := json.JsonObject{}
 		if ur.UsageType != "" {
-			usageright.UsageType = ur.UsageType
-			empty = false
+			usageright.AddString("usagetype", ur.UsageType)
 		}
-
-		if ur.RightsHolder != "" {
-			usageright.RightsHolder = ur.RightsHolder
-			empty = false
-		}
-
-		if ur.StartDate != "" {
-			usageright.StartDate = ur.StartDate
-			empty = false
-		}
-
-		if ur.EndDate != "" {
-			usageright.EndDate = ur.EndDate
-			empty = false
-		}
-
 		if ur.Geography != nil {
+			geography := UniqueStrings{}
 			for _, g := range ur.Geography {
-				usageright.Geography.Add(g)
-				empty = false
+				geography.Add(g)
 			}
+			usageright.AddProperty(geography.ToJsonProperty("geography"))
 		}
-
+		if ur.RightsHolder != "" {
+			usageright.AddString("rightsholder", ur.RightsHolder)
+		}
 		if ur.Limitations != nil {
+			limitations := UniqueStrings{}
 			for _, lim := range ur.Limitations {
-				usageright.Limitations.Add(lim)
-				empty = false
+				limitations.Add(lim)
 			}
+			usageright.AddProperty(limitations.ToJsonProperty("limitations"))
 		}
-
-		if ur.Group != nil && len(ur.Group) > 0 {
-			groups := []ApplGroup{}
+		if ur.StartDate != "" {
+			usageright.AddString("startdate", ur.StartDate)
+		}
+		if ur.EndDate != "" {
+			usageright.AddString("enddate", ur.EndDate)
+		}
+		if ur.Group != nil {
+			groups := json.JsonArray{}
 			for _, g := range ur.Group {
-				group := ApplGroup{}
-				add := false
-				if g.Value != "" {
-					group.Name = g.Value
-					add = true
+				group := json.JsonObject{}
+				if g.Type != "" {
+					group.AddString("type", g.Type)
 				}
 				if g.Id != "" {
-					group.Code = g.Id
-					add = true
+					group.AddString("code", g.Id)
 				}
-				if g.Type != "" {
-					group.Type = g.Type
-					add = true
+				if g.Value != "" {
+					group.AddString("name", g.Value)
 				}
-
-				if add {
-					groups = append(groups, group)
+				if !group.IsEmpty() {
+					groups.AddObject(&group)
 				}
 			}
-
-			if len(groups) > 0 {
-				usageright.Groups = groups
-				empty = false
+			if !groups.IsEmpty() {
+				usageright.AddArray("groups", &groups)
 			}
 		}
 
-		if !empty {
-			usagerights = append(usagerights, usageright)
+		if !usageright.IsEmpty() {
+			usagerights.AddObject(&usageright)
 		}
 	}
 
-	aj.UsageRights = usagerights
+	if !usagerights.IsEmpty() {
+		aj.UsageRights = &json.JsonProperty{Field: "usagerights", Value: &json.JsonArrayValue{Value: usagerights}}
+	}
 }

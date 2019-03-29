@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/ymetelkin/go/json"
 )
 
 const (
@@ -35,7 +37,7 @@ func (pm *PublicationManagement) parse(aj *ApplJson) error {
 	getTimeRestrictions(aj)
 
 	if len(pm.RefersTo) > 0 {
-		aj.RefersTo = pm.RefersTo[0]
+		aj.RefersTo = &json.JsonProperty{Field: "refersto", Value: &json.JsonStringValue{Value: pm.RefersTo[0]}}
 	}
 
 	return nil
@@ -67,34 +69,38 @@ func getFirstCreatedDate(aj *ApplJson) error {
 
 	aj.FirstCreatedYear = fc.Year
 
-	month := ""
+	var (
+		date  string
+		month string
+		day   string
+	)
+
 	if fc.Month == 0 {
-		aj.FirstCreated = fmt.Sprintf("%d", fc.Year)
-		return nil
+		date = fmt.Sprintf("%d", fc.Year)
 	} else {
 		zero := ""
 		if fc.Month < 10 {
 			zero = "0"
 		}
 		month = fmt.Sprintf("%s%d", zero, fc.Month)
-	}
 
-	day := ""
-	if fc.Day == 0 {
-		aj.FirstCreated = fmt.Sprintf("%d-%s", fc.Year, month)
-		return nil
-	} else {
-		zero := ""
-		if fc.Day < 10 {
-			zero = "0"
+		if fc.Day == 0 {
+			date = fmt.Sprintf("%d-%s", fc.Year, month)
+		} else {
+			zero := ""
+			if fc.Day < 10 {
+				zero = "0"
+			}
+			day = fmt.Sprintf("%s%d", zero, fc.Day)
+
+			if fc.Time == "" {
+				date = fmt.Sprintf("%d-%s-%s", fc.Year, month, day)
+			} else {
+				date = fmt.Sprintf("%d-%s-%sT%sZ", fc.Year, month, day, fc.Time)
+			}
+
+			aj.FirstCreated = &json.JsonProperty{Field: "firstcreated", Value: &json.JsonStringValue{Value: date}}
 		}
-		day = fmt.Sprintf("%s%d", zero, fc.Day)
-	}
-
-	if fc.Time == "" {
-		aj.FirstCreated = fmt.Sprintf("%d-%s-%s", fc.Year, month, day)
-	} else {
-		aj.FirstCreated = fmt.Sprintf("%d-%s-%sT%sZ", fc.Year, month, day, fc.Time)
 	}
 
 	return nil
@@ -121,33 +127,34 @@ func getManagementSignals(aj *ApplJson) {
 func getOutingInstructions(aj *ApplJson) {
 	pm := aj.Xml.PublicationManagement
 
-	if pm.Instruction == nil || len(pm.Instruction) == 0 {
-		return
-	}
-
-	for _, instruction := range pm.Instruction {
-		aj.OutingInstructions.Add(instruction)
+	if pm.Instruction != nil {
+		outinginstructions := UniqueStrings{}
+		for _, instruction := range pm.Instruction {
+			outinginstructions.Add(instruction)
+		}
+		aj.OutingInstructions = outinginstructions.ToJsonProperty("outinginstructions")
 	}
 }
 
 func getEditorialTypes(aj *ApplJson) {
 	pm := aj.Xml.PublicationManagement
 
-	if pm.Editorial == nil || len(pm.Editorial) == 0 {
-		return
-	}
+	if pm.Editorial != nil {
+		embargoed := pm.ReleaseDateTime != ""
 
-	embargoed := pm.ReleaseDateTime != ""
+		editorialtypes := UniqueStrings{}
+		for _, editorialtype := range pm.Editorial {
+			editorialtypes.Add(editorialtype.Type)
 
-	for _, editorialtype := range pm.Editorial {
-		aj.EditorialTypes.Add(editorialtype.Type)
-
-		if embargoed {
-			if strings.EqualFold(editorialtype.Type, "Advance") || strings.EqualFold(editorialtype.Type, "HoldForRelease") {
-				embargoed = false
-				aj.Embargoed = pm.ReleaseDateTime + "Z"
+			if embargoed {
+				if strings.EqualFold(editorialtype.Type, "Advance") || strings.EqualFold(editorialtype.Type, "HoldForRelease") {
+					embargoed = false
+					aj.Embargoed = &json.JsonProperty{Field: "embargoed", Value: &json.JsonStringValue{Value: pm.ReleaseDateTime + "Z"}}
+				}
 			}
 		}
+
+		aj.EditorialTypes = editorialtypes.ToJsonProperty("editorialtypes")
 	}
 }
 
@@ -179,7 +186,7 @@ func getAssociatedWith(aj *ApplJson) {
 	   --load the sequence number of the AssociatedWith node by @CompositionType (a number starting at 1) to $.associations[i].typerank as a number; note that CompositionType may be absent OR ‘StandardIngestedContent’ (which does not output a type) and any such AssociatedWith nodes should be ranked on their own.
 	*/
 	pm := aj.Xml.PublicationManagement
-	associations := []ApplAssociation{}
+	associations := json.JsonArray{}
 
 	rank := 0
 	types := make(map[string]int)
@@ -198,7 +205,7 @@ func getAssociatedWith(aj *ApplJson) {
 			continue
 		}
 
-		association := ApplAssociation{}
+		association := json.JsonObject{}
 
 		t := ""
 
@@ -237,13 +244,14 @@ func getAssociatedWith(aj *ApplJson) {
 		}
 
 		if t != "notype" {
-			association.Type = t
+			association.AddString("type", t)
 		}
 
-		association.ItemId = aw.Value
+		association.AddString("itemid", aw.Value)
+		association.AddString("representationtype", "partial")
 
 		rank++
-		association.Rank = rank
+		association.AddInt("associationrank", rank)
 
 		typerank, ok := types[t]
 		if ok {
@@ -252,10 +260,12 @@ func getAssociatedWith(aj *ApplJson) {
 			typerank = 1
 		}
 		types[t] = typerank
-		association.TypeRank = typerank
+		association.AddInt("typerank", typerank)
 
-		associations = append(associations, association)
+		associations.AddObject(&association)
 	}
 
-	aj.Associations = associations
+	if associations.Length() > 0 {
+		aj.Associations = &json.JsonProperty{Field: "associations", Value: &json.JsonArrayValue{Value: associations}}
+	}
 }

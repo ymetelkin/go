@@ -19,32 +19,158 @@ const (
 	NULL
 )
 
-type JsonValue struct {
-	Value interface{}
-	Type  JsonType
+type JsonValue interface {
+	Get() (interface{}, JsonType)
+	ToString() string
 }
 
-func (jv JsonValue) GetInt() (int, error) {
-	if jv.Type == NUMBER {
-		i, ok := jv.Value.(int)
+type JsonIntValue struct {
+	Value int
+}
+
+func (jv *JsonIntValue) Get() (interface{}, JsonType) {
+	return jv.Value, NUMBER
+}
+
+func (jv *JsonIntValue) ToString() string {
+	return strconv.Itoa(jv.Value)
+}
+
+type JsonFloatValue struct {
+	Value  float64
+	Format byte
+}
+
+func (jv *JsonFloatValue) Get() (interface{}, JsonType) {
+	return jv.Value, NUMBER
+}
+
+func (jv *JsonFloatValue) ToString() string {
+	var format byte
+	if jv.Format == 0 {
+		format = 'f'
+	} else {
+		format = jv.Format
+	}
+	return strconv.FormatFloat(jv.Value, format, -1, 64)
+}
+
+type JsonBooleanValue struct {
+	Value bool
+}
+
+func (jv *JsonBooleanValue) Get() (interface{}, JsonType) {
+	return jv.Value, BOOLEAN
+}
+
+func (jv *JsonBooleanValue) ToString() string {
+	return strconv.FormatBool(jv.Value)
+}
+
+type JsonStringValue struct {
+	Value string
+}
+
+func (jv *JsonStringValue) Get() (interface{}, JsonType) {
+	return jv.Value, STRING
+}
+
+func (jv *JsonStringValue) ToString() string {
+	runes := []rune(jv.Value)
+	var sb strings.Builder
+	sb.WriteRune(TOKEN_QUOTE)
+
+	for _, r := range runes {
+		switch r {
+		case TOKEN_QUOTE:
+			sb.WriteRune(TOKEN_BACKSLASH)
+			sb.WriteRune(TOKEN_QUOTE)
+		case TOKEN_BACKSLASH:
+			sb.WriteRune(TOKEN_BACKSLASH)
+			sb.WriteRune(TOKEN_BACKSLASH)
+		case TOKEN_CR:
+			sb.WriteRune(TOKEN_BACKSLASH)
+			sb.WriteRune(TOKEN_R)
+		case TOKEN_LF:
+			sb.WriteRune(TOKEN_BACKSLASH)
+			sb.WriteRune(TOKEN_N)
+		case TOKEN_HT:
+			sb.WriteRune(TOKEN_BACKSLASH)
+			sb.WriteRune(TOKEN_T)
+		case TOKEN_BS:
+			sb.WriteRune(TOKEN_BACKSLASH)
+			sb.WriteRune(TOKEN_B)
+		case TOKEN_FF:
+			sb.WriteRune(TOKEN_BACKSLASH)
+			sb.WriteRune(TOKEN_F)
+		case TOKEN_VT:
+			sb.WriteRune(TOKEN_SPACE)
+		default:
+			sb.WriteRune(r)
+		}
+	}
+
+	sb.WriteRune(TOKEN_QUOTE)
+	return sb.String()
+}
+
+type JsonObjectValue struct {
+	Value JsonObject
+}
+
+func (jv *JsonObjectValue) Get() (interface{}, JsonType) {
+	return jv.Value, OBJECT
+}
+
+func (jv *JsonObjectValue) ToString() string {
+	return jv.Value.toString(true, 0)
+}
+
+type JsonArrayValue struct {
+	Value JsonArray
+}
+
+func (jv *JsonArrayValue) Get() (interface{}, JsonType) {
+	return jv.Value, ARRAY
+}
+
+type JsonNullValue struct {
+}
+
+func (jv *JsonNullValue) Get() (interface{}, JsonType) {
+	return nil, NULL
+}
+
+func (jv *JsonNullValue) ToString() string {
+	return "null"
+}
+
+func (jv *JsonArrayValue) ToString() string {
+	return jv.Value.toString(true, 0)
+}
+
+func getInt(jv JsonValue) (int, error) {
+	v, t := jv.Get()
+	if t == NUMBER {
+		i, ok := v.(int)
 		if ok {
 			return i, nil
 		} else {
-			f, ok := jv.Value.(float64)
+			f, ok := v.(float64)
 			if ok {
 				return int(f), nil
 			} else {
-				u, ok := jv.Value.(uint)
+				u, ok := v.(uint)
 				if ok {
 					return int(u), nil
 				} else {
-					err := fmt.Sprintf("Unsupported integer type: %T", jv.Value)
+					err := fmt.Sprintf("Unsupported integer type: %T", v)
 					return 0, errors.New(err)
 				}
 			}
 		}
-	} else if jv.Type == STRING {
-		s, ok := jv.Value.(string)
+	} else if t == STRING {
+		s, ok := v.(string)
 		if ok {
 			if strings.Contains(s, ".") {
 				f, err := strconv.ParseFloat(s, 64)
@@ -58,21 +184,22 @@ func (jv JsonValue) GetInt() (int, error) {
 		}
 	}
 
-	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
+	err := fmt.Sprintf("Unsupported value type: %d", t)
 	return 0, errors.New(err)
 }
 
-func (jv JsonValue) GetFloat() (float64, error) {
-	if jv.Type == NUMBER {
-		f, ok := jv.Value.(float64)
+func getFloat(jv JsonValue) (float64, error) {
+	v, t := jv.Get()
+	if t == NUMBER {
+		f, ok := v.(float64)
 		if ok {
 			return f, nil
 		} else {
-			err := fmt.Sprintf("Unsupported integer type: %T", jv.Value)
+			err := fmt.Sprintf("Unsupported integer type: %T", v)
 			return 0, errors.New(err)
 		}
-	} else if jv.Type == STRING {
-		s, ok := jv.Value.(string)
+	} else if t == STRING {
+		s, ok := v.(string)
 		if ok {
 			f, err := strconv.ParseFloat(s, 64)
 			return f, err
@@ -81,34 +208,35 @@ func (jv JsonValue) GetFloat() (float64, error) {
 		}
 	}
 
-	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
+	err := fmt.Sprintf("Unsupported value type: %d", t)
 	return 0, errors.New(err)
 }
 
-func (jv JsonValue) GetString() (string, error) {
-	if jv.Type == STRING {
-		s, ok := jv.Value.(string)
+func getString(jv JsonValue) (string, error) {
+	v, t := jv.Get()
+	if t == STRING {
+		s, ok := v.(string)
 		if ok {
 			return s, nil
 		} else {
 			return "", errors.New("Cannot read string value")
 		}
+	} else {
+		return jv.ToString(), nil
 	}
-
-	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
-	return "", errors.New(err)
 }
 
-func (jv JsonValue) GetBoolean() (bool, error) {
-	if jv.Type == BOOLEAN {
-		b, ok := jv.Value.(bool)
+func getBoolean(jv JsonValue) (bool, error) {
+	v, t := jv.Get()
+	if t == BOOLEAN {
+		b, ok := v.(bool)
 		if ok {
 			return b, nil
 		} else {
 			return false, errors.New("Cannot read string value")
 		}
-	} else if jv.Type == STRING {
-		s, ok := jv.Value.(string)
+	} else if t == STRING {
+		s, ok := v.(string)
 		if ok {
 			b, err := strconv.ParseBool(s)
 			return b, err
@@ -117,13 +245,14 @@ func (jv JsonValue) GetBoolean() (bool, error) {
 		}
 	}
 
-	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
+	err := fmt.Sprintf("Unsupported value type: %d", t)
 	return false, errors.New(err)
 }
 
-func (jv *JsonValue) GetObject() (*JsonObject, error) {
-	if jv.Type == OBJECT {
-		jo, ok := jv.Value.(JsonObject)
+func getObject(jv JsonValue) (*JsonObject, error) {
+	v, t := jv.Get()
+	if t == OBJECT {
+		jo, ok := v.(JsonObject)
 		if ok {
 			return &jo, nil
 		} else {
@@ -131,13 +260,14 @@ func (jv *JsonValue) GetObject() (*JsonObject, error) {
 		}
 	}
 
-	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
+	err := fmt.Sprintf("Unsupported value type: %d", t)
 	return nil, errors.New(err)
 }
 
-func (jv *JsonValue) GetArray() (*JsonArray, error) {
-	if jv.Type == ARRAY {
-		ja, ok := jv.Value.(JsonArray)
+func getArray(jv JsonValue) (*JsonArray, error) {
+	v, t := jv.Get()
+	if t == ARRAY {
+		ja, ok := v.(JsonArray)
 		if ok {
 			return &ja, nil
 		} else {
@@ -145,13 +275,14 @@ func (jv *JsonValue) GetArray() (*JsonArray, error) {
 		}
 	}
 
-	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
+	err := fmt.Sprintf("Unsupported value type: %d", t)
 	return nil, errors.New(err)
 }
 
-func (jv JsonValue) GetParameterizedString() (ParameterizedString, error) {
-	if jv.Type == PARAMETERIZED {
-		ps, ok := jv.Value.(ParameterizedString)
+func getParameterizedString(jv JsonValue) (ParameterizedString, error) {
+	v, t := jv.Get()
+	if t == PARAMETERIZED {
+		ps, ok := v.(ParameterizedString)
 		if ok {
 			return ps, nil
 		} else {
@@ -159,106 +290,31 @@ func (jv JsonValue) GetParameterizedString() (ParameterizedString, error) {
 		}
 	}
 
-	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
+	err := fmt.Sprintf("Unsupported value type: %d", t)
 	return ParameterizedString{}, errors.New(err)
 }
 
-func (jv *JsonValue) ToString() string {
-	return jv.toString(true, 0)
-}
-
-func (jv *JsonValue) toString(pretty bool, level int) string {
-	if jv.Value == nil {
+func toString(jv JsonValue, pretty bool, level int) string {
+	v, t := jv.Get()
+	if v == nil {
 		return "null"
 	}
 
-	switch jv.Type {
-	case STRING:
-		s, ok := jv.Value.(string)
-		if ok {
-			runes := []rune(s)
-			var sb strings.Builder
-			sb.WriteRune(TOKEN_QUOTE)
-
-			for _, r := range runes {
-				switch r {
-				case TOKEN_QUOTE:
-					sb.WriteRune(TOKEN_BACKSLASH)
-					sb.WriteRune(TOKEN_QUOTE)
-				case TOKEN_BACKSLASH:
-					sb.WriteRune(TOKEN_BACKSLASH)
-					sb.WriteRune(TOKEN_BACKSLASH)
-				case TOKEN_CR:
-					sb.WriteRune(TOKEN_BACKSLASH)
-					sb.WriteRune(TOKEN_R)
-				case TOKEN_LF:
-					sb.WriteRune(TOKEN_BACKSLASH)
-					sb.WriteRune(TOKEN_N)
-				case TOKEN_HT:
-					sb.WriteRune(TOKEN_BACKSLASH)
-					sb.WriteRune(TOKEN_T)
-				case TOKEN_BS:
-					sb.WriteRune(TOKEN_BACKSLASH)
-					sb.WriteRune(TOKEN_B)
-				case TOKEN_FF:
-					sb.WriteRune(TOKEN_BACKSLASH)
-					sb.WriteRune(TOKEN_F)
-				case TOKEN_VT:
-					sb.WriteRune(TOKEN_SPACE)
-				default:
-					sb.WriteRune(r)
-				}
-			}
-
-			sb.WriteRune(TOKEN_QUOTE)
-			return sb.String()
-		}
+	switch t {
 	case OBJECT:
-		jo, ok := jv.Value.(JsonObject)
+		jo, ok := v.(JsonObject)
 		if ok {
 			return jo.toString(pretty, level)
 		}
-	case NUMBER, BOOLEAN:
-		return fmt.Sprintf("%v", jv.Value)
 	case ARRAY:
-		ja, ok := jv.Value.(JsonArray)
+		ja, ok := v.(JsonArray)
 		if ok {
 			return ja.toString(pretty, level)
 		}
+	default:
+		return jv.ToString()
+
 	}
 
 	return "null"
-}
-
-func newJsonValue(value interface{}) (*JsonValue, error) {
-	if value == nil {
-		return &JsonValue{Value: nil, Type: NULL}, nil
-	}
-
-	switch value.(type) {
-	case JsonValue:
-		jv, ok := value.(JsonValue)
-		if ok {
-			return &jv, nil
-		}
-	case string:
-		return &JsonValue{Value: value, Type: STRING}, nil
-	case JsonObject:
-		return &JsonValue{Value: value, Type: OBJECT}, nil
-	case JsonArray:
-		return &JsonValue{Value: value, Type: ARRAY}, nil
-	case bool:
-		return &JsonValue{Value: value, Type: BOOLEAN}, nil
-	case ParameterizedString:
-		return &JsonValue{Value: value, Type: PARAMETERIZED}, nil
-	case int, int8, int16, int32, int64:
-		return &JsonValue{Value: value, Type: NUMBER}, nil
-	case float32, float64:
-		return &JsonValue{Value: value, Type: NUMBER}, nil
-	case uint, uint8, uint16, uint32, uint64:
-		return &JsonValue{Value: value, Type: NUMBER}, nil
-	}
-
-	err := fmt.Sprintf("Unsupported value type: %T", value)
-	return nil, errors.New(err)
 }

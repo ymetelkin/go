@@ -5,90 +5,80 @@ import (
 	"testing"
 )
 
-func TestNewJsonValue(t *testing.T) {
-	jv, err := newJsonValue("test")
-	fmt.Printf("%T\t%s %d\n", jv.Value, jv.Value, jv.Type)
-	if err != nil {
-		t.Error(err.Error())
-	}
-	if jv.Type != STRING {
-		t.Errorf("Expecting type %d, actual is %d", STRING, jv.Type)
+func TestJsonStringValue(test *testing.T) {
+	jv := JsonStringValue{Value: "test"}
+	v, t := jv.Get()
+	fmt.Printf("%T\t%s %d\n", jv.Value, v, t)
+	if t != STRING {
+		test.Errorf("Expecting type %d, actual is %d", STRING, t)
 	}
 
-	i, err := jv.GetInt()
+	i, err := getInt(&jv)
 	if err == nil {
-		t.Error("String cannot be converted to int")
+		test.Error("String cannot be converted to int")
 	} else {
 		fmt.Printf("%s; %s is not %d\n", err.Error(), jv.Value, i)
 	}
+}
 
-	jv, err = newJsonValue(123)
-	fmt.Printf("%T\t%d %d\n", jv.Value, jv.Value, jv.Type)
-	if err != nil {
-		t.Error(err.Error())
-	}
-	if jv.Type != NUMBER {
-		t.Errorf("Expecting type %d, actual is %d", NUMBER, jv.Type)
+func TestJsonIntValue(test *testing.T) {
+	jv := JsonIntValue{Value: 123}
+	v, t := jv.Get()
+	fmt.Printf("%T\t%s %d\n", jv.Value, v, t)
+	if t != NUMBER {
+		test.Errorf("Expecting type %d, actual is %d", NUMBER, t)
 	}
 
-	i, err = jv.GetInt()
+	i, err := getInt(&jv)
 	if err != nil {
-		t.Error(err.Error())
+		test.Error(err.Error())
 	} else {
 		fmt.Printf("Value of %d is %d\n", jv.Value, i)
 	}
+}
 
-	jv, err = newJsonValue(1.23)
-	fmt.Printf("%T\t%f %d\n", jv.Value, jv.Value, jv.Type)
-	if err != nil {
-		t.Error(err.Error())
-	}
-	if jv.Type != NUMBER {
-		t.Errorf("Expecting type %d, actual is %d", NUMBER, jv.Type)
+func TestJsonFloatValue(test *testing.T) {
+	jv := JsonFloatValue{Value: 1.23}
+	v, t := jv.Get()
+	fmt.Printf("%T\t%s %d\n", jv.Value, v, t)
+	if t != NUMBER {
+		test.Errorf("Expecting type %d, actual is %d", NUMBER, t)
 	}
 
-	i, err = jv.GetInt()
+	f, err := getFloat(&jv)
 	if err != nil {
-		t.Error(err.Error())
+		test.Error(err.Error())
+	} else {
+		fmt.Printf("Value of %f is %f\n", jv.Value, f)
+	}
+
+	i, err := getInt(&jv)
+	if err != nil {
+		test.Error(err.Error())
 	} else {
 		fmt.Printf("Value of %f is %d\n", jv.Value, i)
 	}
 
-	jv, err = newJsonValue("1.23")
-	i, err = jv.GetInt()
+	s, err := getString(&jv)
 	if err != nil {
-		t.Error(err.Error())
+		test.Error(err.Error())
 	} else {
-		fmt.Printf("Value of %s is %d\n", jv.Value, i)
+		fmt.Printf("Value of %f is %s\n", jv.Value, s)
+	}
+}
+
+func TestJsonBooleanValue(test *testing.T) {
+	jv := JsonBooleanValue{Value: true}
+	v, t := jv.Get()
+	fmt.Printf("%T\t%s %d\n", jv.Value, v, t)
+	if t != BOOLEAN {
+		test.Errorf("Expecting type %d, actual is %d", BOOLEAN, t)
 	}
 
-	f, err := jv.GetFloat()
+	b, err := getBoolean(&jv)
 	if err != nil {
-		t.Error(err.Error())
-	} else {
-		fmt.Printf("Value of %s is %f\n", jv.Value, f)
-	}
-
-	s, err := jv.GetString()
-	if err != nil {
-		t.Error(err.Error())
-	} else {
-		fmt.Printf("Value of %s is %s\n", jv.Value, s)
-	}
-
-	jv, err = newJsonValue(true)
-	b, err := jv.GetBoolean()
-	if err != nil {
-		t.Error(err.Error())
+		test.Error(err.Error())
 	} else {
 		fmt.Printf("Value of %t is %t\n", jv.Value, b)
-	}
-
-	jv, err = newJsonValue("true")
-	b, err = jv.GetBoolean()
-	if err != nil {
-		t.Error(err.Error())
-	} else {
-		fmt.Printf("Value of %s is %t\n", jv.Value, b)
 	}
 }

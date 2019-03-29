@@ -6,6 +6,11 @@ import (
 	"strings"
 )
 
+type JsonProperty struct {
+	Field string
+	Value JsonValue
+}
+
 type JsonObject struct {
 	names      []string
 	pnames     map[string]ParameterizedString
@@ -21,14 +26,21 @@ func (jo *JsonObject) Copy() *JsonObject {
 
 	if jo.Properties != nil {
 		for name, value := range jo.Properties {
-			copy.AddValue(name, &value)
+			copy.AddValue(name, value)
 		}
 	}
 
 	return &copy
 }
 
-func (jo *JsonObject) AddValue(name string, value *JsonValue) error {
+func (jo *JsonObject) AddProperty(jp *JsonProperty) error {
+	if jp == nil {
+		return errors.New("Missing property")
+	}
+	return jo.AddValue(jp.Field, jp.Value)
+}
+
+func (jo *JsonObject) AddValue(name string, value JsonValue) error {
 	name = strings.Trim(name, " ")
 	if name == "" {
 		return errors.New("Missing field name")
@@ -38,7 +50,7 @@ func (jo *JsonObject) AddValue(name string, value *JsonValue) error {
 		jo.Properties = make(map[string]JsonValue)
 	}
 
-	jo.Properties[name] = *value
+	jo.Properties[name] = value
 
 	if jo.names == nil {
 		jo.names = []string{name}
@@ -50,38 +62,30 @@ func (jo *JsonObject) AddValue(name string, value *JsonValue) error {
 }
 
 func (jo *JsonObject) AddString(name string, value string) error {
-	return jo.AddValue(name, &JsonValue{Value: value, Type: STRING})
+	return jo.AddValue(name, &JsonStringValue{Value: value})
 }
 
 func (jo *JsonObject) AddInt(name string, value int) error {
-	return jo.AddValue(name, &JsonValue{Value: value, Type: NUMBER})
+	return jo.AddValue(name, &JsonIntValue{Value: value})
 }
 
 func (jo *JsonObject) AddFloat(name string, value float64) error {
-	return jo.AddValue(name, &JsonValue{Value: value, Type: NUMBER})
+	return jo.AddValue(name, &JsonFloatValue{Value: value})
 }
 
 func (jo *JsonObject) AddBoolean(name string, value bool) error {
-	return jo.AddValue(name, &JsonValue{Value: value, Type: BOOLEAN})
+	return jo.AddValue(name, &JsonBooleanValue{Value: value})
 }
 
 func (jo *JsonObject) AddObject(name string, value *JsonObject) error {
-	return jo.AddValue(name, &JsonValue{Value: *value, Type: OBJECT})
+	return jo.AddValue(name, &JsonObjectValue{Value: *value})
 }
 
 func (jo *JsonObject) AddArray(name string, value *JsonArray) error {
-	return jo.AddValue(name, &JsonValue{Value: *value, Type: ARRAY})
+	return jo.AddValue(name, &JsonArrayValue{Value: *value})
 }
 
-func (jo *JsonObject) Add(name string, value interface{}) error {
-	jv, err := newJsonValue(value)
-	if err != nil {
-		return err
-	}
-	return jo.AddValue(name, jv)
-}
-
-func (jo *JsonObject) SetValue(name string, value *JsonValue) error {
+func (jo *JsonObject) SetValue(name string, value JsonValue) error {
 	name = strings.Trim(name, " ")
 	if name == "" {
 		return errors.New("Missing field name")
@@ -98,17 +102,33 @@ func (jo *JsonObject) SetValue(name string, value *JsonValue) error {
 		return errors.New(err)
 	}
 
-	jo.Properties[name] = *value
+	jo.Properties[name] = value
 
 	return nil
 }
 
-func (jo *JsonObject) Set(name string, value interface{}) error {
-	jv, err := newJsonValue(value)
-	if err != nil {
-		return err
-	}
-	return jo.SetValue(name, jv)
+func (jo *JsonObject) SetInt(name string, value int) error {
+	return jo.SetValue(name, &JsonIntValue{Value: value})
+}
+
+func (jo *JsonObject) SetFloat(name string, value float64) error {
+	return jo.SetValue(name, &JsonFloatValue{Value: value})
+}
+
+func (jo *JsonObject) SetBoolean(name string, value bool) error {
+	return jo.SetValue(name, &JsonBooleanValue{Value: value})
+}
+
+func (jo *JsonObject) SetString(name string, value string) error {
+	return jo.SetValue(name, &JsonStringValue{Value: value})
+}
+
+func (jo *JsonObject) SetObject(name string, value JsonObject) error {
+	return jo.SetValue(name, &JsonObjectValue{Value: value})
+}
+
+func (jo *JsonObject) SetArray(name string, value JsonArray) error {
+	return jo.SetValue(name, &JsonArrayValue{Value: value})
 }
 
 func (jo *JsonObject) Remove(name string) error {
@@ -134,7 +154,7 @@ func (jo *JsonObject) Remove(name string) error {
 	return nil
 }
 
-func (jo *JsonObject) GetValue(name string) (*JsonValue, error) {
+func (jo *JsonObject) GetValue(name string) (JsonValue, error) {
 	name = strings.Trim(name, " ")
 	if name == "" {
 		return nil, errors.New("Missing field name")
@@ -146,7 +166,7 @@ func (jo *JsonObject) GetValue(name string) (*JsonValue, error) {
 
 	value, ok := jo.Properties[name]
 	if ok {
-		return &value, nil
+		return value, nil
 	} else {
 		err := fmt.Sprintf("Field [%s] does not exist", name)
 		return nil, errors.New(err)
@@ -159,7 +179,7 @@ func (jo *JsonObject) GetString(name string) (string, error) {
 		return "", err
 	}
 
-	s, err := jv.GetString()
+	s, err := getString(jv)
 	if err != nil {
 		return "", err
 	}
@@ -173,7 +193,7 @@ func (jo *JsonObject) GetInt(name string) (int, error) {
 		return 0, err
 	}
 
-	i, err := jv.GetInt()
+	i, err := getInt(jv)
 	if err != nil {
 		return 0, err
 	}
@@ -187,7 +207,7 @@ func (jo *JsonObject) GetFloat(name string) (float64, error) {
 		return 0, err
 	}
 
-	f, err := jv.GetFloat()
+	f, err := getFloat(jv)
 	if err != nil {
 		return 0, err
 	}
@@ -201,7 +221,7 @@ func (jo *JsonObject) GetBoolean(name string) (bool, error) {
 		return false, err
 	}
 
-	b, err := jv.GetBoolean()
+	b, err := getBoolean(jv)
 	if err != nil {
 		return false, err
 	}
@@ -215,7 +235,7 @@ func (jo *JsonObject) GetObject(name string) (*JsonObject, error) {
 		return nil, err
 	}
 
-	obj, err := jv.GetObject()
+	obj, err := getObject(jv)
 	if err != nil {
 		return nil, err
 	}
@@ -229,7 +249,7 @@ func (jo *JsonObject) GetArray(name string) (*JsonArray, error) {
 		return nil, err
 	}
 
-	ja, err := jv.GetArray()
+	ja, err := getArray(jv)
 	if err != nil {
 		return nil, err
 	}
@@ -296,7 +316,7 @@ func (jo *JsonObject) toString(pretty bool, level int) string {
 			if pretty {
 				sb.WriteRune(TOKEN_SPACE)
 			}
-			s := jv.toString(pretty, next)
+			s := toString(jv, pretty, next)
 			sb.WriteString(s)
 		}
 	}

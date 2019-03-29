@@ -40,7 +40,7 @@ func (us *UniqueStrings) Values() []string {
 	return us.values
 }
 
-func (us *UniqueStrings) ToJson() *json.JsonArray {
+func (us *UniqueStrings) ToJsonProperty(field string) *json.JsonProperty {
 	if us.values == nil {
 		return nil
 	}
@@ -51,7 +51,7 @@ func (us *UniqueStrings) ToJson() *json.JsonArray {
 		ja.AddString(s)
 	}
 
-	return &ja
+	return &json.JsonProperty{Field: field, Value: &json.JsonArrayValue{Value: ja}}
 }
 
 func codeNamesToJsonArray(hash map[string]string) (*json.JsonArray, bool) {
