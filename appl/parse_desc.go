@@ -73,10 +73,10 @@ func getClassification(aj *ApplJson) {
 				} else if aj.Fixture == nil && authority == "ap audio cut number code" {
 					for _, o := range c.Occurrence {
 						if o.Id != "" && o.Value != "" {
-							i, err := strconv.ParseInt(o.Id, 0, 64)
+							i, err := strconv.Atoi(o.Id)
 							if err == nil && i >= 900 {
 								fixture := json.JsonObject{}
-								fixture.AddString("code", o.Id)
+								fixture.AddInt("code", i)
 								fixture.AddString("name", o.Value)
 								aj.Fixture = &json.JsonProperty{Field: "fixture", Value: &json.JsonObjectValue{Value: fixture}}
 								break
