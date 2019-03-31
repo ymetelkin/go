@@ -13,12 +13,11 @@ func TestParsing(t *testing.T) {
 	} else {
 		for key, value := range jo.Properties {
 			fmt.Printf("%s: %#v\n", key, value)
-			jv, err := jo.GetValue(key)
+			jv, err := jo.getValue(key)
 			if err != nil {
 				t.Error(err.Error())
 			} else {
-				v, _ := jv.Get()
-				fmt.Printf("%s: %v\n", key, v)
+				fmt.Printf("%s: %v\n", key, jv.Value)
 			}
 		}
 
@@ -38,6 +37,7 @@ func TestParsing(t *testing.T) {
 		t.Error(err.Error())
 	} else {
 		test := jo.ToInlineString()
+		s = `{"test":3140000000000}`
 		if test != s {
 			t.Error("Parsing failed")
 		}

@@ -6,49 +6,44 @@ import (
 )
 
 func TestArrayAdd(t *testing.T) {
-	ja := JsonArray{}
+	ja := Array{}
 	i := ja.AddString("text")
-	jv, err := ja.GetValue(i)
+	s, err := ja.GetString(i)
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		text, _ := jv.Get()
-		fmt.Printf("%d\t%s\n", i, text)
+		fmt.Printf("%d\t%s\n", i, s)
 	}
 
 	i = ja.AddInt(1)
-	jv, err = ja.GetValue(i)
+	number, err := ja.GetInt(i)
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		number, _ := jv.Get()
 		fmt.Printf("%d\t%d\n", i, number)
 	}
 
-	i = ja.AddBoolean(true)
-	jv, err = ja.GetValue(i)
+	i = ja.AddBool(true)
+	b, err := ja.GetBool(i)
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		b, _ := jv.Get()
 		fmt.Printf("%d\t%t\n", i, b)
 	}
 
-	jo := JsonObject{}
+	jo := Object{}
 	jo.AddInt("id", 1)
 	jo.AddString("name", "YM")
-	products := JsonArray{}
+	products := Array{}
 	products.AddInt(1)
 	products.AddInt(2)
 	jo.AddArray("products", &products)
 	i = ja.AddObject(&jo)
-	jv, err = ja.GetValue(i)
+	o, err := ja.GetObject(i)
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		v, _ := jv.Get()
-		obj, _ := v.(JsonObjectValue)
-		fmt.Printf("%d\t%s\n", i, obj.Value.ToInlineString())
+		fmt.Printf("%d\t%s\n", i, o.ToInlineString())
 	}
 
 	fmt.Printf("Is empty: %t\n", ja.IsEmpty())
@@ -56,15 +51,15 @@ func TestArrayAdd(t *testing.T) {
 		t.Error("Must not be empty")
 	}
 
-	s := ja.ToString()
+	s = ja.ToString()
 	fmt.Printf("%s\n", s)
 }
 
 func TestArrayCopy(t *testing.T) {
-	ja := JsonArray{}
+	ja := Array{}
 	ja.AddString("text")
 	ja.AddInt(1)
-	ja.AddBoolean(true)
+	ja.AddBool(true)
 
 	copy := ja.Copy()
 
@@ -82,10 +77,10 @@ func TestArrayCopy(t *testing.T) {
 }
 
 func TestArrayRemove(t *testing.T) {
-	ja := JsonArray{}
+	ja := Array{}
 	ja.AddString("text")
 	ja.AddInt(1)
-	ja.AddBoolean(true)
+	ja.AddBool(true)
 
 	ja.Remove(1)
 

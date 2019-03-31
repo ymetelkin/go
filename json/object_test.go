@@ -6,7 +6,7 @@ import (
 )
 
 func TestObjectAdd(t *testing.T) {
-	jo := JsonObject{}
+	jo := Object{}
 	err := jo.AddInt("id", 1)
 	if err != nil {
 		t.Error(err.Error())
@@ -31,11 +31,11 @@ func TestObjectAdd(t *testing.T) {
 		}
 	}
 
-	err = jo.AddBoolean("cool", true)
+	err = jo.AddBool("cool", true)
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		cool, err := jo.GetBoolean("cool")
+		cool, err := jo.GetBool("cool")
 		if err != nil {
 			t.Error(err.Error())
 		} else {
@@ -43,7 +43,7 @@ func TestObjectAdd(t *testing.T) {
 		}
 	}
 
-	child := JsonObject{}
+	child := Object{}
 	child.AddString("a", "b")
 	err = jo.AddObject("child", &child)
 	if err != nil {
@@ -57,7 +57,7 @@ func TestObjectAdd(t *testing.T) {
 		}
 	}
 
-	ja := JsonArray{}
+	ja := Array{}
 	ja.AddInt(1)
 	ja.AddInt(2)
 	err = jo.AddArray("products", &ja)
@@ -81,23 +81,22 @@ func TestObjectAdd(t *testing.T) {
 }
 
 func TestObjectCopy(t *testing.T) {
-	jo := JsonObject{}
+	jo := Object{}
 	jo.AddInt("id", 1)
 	jo.AddString("name", "YM")
-	jo.AddBoolean("cool", true)
+	jo.AddBool("cool", true)
 
-	child := jo.Copy()
+	child := Object{}
 	child.AddString("a", "b")
-	jo.AddObject("child", child)
+	jo.AddObject("child", &child)
 
 	for key, value := range jo.Properties {
 		fmt.Printf("%s: %#v\n", key, value)
-		jv, err := jo.GetValue(key)
+		jv, err := jo.getValue(key)
 		if err != nil {
 			t.Error(err.Error())
 		} else {
-			v, _ := jv.Get()
-			fmt.Printf("%s: %v\n", key, v)
+			fmt.Printf("%s: %v\n", key, jv.Value)
 		}
 	}
 
@@ -110,7 +109,7 @@ func TestObjectCopy(t *testing.T) {
 }
 
 func TestObjectRemove(t *testing.T) {
-	jo := JsonObject{}
+	jo := Object{}
 	jo.AddInt("id", 1)
 	jo.AddString("name", "YM")
 
