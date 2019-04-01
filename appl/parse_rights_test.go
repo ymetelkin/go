@@ -28,18 +28,18 @@ func TestRights(t *testing.T) {
 	</RightsMetadata>
 </Publication>`
 	pub, _ := NewXml(s)
-	aj := ApplJson{Xml: pub}
+	doc := document{Xml: pub}
 
-	err := pub.RightsMetadata.parse(&aj)
+	err := pub.RightsMetadata.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	if aj.UsageRights == nil {
+	if doc.UsageRights == nil {
 		t.Error("[usagerights] is expected")
 	}
 
-	jo, err := aj.ToJson()
+	jo, err := doc.ToJson()
 	if err != nil {
 		t.Error(err.Error())
 	}

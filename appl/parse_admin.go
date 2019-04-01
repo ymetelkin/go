@@ -6,27 +6,27 @@ import (
 	"github.com/ymetelkin/go/json"
 )
 
-func (admin *AdministrativeMetadata) parse(aj *ApplJson) error {
-	getProvider(aj)
-	getSources(aj)
-	getSourceMaterials(aj)
-	getTransmissionSources(aj)
-	getProductSources(aj)
-	getItemContentType(aj)
-	getDistributionChannels(aj)
-	getFixture(aj)
-	getAdminSignals(aj)
-	getInPackages(aj)
+func (admin *AdministrativeMetadata) parse(doc *document) error {
+	getProvider(doc)
+	getSources(doc)
+	getSourceMaterials(doc)
+	getTransmissionSources(doc)
+	getProductSources(doc)
+	getItemContentType(doc)
+	getDistributionChannels(doc)
+	getFixture(doc)
+	getAdminSignals(doc)
+	getInPackages(doc)
 
 	if admin.Contributor != nil && len(admin.Contributor) > 0 {
-		aj.Contributor = json.NewStringProperty("contributor", admin.Contributor[0])
+		doc.Contributor = json.NewStringProperty("contributor", admin.Contributor[0])
 	}
 
 	return nil
 }
 
-func getProvider(aj *ApplJson) {
-	p := aj.Xml.AdministrativeMetadata.Provider
+func getProvider(doc *document) {
+	p := doc.Xml.AdministrativeMetadata.Provider
 
 	provider := json.Object{}
 	if p.Id != "" {
@@ -43,12 +43,12 @@ func getProvider(aj *ApplJson) {
 	}
 
 	if !provider.IsEmpty() {
-		aj.Provider = json.NewObjectProperty("provider", &provider)
+		doc.Provider = json.NewObjectProperty("provider", &provider)
 	}
 }
 
-func getSources(aj *ApplJson) {
-	srcs := aj.Xml.AdministrativeMetadata.Source
+func getSources(doc *document) {
+	srcs := doc.Xml.AdministrativeMetadata.Source
 	if srcs == nil || len(srcs) == 0 {
 		return
 	}
@@ -83,11 +83,11 @@ func getSources(aj *ApplJson) {
 		sources.AddObject(&source)
 	}
 
-	aj.Sources = json.NewArrayProperty("sources", &sources)
+	doc.Sources = json.NewArrayProperty("sources", &sources)
 }
 
-func getSourceMaterials(aj *ApplJson) {
-	srcs := aj.Xml.AdministrativeMetadata.SourceMaterial
+func getSourceMaterials(doc *document) {
+	srcs := doc.Xml.AdministrativeMetadata.SourceMaterial
 	if srcs == nil || len(srcs) == 0 {
 		return
 	}
@@ -96,8 +96,8 @@ func getSourceMaterials(aj *ApplJson) {
 	for _, src := range srcs {
 		name := src.Name
 		if strings.EqualFold(name, "alternate") {
-			if aj.CanonicalLink == nil && src.Url != "" {
-				aj.CanonicalLink = json.NewStringProperty("canonicallink", src.Url)
+			if doc.CanonicalLink == nil && src.Url != "" {
+				doc.CanonicalLink = json.NewStringProperty("canonicallink", src.Url)
 			}
 		} else {
 			sourcematerial := json.Object{}
@@ -119,34 +119,34 @@ func getSourceMaterials(aj *ApplJson) {
 	}
 
 	if sourcematerials.Length() > 0 {
-		aj.SourceMaterials = json.NewArrayProperty("sourcematerials", &sourcematerials)
+		doc.SourceMaterials = json.NewArrayProperty("sourcematerials", &sourcematerials)
 	}
 }
 
-func getTransmissionSources(aj *ApplJson) {
-	tss := aj.Xml.AdministrativeMetadata.TransmissionSource
+func getTransmissionSources(doc *document) {
+	tss := doc.Xml.AdministrativeMetadata.TransmissionSource
 	if tss != nil {
-		transmissionsources := UniqueStrings{}
+		transmissionsources := uniqueArray{}
 		for _, ts := range tss {
-			transmissionsources.Add(ts)
+			transmissionsources.AddString(ts)
 		}
-		aj.TransmissionSources = transmissionsources.ToJsonProperty("transmissionsources")
+		doc.TransmissionSources = transmissionsources.ToJsonProperty("transmissionsources")
 	}
 }
 
-func getProductSources(aj *ApplJson) {
-	pss := aj.Xml.AdministrativeMetadata.ProductSource
+func getProductSources(doc *document) {
+	pss := doc.Xml.AdministrativeMetadata.ProductSource
 	if pss != nil {
-		productsources := UniqueStrings{}
+		productsources := uniqueArray{}
 		for _, ps := range pss {
-			productsources.Add(ps)
+			productsources.AddString(ps)
 		}
-		aj.ProductSources = productsources.ToJsonProperty("productsources")
+		doc.ProductSources = productsources.ToJsonProperty("productsources")
 	}
 }
 
-func getItemContentType(aj *ApplJson) {
-	ict := aj.Xml.AdministrativeMetadata.ItemContentType
+func getItemContentType(doc *document) {
+	ict := doc.Xml.AdministrativeMetadata.ItemContentType
 	itemcontenttype := json.Object{}
 	if ict.System != "" {
 		itemcontenttype.AddString("creator", ict.System)
@@ -157,22 +157,22 @@ func getItemContentType(aj *ApplJson) {
 	if ict.Value != "" {
 		itemcontenttype.AddString("name", ict.Value)
 	}
-	aj.ItemContentType = json.NewObjectProperty("itemcontenttype", &itemcontenttype)
+	doc.ItemContentType = json.NewObjectProperty("itemcontenttype", &itemcontenttype)
 }
 
-func getDistributionChannels(aj *ApplJson) {
-	dcs := aj.Xml.AdministrativeMetadata.DistributionChannel
+func getDistributionChannels(doc *document) {
+	dcs := doc.Xml.AdministrativeMetadata.DistributionChannel
 	if dcs != nil {
-		distributionchannels := UniqueStrings{}
+		distributionchannels := uniqueArray{}
 		for _, dc := range dcs {
-			distributionchannels.Add(dc)
+			distributionchannels.AddString(dc)
 		}
-		aj.DistributionChannels = distributionchannels.ToJsonProperty("distributionchannels")
+		doc.DistributionChannels = distributionchannels.ToJsonProperty("distributionchannels")
 	}
 }
 
-func getFixture(aj *ApplJson) {
-	f := aj.Xml.AdministrativeMetadata.Fixture
+func getFixture(doc *document) {
+	f := doc.Xml.AdministrativeMetadata.Fixture
 	fixture := json.Object{}
 	if f.Id != "" {
 		fixture.AddString("code", f.Id)
@@ -182,50 +182,50 @@ func getFixture(aj *ApplJson) {
 	}
 
 	if !fixture.IsEmpty() {
-		aj.Fixture = json.NewObjectProperty("fixture", &fixture)
+		doc.Fixture = json.NewObjectProperty("fixture", &fixture)
 	}
 }
 
-func getAdminSignals(aj *ApplJson) {
-	admin := aj.Xml.AdministrativeMetadata
+func getAdminSignals(doc *document) {
+	admin := doc.Xml.AdministrativeMetadata
 
 	if admin.Reach != nil {
 		for _, reach := range admin.Reach {
 			if !strings.EqualFold(reach, "UNKNOWN") {
-				aj.Signals.Add(reach)
+				doc.Signals.AddString(reach)
 			}
 		}
 	}
 
 	if strings.EqualFold(admin.ConsumerReady, "TRUE") {
-		aj.Signals.Add("newscontent")
+		doc.Signals.AddString("newscontent")
 	}
 
 	if admin.Signal != nil {
 		for _, signal := range admin.Signal {
-			aj.Signals.Add(signal)
+			doc.Signals.AddString(signal)
 		}
 	}
 }
 
-func getInPackages(aj *ApplJson) {
-	ips := aj.Xml.AdministrativeMetadata.InPackage
+func getInPackages(doc *document) {
+	ips := doc.Xml.AdministrativeMetadata.InPackage
 	if ips != nil {
-		inpackages := UniqueStrings{}
+		inpackages := uniqueArray{}
 
 		for _, ip := range ips {
 			tokens := strings.Split(ip, " ")
 			for _, token := range tokens {
-				inpackages.Add(token)
+				inpackages.AddString(token)
 			}
 		}
 
-		aj.InPackages = inpackages.ToJsonProperty("inpackages")
+		doc.InPackages = inpackages.ToJsonProperty("inpackages")
 	}
 }
 
-func getRatings(aj *ApplJson) {
-	rs := aj.Xml.AdministrativeMetadata.Rating
+func getRatings(doc *document) {
+	rs := doc.Xml.AdministrativeMetadata.Rating
 	if rs != nil {
 		ratings := json.Array{}
 
@@ -247,7 +247,7 @@ func getRatings(aj *ApplJson) {
 		}
 
 		if ratings.Length() > 0 {
-			aj.Ratings = json.NewArrayProperty("ratings", &ratings)
+			doc.Ratings = json.NewArrayProperty("ratings", &ratings)
 		}
 	}
 }

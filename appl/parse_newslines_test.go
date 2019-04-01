@@ -28,23 +28,23 @@ func TestNewslines(t *testing.T) {
 	</NewsLines>  
 </Publication>`
 	pub, _ := NewXml(s)
-	aj := ApplJson{Xml: pub}
+	doc := document{Xml: pub}
 
-	err := pub.Identification.parse(&aj)
+	err := pub.Identification.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	err = pub.NewsLines.parse(&aj)
+	err = pub.NewsLines.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	if aj.Headline == nil {
+	if doc.Headline == nil {
 		t.Error("[headline] is expected")
 	}
 
-	jo, err := aj.ToJson()
+	jo, err := doc.ToJson()
 	if err != nil {
 		t.Error(err.Error())
 	}

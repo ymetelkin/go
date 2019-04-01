@@ -12,7 +12,7 @@ const (
 	DIGIT_ZERO rune = 48
 )
 
-func (pm *PublicationManagement) parse(aj *ApplJson) error {
+func (pm *PublicationManagement) parse(doc *document) error {
 	if pm.RecordType == "" {
 		return errors.New("[PublicationManagement.RecordType] is missing")
 	}
@@ -20,37 +20,37 @@ func (pm *PublicationManagement) parse(aj *ApplJson) error {
 		return errors.New("[PublicationManagement.FilingType] is missing")
 	}
 
-	err := getPubStatus(aj)
+	err := getPubStatus(doc)
 	if err != nil {
 		return err
 	}
 
-	err = getFirstCreatedDate(aj)
+	err = getFirstCreatedDate(doc)
 	if err != nil {
 		return err
 	}
 
-	getManagementSignals(aj)
-	getOutingInstructions(aj)
-	getEditorialTypes(aj)
-	getAssociatedWith(aj)
-	getTimeRestrictions(aj)
+	getManagementSignals(doc)
+	getOutingInstructions(doc)
+	getEditorialTypes(doc)
+	getAssociatedWith(doc)
+	getTimeRestrictions(doc)
 
 	if len(pm.RefersTo) > 0 {
-		aj.RefersTo = json.NewStringProperty("refersto", pm.RefersTo[0])
+		doc.RefersTo = json.NewStringProperty("refersto", pm.RefersTo[0])
 	}
 
 	return nil
 }
 
-func getPubStatus(aj *ApplJson) error {
-	status := aj.Xml.PublicationManagement.Status
+func getPubStatus(doc *document) error {
+	status := doc.Xml.PublicationManagement.Status
 	if strings.EqualFold(status, "Usable") || strings.EqualFold(status, "Embargoed") || strings.EqualFold(status, "Unknown") {
-		aj.PubStatus = PUBSTATUS_USABLE
+		doc.PubStatus = PUBSTATUS_USABLE
 	} else if strings.EqualFold(status, "Withheld") {
-		aj.PubStatus = PUBSTATUS_WITHHELD
+		doc.PubStatus = PUBSTATUS_WITHHELD
 	} else if strings.EqualFold(status, "Canceled") {
-		aj.PubStatus = PUBSTATUS_CANCELED
+		doc.PubStatus = PUBSTATUS_CANCELED
 	} else {
 		e := fmt.Sprintf("Invalid pub status [%s]", status)
 		return errors.New(e)
@@ -59,15 +59,15 @@ func getPubStatus(aj *ApplJson) error {
 	return nil
 }
 
-func getFirstCreatedDate(aj *ApplJson) error {
-	fc := aj.Xml.PublicationManagement.FirstCreated
+func getFirstCreatedDate(doc *document) error {
+	fc := doc.Xml.PublicationManagement.FirstCreated
 
 	if fc.Year <= 0 {
 		e := fmt.Sprintf("Invalid year [%d]", fc.Year)
 		return errors.New(e)
 	}
 
-	aj.FirstCreatedYear = fc.Year
+	doc.FirstCreatedYear = fc.Year
 
 	var (
 		date  string
@@ -99,67 +99,67 @@ func getFirstCreatedDate(aj *ApplJson) error {
 				date = fmt.Sprintf("%d-%s-%sT%sZ", fc.Year, month, day, fc.Time)
 			}
 
-			aj.FirstCreated = json.NewStringProperty("firstcreated", date)
+			doc.FirstCreated = json.NewStringProperty("firstcreated", date)
 		}
 	}
 
 	return nil
 }
 
-func getManagementSignals(aj *ApplJson) {
-	pm := aj.Xml.PublicationManagement
+func getManagementSignals(doc *document) {
+	pm := doc.Xml.PublicationManagement
 
 	if pm.ExplicitWarning == "1" {
-		aj.Signals.Add("explicitcontent")
+		doc.Signals.AddString("explicitcontent")
 	} else if strings.EqualFold(pm.ExplicitWarning, "NUDITY") {
-		aj.Signals.Add("NUDITY")
+		doc.Signals.AddString("NUDITY")
 	} else if strings.EqualFold(pm.ExplicitWarning, "OBSCENITY") {
-		aj.Signals.Add("OBSCENITY")
+		doc.Signals.AddString("OBSCENITY")
 	} else if strings.EqualFold(pm.ExplicitWarning, "GRAPHIC CONTENT") {
-		aj.Signals.Add("GRAPHICCONTENT")
+		doc.Signals.AddString("GRAPHICCONTENT")
 	}
 
 	if strings.EqualFold(pm.IsDigitized, "false") {
-		aj.Signals.Add("isnotdigitized")
+		doc.Signals.AddString("isnotdigitized")
 	}
 }
 
-func getOutingInstructions(aj *ApplJson) {
-	pm := aj.Xml.PublicationManagement
+func getOutingInstructions(doc *document) {
+	pm := doc.Xml.PublicationManagement
 
 	if pm.Instruction != nil {
-		outinginstructions := UniqueStrings{}
+		outinginstructions := uniqueArray{}
 		for _, instruction := range pm.Instruction {
-			outinginstructions.Add(instruction)
+			outinginstructions.AddString(instruction)
 		}
-		aj.OutingInstructions = outinginstructions.ToJsonProperty("outinginstructions")
+		doc.OutingInstructions = outinginstructions.ToJsonProperty("outinginstructions")
 	}
 }
 
-func getEditorialTypes(aj *ApplJson) {
-	pm := aj.Xml.PublicationManagement
+func getEditorialTypes(doc *document) {
+	pm := doc.Xml.PublicationManagement
 
 	if pm.Editorial != nil {
 		embargoed := pm.ReleaseDateTime != ""
 
-		editorialtypes := UniqueStrings{}
+		editorialtypes := uniqueArray{}
 		for _, editorialtype := range pm.Editorial {
-			editorialtypes.Add(editorialtype.Type)
+			editorialtypes.AddString(editorialtype.Type)
 
 			if embargoed {
 				if strings.EqualFold(editorialtype.Type, "Advance") || strings.EqualFold(editorialtype.Type, "HoldForRelease") {
 					embargoed = false
-					aj.Embargoed = json.NewStringProperty("embargoed", pm.ReleaseDateTime+"Z")
+					doc.Embargoed = json.NewStringProperty("embargoed", pm.ReleaseDateTime+"Z")
 				}
 			}
 		}
 
-		aj.EditorialTypes = editorialtypes.ToJsonProperty("editorialtypes")
+		doc.EditorialTypes = editorialtypes.ToJsonProperty("editorialtypes")
 	}
 }
 
-func getTimeRestrictions(aj *ApplJson) {
-	pm := aj.Xml.PublicationManagement
+func getTimeRestrictions(doc *document) {
+	pm := doc.Xml.PublicationManagement
 	if pm.TimeRestrictions.TimeRestriction == nil || len(pm.TimeRestrictions.TimeRestriction) == 0 {
 		return
 	}
@@ -172,10 +172,10 @@ func getTimeRestrictions(aj *ApplJson) {
 		}
 	}
 
-	aj.TimeRestrictions = timeRestrictions
+	doc.TimeRestrictions = timeRestrictions
 }
 
-func getAssociatedWith(aj *ApplJson) {
+func getAssociatedWith(doc *document) {
 	/*
 	   -test the value of //AssociatedWith, if its all zeros, do not convert; otherwise, each //AssociatedWith is converted to an object $.associations[i];
 	   -each object $.associations[i] has five name/value pairs, $.associations[i].type, $.associations[i].itemid, $.associations[i].representationtype, $.associations[i].associationrank and $associations[i].typerank;
@@ -185,7 +185,7 @@ func getAssociatedWith(aj *ApplJson) {
 	   --load the sequence number of the AssociatedWith node (a number starting at 1) to $.associations[i].associationrank as a number;
 	   --load the sequence number of the AssociatedWith node by @CompositionType (a number starting at 1) to $.associations[i].typerank as a number; note that CompositionType may be absent OR ‘StandardIngestedContent’ (which does not output a type) and any such AssociatedWith nodes should be ranked on their own.
 	*/
-	pm := aj.Xml.PublicationManagement
+	pm := doc.Xml.PublicationManagement
 	associations := json.Array{}
 
 	rank := 0
@@ -266,6 +266,6 @@ func getAssociatedWith(aj *ApplJson) {
 	}
 
 	if associations.Length() > 0 {
-		aj.Associations = json.NewArrayProperty("associations", &associations)
+		doc.Associations = json.NewArrayProperty("associations", &associations)
 	}
 }

@@ -1,72 +1,63 @@
 package appl
 
-import "github.com/ymetelkin/go/json"
+import (
+	"fmt"
 
-type UniqueStrings struct {
+	"github.com/ymetelkin/go/json"
+)
+
+type uniqueArray struct {
 	keys   map[string]bool
-	values []string
+	values json.Array
 }
 
-func (us *UniqueStrings) Add(s string) {
-	if us.values == nil {
-		us.keys = make(map[string]bool)
-		us.keys[s] = true
-		us.values = []string{s}
+func (ua *uniqueArray) AddString(s string) {
+	if s == "" {
+		return
+	}
+
+	if ua.keys == nil {
+		ua.keys = make(map[string]bool)
+		ua.keys[s] = true
 	} else {
-		_, ok := us.keys[s]
-		if !ok {
-			us.keys[s] = true
-			us.values = append(us.values, s)
+		_, ok := ua.keys[s]
+		if ok {
+			return
 		}
 	}
 
+	ua.values.AddString(s)
 }
 
-func (us *UniqueStrings) IsEmpty() bool {
-	return us.values == nil
-}
-
-/*
-func (us *UniqueStrings) Size() int {
-	if us.values == nil {
-		return 0
+func (ua *uniqueArray) AddKeyValue(kn string, kv string, vn string, vv string) {
+	if kv == "" || vv == "" {
+		return
 	}
 
-	return len(us.values)
-}
-*/
+	key := fmt.Sprintf("%s_%s", kv, vv)
+	if ua.keys == nil {
+		ua.keys = make(map[string]bool)
+		ua.keys[key] = true
+	} else {
+		_, ok := ua.keys[key]
+		if ok {
+			return
+		}
+	}
 
-func (us *UniqueStrings) Values() []string {
-	return us.values
+	jo := json.Object{}
+	jo.AddString(kn, kv)
+	jo.AddString(vn, vv)
+	ua.values.AddObject(&jo)
 }
 
-func (us *UniqueStrings) ToJsonProperty(field string) *json.Property {
-	if us.values == nil {
+func (ua *uniqueArray) IsEmpty() bool {
+	return ua.values.Length() == 0
+}
+
+func (ua *uniqueArray) ToJsonProperty(field string) *json.Property {
+	if ua.values.Length() == 0 {
 		return nil
 	}
-
-	ja := json.Array{}
-
-	for _, s := range us.values {
-		ja.AddString(s)
-	}
-
-	return json.NewArrayProperty(field, &ja)
-}
-
-func codeNamesToJsonArray(hash map[string]string) (*json.Array, bool) {
-	if hash == nil || len(hash) == 0 {
-		return nil, false
-	}
-
-	ja := json.Array{}
-
-	for code, name := range hash {
-		jo := json.Object{}
-		jo.AddString("code", code)
-		jo.AddString("name", name)
-		ja.AddObject(&jo)
-	}
-
-	return &ja, true
+	return json.NewArrayProperty(field, &ua.values)
 }

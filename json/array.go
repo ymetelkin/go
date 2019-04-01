@@ -10,22 +10,6 @@ type Array struct {
 	Values []value
 }
 
-func (ja *Array) Copy() *Array {
-	if ja == nil {
-		return nil
-	}
-
-	copy := Array{}
-
-	if ja.Values != nil {
-		for _, jv := range ja.Values {
-			copy.addValue(&jv)
-		}
-	}
-
-	return &copy
-}
-
 func (ja *Array) addValue(jv *value) int {
 	if ja.Values == nil {
 		ja.Values = []value{*jv}

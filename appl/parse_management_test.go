@@ -73,45 +73,45 @@ func TestManagement(t *testing.T) {
 </Publication>
 `
 	pub, _ := NewXml(s)
-	aj := ApplJson{Xml: pub}
+	doc := document{Xml: pub}
 
-	err = pub.PublicationManagement.parse(&aj)
+	err = pub.PublicationManagement.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	if string(aj.PubStatus) != "usable" {
+	if string(doc.PubStatus) != "usable" {
 		t.Error("[pubstatus:usable] is expected")
 	}
-	if aj.FirstCreatedYear == 0 {
+	if doc.FirstCreatedYear == 0 {
 		t.Error("[firstcreated.year] is expected")
 	}
-	if aj.FirstCreated == nil {
+	if doc.FirstCreated == nil {
 		t.Error("[firstcreated] is expected")
 	}
-	if aj.RefersTo == nil {
+	if doc.RefersTo == nil {
 		t.Error("[refersto] is expected")
 	}
-	if aj.Embargoed == nil {
+	if doc.Embargoed == nil {
 		t.Error("[embargoed] is expected")
 	}
-	if aj.Signals.IsEmpty() {
+	if doc.Signals.IsEmpty() {
 		t.Error("[signals] is expected")
 	}
-	if aj.OutingInstructions == nil {
+	if doc.OutingInstructions == nil {
 		t.Error("[outinginstructions] is expected")
 	}
-	if aj.EditorialTypes == nil {
+	if doc.EditorialTypes == nil {
 		t.Error("[editorialtypes] is expected")
 	}
-	if aj.TimeRestrictions == nil || len(aj.TimeRestrictions) == 0 {
+	if doc.TimeRestrictions == nil || len(doc.TimeRestrictions) == 0 {
 		t.Error("[timerestrictions] is expected")
 	}
-	if aj.Associations == nil {
+	if doc.Associations == nil {
 		t.Error("[associations] is expected")
 	}
 
-	jo, err := aj.ToJson()
+	jo, err := doc.ToJson()
 	if err != nil {
 		t.Error(err.Error())
 	}

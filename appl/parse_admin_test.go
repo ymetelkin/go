@@ -60,63 +60,63 @@ func TestAdmin(t *testing.T) {
 	</AdministrativeMetadata>
 </Publication>`
 	pub, _ := NewXml(s)
-	aj := ApplJson{Xml: pub}
+	doc := document{Xml: pub}
 
-	err := pub.PublicationManagement.parse(&aj)
+	err := pub.PublicationManagement.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	err = pub.AdministrativeMetadata.parse(&aj)
+	err = pub.AdministrativeMetadata.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	if aj.Provider == nil {
+	if doc.Provider == nil {
 		t.Error("[provider] is expected")
 	}
 
-	if aj.Sources == nil {
+	if doc.Sources == nil {
 		t.Error("[sources] is expected")
 	}
 
-	if aj.CanonicalLink == nil {
+	if doc.CanonicalLink == nil {
 		t.Error("[canonicallink] is expected")
 	}
 
-	if aj.SourceMaterials == nil {
+	if doc.SourceMaterials == nil {
 		t.Error("[sourcematerials] is expected")
 	}
 
-	if aj.TransmissionSources == nil {
+	if doc.TransmissionSources == nil {
 		t.Error("[transmissionsources] is expected")
 	}
 
-	if aj.ProductSources == nil {
+	if doc.ProductSources == nil {
 		t.Error("[productsources] is expected")
 	}
 
-	if aj.ItemContentType == nil {
+	if doc.ItemContentType == nil {
 		t.Error("[itemcontenttype] is expected")
 	}
 
-	if aj.DistributionChannels == nil {
+	if doc.DistributionChannels == nil {
 		t.Error("[distributionchannels] is expected")
 	}
 
-	if aj.Fixture == nil {
+	if doc.Fixture == nil {
 		t.Error("[fixture] is expected")
 	}
 
-	if aj.Signals.IsEmpty() {
+	if doc.Signals.IsEmpty() {
 		t.Error("[signals] is expected")
 	}
 
-	if aj.InPackages == nil {
+	if doc.InPackages == nil {
 		t.Error("[inpackages] is expected")
 	}
 
-	jo, err := aj.ToJson()
+	jo, err := doc.ToJson()
 	if err != nil {
 		t.Error(err.Error())
 	}

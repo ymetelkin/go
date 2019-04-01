@@ -2,14 +2,14 @@ package appl
 
 import "github.com/ymetelkin/go/json"
 
-func (rights *RightsMetadata) parse(aj *ApplJson) error {
-	getUsageRights(aj)
+func (rights *RightsMetadata) parse(doc *document) error {
+	getUsageRights(doc)
 
 	return nil
 }
 
-func getUsageRights(aj *ApplJson) {
-	urs := aj.Xml.RightsMetadata.UsageRights
+func getUsageRights(doc *document) {
+	urs := doc.Xml.RightsMetadata.UsageRights
 	if urs == nil || len(urs) == 0 {
 		return
 	}
@@ -22,9 +22,9 @@ func getUsageRights(aj *ApplJson) {
 			usageright.AddString("usagetype", ur.UsageType)
 		}
 		if ur.Geography != nil {
-			geography := UniqueStrings{}
+			geography := uniqueArray{}
 			for _, g := range ur.Geography {
-				geography.Add(g)
+				geography.AddString(g)
 			}
 			usageright.AddProperty(geography.ToJsonProperty("geography"))
 		}
@@ -32,9 +32,9 @@ func getUsageRights(aj *ApplJson) {
 			usageright.AddString("rightsholder", ur.RightsHolder)
 		}
 		if ur.Limitations != nil {
-			limitations := UniqueStrings{}
+			limitations := uniqueArray{}
 			for _, lim := range ur.Limitations {
-				limitations.Add(lim)
+				limitations.AddString(lim)
 			}
 			usageright.AddProperty(limitations.ToJsonProperty("limitations"))
 		}
@@ -72,6 +72,6 @@ func getUsageRights(aj *ApplJson) {
 	}
 
 	if !usagerights.IsEmpty() {
-		aj.UsageRights = json.NewArrayProperty("usagerights", &usagerights)
+		doc.UsageRights = json.NewArrayProperty("usagerights", &usagerights)
 	}
 }

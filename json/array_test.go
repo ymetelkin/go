@@ -55,25 +55,18 @@ func TestArrayAdd(t *testing.T) {
 	fmt.Printf("%s\n", s)
 }
 
-func TestArrayCopy(t *testing.T) {
+func TestObjectArray(t *testing.T) {
+	names := []string{"YM", "SV"}
 	ja := Array{}
-	ja.AddString("text")
-	ja.AddInt(1)
-	ja.AddBool(true)
-
-	copy := ja.Copy()
-
-	fmt.Printf("Is empty: %t\n", copy.IsEmpty())
-	if copy.IsEmpty() {
-		t.Error("Must not be empty")
+	for _, name := range names {
+		jo := Object{}
+		rels := Array{}
+		rels.AddString(name)
+		jo.AddArray("rels", &rels)
+		ja.AddObject(&jo)
 	}
 
-	if copy.Length() != ja.Length() {
-		t.Error("Must have same size as source")
-	}
-
-	s := copy.ToString()
-	fmt.Printf("%s\n", s)
+	fmt.Println(ja.ToString())
 }
 
 func TestArrayRemove(t *testing.T) {

@@ -35,24 +35,24 @@ func TestIdentification(t *testing.T) {
 	</Identification>
 </Publication>`
 	pub, _ := NewXml(s)
-	aj := ApplJson{Xml: pub}
+	doc := document{Xml: pub}
 
-	err = pub.Identification.parse(&aj)
+	err = pub.Identification.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	if string(aj.MediaType) != "photo" {
+	if string(doc.MediaType) != "photo" {
 		t.Error("[type:photo] is expected")
 	}
-	if aj.Language.Field == "" {
+	if doc.Language.Field == "" {
 		t.Error("[language:en] is expected")
 	}
-	if aj.ReferenceId.Field == "" {
+	if doc.ReferenceId.Field == "" {
 		t.Error("[referenceid] is expected")
 	}
 
-	jo, err := aj.ToJson()
+	jo, err := doc.ToJson()
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -87,17 +87,17 @@ func TestIdentificationReferenceId(t *testing.T) {
 	</Identification>
 </Publication>`
 	pub, _ := NewXml(s)
-	aj := ApplJson{Xml: pub}
+	doc := document{Xml: pub}
 
-	err := pub.Identification.parse(&aj)
+	err := pub.Identification.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	if s, _ := aj.ReferenceId.Value.GetString(); s != "xyz" {
+	if s, _ := doc.ReferenceId.Value.GetString(); s != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
 	} else {
-		fmt.Println(aj.ReferenceId)
+		fmt.Println(doc.ReferenceId)
 	}
 
 	s = `
@@ -111,16 +111,16 @@ func TestIdentificationReferenceId(t *testing.T) {
 	</Identification>
 </Publication>`
 	pub, _ = NewXml(s)
-	aj = ApplJson{Xml: pub}
+	doc = document{Xml: pub}
 
-	err = pub.Identification.parse(&aj)
+	err = pub.Identification.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	if s, _ := aj.ReferenceId.Value.GetString(); s != "00000000000000000000000000000001" {
+	if s, _ := doc.ReferenceId.Value.GetString(); s != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")
 	} else {
-		fmt.Println(aj.ReferenceId)
+		fmt.Println(doc.ReferenceId)
 	}
 
 	s = `
@@ -137,16 +137,16 @@ func TestIdentificationReferenceId(t *testing.T) {
 	</NewsLines> 
 </Publication>`
 	pub, _ = NewXml(s)
-	aj = ApplJson{Xml: pub}
+	doc = document{Xml: pub}
 
-	err = pub.Identification.parse(&aj)
+	err = pub.Identification.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	if s, _ := aj.ReferenceId.Value.GetString(); s != "xyz" {
+	if s, _ := doc.ReferenceId.Value.GetString(); s != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
 	} else {
-		fmt.Println(aj.ReferenceId)
+		fmt.Println(doc.ReferenceId)
 	}
 
 	s = `
@@ -160,16 +160,16 @@ func TestIdentificationReferenceId(t *testing.T) {
 	</Identification>
 </Publication>`
 	pub, _ = NewXml(s)
-	aj = ApplJson{Xml: pub}
+	doc = document{Xml: pub}
 
-	err = pub.Identification.parse(&aj)
+	err = pub.Identification.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	if s, _ := aj.ReferenceId.Value.GetString(); s != "00000000000000000000000000000001" {
+	if s, _ := doc.ReferenceId.Value.GetString(); s != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")
 	} else {
-		fmt.Println(aj.ReferenceId)
+		fmt.Println(doc.ReferenceId)
 	}
 
 	s = `
@@ -186,16 +186,16 @@ func TestIdentificationReferenceId(t *testing.T) {
 	</NewsLines> 
 </Publication>`
 	pub, _ = NewXml(s)
-	aj = ApplJson{Xml: pub}
+	doc = document{Xml: pub}
 
-	err = pub.Identification.parse(&aj)
+	err = pub.Identification.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	if s, _ := aj.ReferenceId.Value.GetString(); s != "xyz" {
+	if s, _ := doc.ReferenceId.Value.GetString(); s != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
 	} else {
-		fmt.Println(aj.ReferenceId)
+		fmt.Println(doc.ReferenceId)
 	}
 
 	s = `
@@ -209,16 +209,16 @@ func TestIdentificationReferenceId(t *testing.T) {
 	</Identification>
 </Publication>`
 	pub, _ = NewXml(s)
-	aj = ApplJson{Xml: pub}
+	doc = document{Xml: pub}
 
-	err = pub.Identification.parse(&aj)
+	err = pub.Identification.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	if s, _ := aj.ReferenceId.Value.GetString(); s != "00000000000000000000000000000001" {
+	if s, _ := doc.ReferenceId.Value.GetString(); s != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")
 	} else {
-		fmt.Println(aj.ReferenceId)
+		fmt.Println(doc.ReferenceId)
 	}
 
 	s = `
@@ -235,16 +235,16 @@ func TestIdentificationReferenceId(t *testing.T) {
 	</PublicationManagement> 
 </Publication>`
 	pub, _ = NewXml(s)
-	aj = ApplJson{Xml: pub}
+	doc = document{Xml: pub}
 
-	err = pub.Identification.parse(&aj)
+	err = pub.Identification.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	if s, _ := aj.ReferenceId.Value.GetString(); s != "xyz" {
+	if s, _ := doc.ReferenceId.Value.GetString(); s != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
 	} else {
-		fmt.Println(aj.ReferenceId)
+		fmt.Println(doc.ReferenceId)
 	}
 
 	s = `
@@ -258,15 +258,15 @@ func TestIdentificationReferenceId(t *testing.T) {
 	</Identification>
 </Publication>`
 	pub, _ = NewXml(s)
-	aj = ApplJson{Xml: pub}
+	doc = document{Xml: pub}
 
-	err = pub.Identification.parse(&aj)
+	err = pub.Identification.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	if s, _ := aj.ReferenceId.Value.GetString(); s != "00000000000000000000000000000001" {
+	if s, _ := doc.ReferenceId.Value.GetString(); s != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")
 	} else {
-		fmt.Println(aj.ReferenceId)
+		fmt.Println(doc.ReferenceId)
 	}
 }

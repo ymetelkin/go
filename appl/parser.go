@@ -25,7 +25,7 @@ const (
 	PUBSTATUS_UNKNOWN  PubStatus = ""
 )
 
-type ApplJson struct {
+type document struct {
 	Xml                  *Publication
 	MediaType            MediaType
 	Language             *json.Property
@@ -33,7 +33,7 @@ type ApplJson struct {
 	PubStatus            PubStatus
 	FirstCreated         *json.Property
 	FirstCreatedYear     int
-	Signals              UniqueStrings
+	Signals              uniqueArray
 	OutingInstructions   *json.Property
 	EditorialTypes       *json.Property
 	Embargoed            *json.Property
@@ -49,7 +49,7 @@ type ApplJson struct {
 	CaptionWriter        *json.Property
 	Edits                *json.Property
 	OverLines            *json.Property
-	Persons              *json.Property
+	Person               *json.Property
 	Provider             *json.Property
 	Sources              *json.Property
 	Contributor          *json.Property
@@ -64,12 +64,14 @@ type ApplJson struct {
 	Ratings              *json.Property
 	UsageRights          *json.Property
 	Descriptions         *json.Property
-	Generators           []ApplGenerator
-	Categories           map[string]string
-	SuppCategories       map[string]string
-	AlertCategories      UniqueStrings
-	Subjects             []ApplSubject
-	Organizations        []ApplSubject
+	DatelineLocation     *json.Property
+	Generators           *json.Property
+	Categories           *json.Property
+	SuppCategories       *json.Property
+	AlertCategories      *json.Property
+	Subjects             *json.Property
+	Persons              *json.Property
+	Organizations        *json.Property
 	Filings              []ApplFiling
 }
 
@@ -134,7 +136,7 @@ type ApplFixture struct {
 	Code    string
 	IsEmpty bool
 }
-*/
+
 
 type ApplRating struct {
 	Value     int
@@ -147,9 +149,9 @@ type ApplRating struct {
 
 type ApplUsageRights struct {
 	UsageType    string
-	Geography    UniqueStrings
+	Geography    uniqueArray
 	RightsHolder string
-	Limitations  UniqueStrings
+	Limitations  uniqueArray
 	StartDate    string
 	EndDate      string
 	Groups       []ApplGroup
@@ -170,10 +172,11 @@ type ApplSubject struct {
 	Name      string
 	Code      string
 	Creator   string
-	Rels      UniqueStrings
-	ParentIds UniqueStrings
+	Rels      uniqueArray
+	ParentIds uniqueArray
 	TopParent bool
 }
+*/
 
 type ApplFiling struct {
 	Xml         *FilingMetadata
@@ -187,39 +190,39 @@ func XmlToJson(s string) (*json.Object, error) {
 		return nil, err
 	}
 
-	aj := ApplJson{Xml: pub}
+	doc := document{Xml: pub}
 
-	err = pub.Identification.parse(&aj)
+	err = pub.Identification.parse(&doc)
 	if err != nil {
 		return nil, err
 	}
 
-	err = pub.PublicationManagement.parse(&aj)
+	err = pub.PublicationManagement.parse(&doc)
 	if err != nil {
 		return nil, err
 	}
 
-	err = pub.NewsLines.parse(&aj)
+	err = pub.NewsLines.parse(&doc)
 	if err != nil {
 		return nil, err
 	}
 
-	err = pub.AdministrativeMetadata.parse(&aj)
+	err = pub.AdministrativeMetadata.parse(&doc)
 	if err != nil {
 		return nil, err
 	}
 
-	err = pub.RightsMetadata.parse(&aj)
+	err = pub.RightsMetadata.parse(&doc)
 	if err != nil {
 		return nil, err
 	}
 
-	err = pub.DescriptiveMetadata.parse(&aj)
+	err = pub.DescriptiveMetadata.parse(&doc)
 	if err != nil {
 		return nil, err
 	}
 
-	jo, err := aj.ToJson()
+	jo, err := doc.ToJson()
 	if err != nil {
 		return nil, err
 	}
@@ -227,17 +230,17 @@ func XmlToJson(s string) (*json.Object, error) {
 	return jo, nil
 }
 
-func (aj *ApplJson) ToJson() (*json.Object, error) {
+func (doc *document) ToJson() (*json.Object, error) {
 	jo := json.Object{}
 	jo.AddString("representationversion", "1.0")
 	jo.AddString("representationtype", "full")
 
-	id := aj.Xml.Identification
+	id := doc.Xml.Identification
 	jo.AddString("itemid", id.ItemId)
 	jo.AddString("recordid", id.RecordId)
 	jo.AddString("compositeid", id.CompositeId)
 	jo.AddString("compositiontype", id.CompositionType)
-	jo.AddString("type", string(aj.MediaType))
+	jo.AddString("type", string(doc.MediaType))
 
 	if id.Priority > 0 {
 		jo.AddInt("priority", id.Priority)
@@ -247,7 +250,7 @@ func (aj *ApplJson) ToJson() (*json.Object, error) {
 		jo.AddString("editorialpriority", id.EditorialPriority)
 	}
 
-	jo.AddProperty(aj.Language)
+	jo.AddProperty(doc.Language)
 
 	if id.RecordSequenceNumber > 0 {
 		jo.AddInt("recordsequencenumber", id.RecordSequenceNumber)
@@ -257,9 +260,9 @@ func (aj *ApplJson) ToJson() (*json.Object, error) {
 		jo.AddString("friendlykey", id.FriendlyKey)
 	}
 
-	jo.AddProperty(aj.ReferenceId)
+	jo.AddProperty(doc.ReferenceId)
 
-	pm := aj.Xml.PublicationManagement
+	pm := doc.Xml.PublicationManagement
 	jo.AddString("recordtype", pm.RecordType)
 	jo.AddString("filingtype", pm.FilingType)
 
@@ -275,23 +278,23 @@ func (aj *ApplJson) ToJson() (*json.Object, error) {
 		jo.AddString("arrivaldatetime", pm.ArrivalDateTime+"Z")
 	}
 
-	jo.AddProperty(aj.FirstCreated)
+	jo.AddProperty(doc.FirstCreated)
 
 	if pm.LastModifiedDateTime != "" {
 		jo.AddString("lastmodifieddatetime", pm.LastModifiedDateTime+"Z")
 	}
 
-	jo.AddString("pubstatus", string(aj.PubStatus))
+	jo.AddString("pubstatus", string(doc.PubStatus))
 
 	if pm.ReleaseDateTime != "" {
 		jo.AddString("releasedatetime", pm.ReleaseDateTime+"Z")
 	}
 
-	jo.AddProperty(aj.Embargoed)
-	jo.AddProperty(aj.EditorialTypes)
-	jo.AddProperty(aj.Associations)
-	jo.AddProperty(aj.RefersTo)
-	jo.AddProperty(aj.OutingInstructions)
+	jo.AddProperty(doc.Embargoed)
+	jo.AddProperty(doc.EditorialTypes)
+	jo.AddProperty(doc.Associations)
+	jo.AddProperty(doc.RefersTo)
+	jo.AddProperty(doc.OutingInstructions)
 
 	if pm.SpecialInstructions != "" {
 		jo.AddString("specialinstructions", pm.SpecialInstructions)
@@ -325,21 +328,21 @@ func (aj *ApplJson) ToJson() (*json.Object, error) {
 		jo.AddString("function", pm.Function)
 	}
 
-	jo.AddProperty(aj.Signals.ToJsonProperty("signals"))
+	jo.AddProperty(doc.Signals.ToJsonProperty("signals"))
 
-	if aj.TimeRestrictions != nil {
-		for k, v := range aj.TimeRestrictions {
+	if doc.TimeRestrictions != nil {
+		for k, v := range doc.TimeRestrictions {
 			jo.AddBool(k, v)
 		}
 	}
 
-	nl := aj.Xml.NewsLines
+	nl := doc.Xml.NewsLines
 
 	if nl.Title != "" {
 		jo.AddString("title", nl.Title)
 	}
 
-	jo.AddProperty(aj.Headline)
+	jo.AddProperty(doc.Headline)
 
 	if nl.ExtendedHeadLine != "" {
 		jo.AddString("headline_extended", nl.ExtendedHeadLine)
@@ -349,13 +352,13 @@ func (aj *ApplJson) ToJson() (*json.Object, error) {
 		jo.AddString("summary", nl.BodySubHeader[0])
 	}
 
-	jo.AddProperty(aj.Bylines)
-	jo.AddProperty(aj.Producer)
-	jo.AddProperty(aj.Photographer)
-	jo.AddProperty(aj.CaptionWriter)
-	jo.AddProperty(aj.Edits)
-	jo.AddProperty(aj.Bylines)
-	jo.AddProperty(aj.OverLines)
+	jo.AddProperty(doc.Bylines)
+	jo.AddProperty(doc.Producer)
+	jo.AddProperty(doc.Photographer)
+	jo.AddProperty(doc.CaptionWriter)
+	jo.AddProperty(doc.Edits)
+	jo.AddProperty(doc.Bylines)
+	jo.AddProperty(doc.OverLines)
 
 	if nl.DateLine != "" {
 		jo.AddString("dateline", nl.DateLine)
@@ -369,7 +372,7 @@ func (aj *ApplJson) ToJson() (*json.Object, error) {
 		jo.AddString("creditlineid", nl.CreditLine.Id)
 	}
 
-	jo.AddProperty(aj.CopyrightNotice)
+	jo.AddProperty(doc.CopyrightNotice)
 
 	if nl.RightsLine != "" {
 		jo.AddString("rightsline", nl.RightsLine)
@@ -379,54 +382,54 @@ func (aj *ApplJson) ToJson() (*json.Object, error) {
 		jo.AddString("seriesline", nl.SeriesLine)
 	}
 
-	jo.AddProperty(aj.KeywordLines)
+	jo.AddProperty(doc.KeywordLines)
 
 	if nl.OutCue != "" {
 		jo.AddString("outcue", nl.OutCue)
 	}
 
-	jo.AddProperty(aj.Persons)
+	jo.AddProperty(doc.Persons)
 
 	if nl.LocationLine != "" {
 		jo.AddString("locationline", nl.LocationLine)
 	}
 
-	admin := aj.Xml.AdministrativeMetadata
+	admin := doc.Xml.AdministrativeMetadata
 
-	jo.AddProperty(aj.Provider)
+	jo.AddProperty(doc.Provider)
 
 	if admin.Creator != "" {
 		jo.AddString("creator", admin.Creator)
 	}
 
-	jo.AddProperty(aj.Sources)
-	jo.AddProperty(aj.Contributor)
-	jo.AddProperty(aj.CanonicalLink)
-	jo.AddProperty(aj.SourceMaterials)
+	jo.AddProperty(doc.Sources)
+	jo.AddProperty(doc.Contributor)
+	jo.AddProperty(doc.CanonicalLink)
+	jo.AddProperty(doc.SourceMaterials)
 
 	if admin.WorkflowStatus != "" {
 		jo.AddString("workflowstatus", admin.WorkflowStatus)
 	}
 
-	jo.AddProperty(aj.TransmissionSources)
-	jo.AddProperty(aj.ProductSources)
-	jo.AddProperty(aj.ItemContentType)
+	jo.AddProperty(doc.TransmissionSources)
+	jo.AddProperty(doc.ProductSources)
+	jo.AddProperty(doc.ItemContentType)
 
 	if admin.Workgroup != "" {
 		jo.AddString("workgroup", admin.Workgroup)
 	}
 
-	jo.AddProperty(aj.DistributionChannels)
+	jo.AddProperty(doc.DistributionChannels)
 
 	if admin.ContentElement != "" {
 		jo.AddString("editorialrole", admin.ContentElement)
 	}
 
-	jo.AddProperty(aj.Fixture)
-	jo.AddProperty(aj.InPackages)
-	jo.AddProperty(aj.Ratings)
+	jo.AddProperty(doc.Fixture)
+	jo.AddProperty(doc.InPackages)
+	jo.AddProperty(doc.Ratings)
 
-	rm := aj.Xml.RightsMetadata
+	rm := doc.Xml.RightsMetadata
 
 	if rm.Copyright.Holder != "" {
 		jo.AddString("copyrightholder", rm.Copyright.Holder)
@@ -436,98 +439,18 @@ func (aj *ApplJson) ToJson() (*json.Object, error) {
 		jo.AddInt("copyrightdate", rm.Copyright.Date)
 	}
 
-	jo.AddProperty(aj.UsageRights)
+	jo.AddProperty(doc.UsageRights)
 
-	desc := aj.Xml.DescriptiveMetadata
+	//desc := doc.Xml.DescriptiveMetadata
 
-	jo.AddProperty(aj.Descriptions)
-
-	has_geo := desc.DateLineLocation.LatitudeDD != 0 && desc.DateLineLocation.LongitudeDD != 0
-	if desc.DateLineLocation.City != "" || desc.DateLineLocation.Country != "" || desc.DateLineLocation.CountryArea != "" || desc.DateLineLocation.CountryAreaName != "" || desc.DateLineLocation.CountryName != "" || has_geo {
-		datelinelocation := json.Object{}
-		if desc.DateLineLocation.City != "" {
-			datelinelocation.AddString("city", desc.DateLineLocation.City)
-		}
-		if desc.DateLineLocation.CountryArea != "" {
-			datelinelocation.AddString("countryareacode", desc.DateLineLocation.CountryArea)
-		}
-		if desc.DateLineLocation.CountryAreaName != "" {
-			datelinelocation.AddString("countryareaname", desc.DateLineLocation.CountryAreaName)
-		}
-		if desc.DateLineLocation.Country != "" {
-			datelinelocation.AddString("countrycode", desc.DateLineLocation.Country)
-		}
-		if desc.DateLineLocation.CountryName != "" {
-			datelinelocation.AddString("countryname", desc.DateLineLocation.CountryName)
-		}
-		if has_geo {
-			coordinates := json.Array{}
-			coordinates.AddFloat(desc.DateLineLocation.LongitudeDD)
-			coordinates.AddFloat(desc.DateLineLocation.LatitudeDD)
-			geo := json.Object{}
-			geo.AddString("type", "Point")
-			geo.AddArray("coordinates", &coordinates)
-
-			datelinelocation.AddObject("geometry_geojson", &geo)
-		}
-	}
-
-	if aj.Generators != nil && len(aj.Generators) > 0 {
-		generators := json.Array{}
-		for _, g := range aj.Generators {
-			generator := json.Object{}
-			generator.AddString("name", g.Name)
-			generator.AddString("version", g.Version)
-			generators.AddObject(&generator)
-		}
-		jo.AddArray("generators", &generators)
-	}
-
-	if aj.Categories != nil && len(aj.Categories) > 0 {
-		categories, ok := codeNamesToJsonArray(aj.Categories)
-		if ok {
-			jo.AddArray("categories", categories)
-		}
-	}
-
-	if aj.SuppCategories != nil && len(aj.SuppCategories) > 0 {
-		suppcategories, ok := codeNamesToJsonArray(aj.SuppCategories)
-		if ok {
-			jo.AddArray("suppcategories", suppcategories)
-		}
-	}
-
-	if !aj.AlertCategories.IsEmpty() {
-		jo.AddProperty(aj.AlertCategories.ToJsonProperty("alertcategories"))
-	}
-
-	addSubjects(&aj.Subjects, &jo, "subject")
-	addSubjects(&aj.Organizations, &jo, "organizations")
+	jo.AddProperty(doc.Descriptions)
+	jo.AddProperty(doc.DatelineLocation)
+	jo.AddProperty(doc.Generators)
+	jo.AddProperty(doc.Categories)
+	jo.AddProperty(doc.SuppCategories)
+	jo.AddProperty(doc.AlertCategories)
+	jo.AddProperty(doc.Subjects)
+	jo.AddProperty(doc.Organizations)
 
 	return &jo, nil
-}
-
-func addSubjects(items *[]ApplSubject, jo *json.Object, field string) {
-	values := *items
-	if values != nil && len(values) > 0 {
-		subjects := json.Array{}
-		for _, sbj := range values {
-			subject := json.Object{}
-			subject.AddString("name", sbj.Name)
-			subject.AddString("scheme", "http://cv.ap.org/id/")
-			subject.AddString("code", sbj.Code)
-			if sbj.Creator != "" {
-				subject.AddString("creator", sbj.Creator)
-			}
-			if !sbj.Rels.IsEmpty() {
-				subject.AddProperty(sbj.Rels.ToJsonProperty("rels"))
-			}
-			if !sbj.ParentIds.IsEmpty() {
-				subject.AddProperty(sbj.ParentIds.ToJsonProperty("parentids"))
-			}
-			subject.AddBool("topparent", sbj.TopParent)
-			subjects.AddObject(&subject)
-		}
-		jo.AddArray(field, &subjects)
-	}
 }

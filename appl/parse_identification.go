@@ -8,7 +8,7 @@ import (
 	"github.com/ymetelkin/go/json"
 )
 
-func (id *Identification) parse(aj *ApplJson) error {
+func (id *Identification) parse(doc *document) error {
 	if id.ItemId == "" {
 		return errors.New("[Identification.ItemId] is missing")
 	}
@@ -22,36 +22,36 @@ func (id *Identification) parse(aj *ApplJson) error {
 		return errors.New("[Identification.CompositionType] is missing")
 	}
 
-	err := getMediaType(aj)
+	err := getMediaType(doc)
 	if err != nil {
 		return err
 	}
 
 	if len(id.DefaultLanguage) >= 2 {
 		language := string([]rune(id.DefaultLanguage)[0:2])
-		aj.Language = json.NewStringProperty("language", language)
+		doc.Language = json.NewStringProperty("language", language)
 	}
 
-	getReferenceId(aj)
+	getReferenceId(doc)
 
 	return nil
 }
 
-func getMediaType(aj *ApplJson) error {
-	s := aj.Xml.Identification.MediaType
+func getMediaType(doc *document) error {
+	s := doc.Xml.Identification.MediaType
 
 	if strings.EqualFold(s, "text") {
-		aj.MediaType = MEDIATYPE_TEXT
+		doc.MediaType = MEDIATYPE_TEXT
 	} else if strings.EqualFold(s, "photo") {
-		aj.MediaType = MEDIATYPE_PHOTO
+		doc.MediaType = MEDIATYPE_PHOTO
 	} else if strings.EqualFold(s, "video") {
-		aj.MediaType = MEDIATYPE_VIDEO
+		doc.MediaType = MEDIATYPE_VIDEO
 	} else if strings.EqualFold(s, "audio") {
-		aj.MediaType = MEDIATYPE_AUDIO
+		doc.MediaType = MEDIATYPE_AUDIO
 	} else if strings.EqualFold(s, "graphic") {
-		aj.MediaType = MEDIATYPE_GRAPHIC
+		doc.MediaType = MEDIATYPE_GRAPHIC
 	} else if strings.EqualFold(s, "complexdata") {
-		aj.MediaType = MEDIATYPE_COMPLEXT_DATA
+		doc.MediaType = MEDIATYPE_COMPLEXT_DATA
 	} else {
 		e := fmt.Sprintf("Invalid media type [%s]", s)
 		return errors.New(e)
@@ -60,34 +60,34 @@ func getMediaType(aj *ApplJson) error {
 	return nil
 }
 
-func getReferenceId(aj *ApplJson) {
-	ref := aj.Xml.Identification.ItemId
+func getReferenceId(doc *document) {
+	ref := doc.Xml.Identification.ItemId
 
-	if (aj.MediaType == MEDIATYPE_PHOTO || aj.MediaType == MEDIATYPE_GRAPHIC) && aj.Xml.Identification.FriendlyKey != "" {
-		ref = aj.Xml.Identification.FriendlyKey
-	} else if aj.MediaType == MEDIATYPE_AUDIO && aj.Xml.PublicationManagement.EditorialId != "" {
-		ref = aj.Xml.PublicationManagement.EditorialId
-	} else if aj.MediaType == MEDIATYPE_COMPLEXT_DATA && aj.Xml.NewsLines.Title != "" {
-		ref = aj.Xml.NewsLines.Title
-	} else if aj.MediaType == MEDIATYPE_TEXT {
-		if aj.Xml.NewsLines.Title != "" {
-			ref = aj.Xml.NewsLines.Title
-		} else if aj.Filings != nil && len(aj.Filings) > 0 {
-			for _, f := range aj.Filings {
+	if (doc.MediaType == MEDIATYPE_PHOTO || doc.MediaType == MEDIATYPE_GRAPHIC) && doc.Xml.Identification.FriendlyKey != "" {
+		ref = doc.Xml.Identification.FriendlyKey
+	} else if doc.MediaType == MEDIATYPE_AUDIO && doc.Xml.PublicationManagement.EditorialId != "" {
+		ref = doc.Xml.PublicationManagement.EditorialId
+	} else if doc.MediaType == MEDIATYPE_COMPLEXT_DATA && doc.Xml.NewsLines.Title != "" {
+		ref = doc.Xml.NewsLines.Title
+	} else if doc.MediaType == MEDIATYPE_TEXT {
+		if doc.Xml.NewsLines.Title != "" {
+			ref = doc.Xml.NewsLines.Title
+		} else if doc.Filings != nil && len(doc.Filings) > 0 {
+			for _, f := range doc.Filings {
 				if f.Xml.SlugLine != "" {
 					ref = f.Xml.SlugLine
 					break
 				}
 			}
 		}
-	} else if aj.MediaType == MEDIATYPE_VIDEO {
-		if strings.EqualFold(aj.Xml.Identification.CompositionType, "StandardBroadcastVideo") {
-			if aj.Xml.PublicationManagement.EditorialId != "" {
-				ref = aj.Xml.PublicationManagement.EditorialId
+	} else if doc.MediaType == MEDIATYPE_VIDEO {
+		if strings.EqualFold(doc.Xml.Identification.CompositionType, "StandardBroadcastVideo") {
+			if doc.Xml.PublicationManagement.EditorialId != "" {
+				ref = doc.Xml.PublicationManagement.EditorialId
 			}
 		} else {
-			if aj.Filings != nil && len(aj.Filings) > 0 {
-				for _, f := range aj.Filings {
+			if doc.Filings != nil && len(doc.Filings) > 0 {
+				for _, f := range doc.Filings {
 					if f.ForeignKeys != nil {
 						for _, v := range f.ForeignKeys {
 							ref = v
@@ -100,5 +100,5 @@ func getReferenceId(aj *ApplJson) {
 		}
 	}
 
-	aj.ReferenceId = json.NewStringProperty("referenceid", ref)
+	doc.ReferenceId = json.NewStringProperty("referenceid", ref)
 }

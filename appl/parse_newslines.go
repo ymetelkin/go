@@ -7,78 +7,78 @@ import (
 	"github.com/ymetelkin/go/json"
 )
 
-func (nl *NewsLines) parse(aj *ApplJson) error {
-	getHeadline(aj)
-	getCopyrightNotice(aj)
-	getBylines(aj)
-	getPersons(aj)
+func (nl *NewsLines) parse(doc *document) error {
+	getHeadline(doc)
+	getCopyrightNotice(doc)
+	getBylines(doc)
+	getPerson(doc)
 
 	if nl.OverLine != nil {
-		overlines := UniqueStrings{}
+		overlines := uniqueArray{}
 		for _, ol := range nl.OverLine {
-			overlines.Add(ol)
+			overlines.AddString(ol)
 		}
-		aj.OverLines = overlines.ToJsonProperty("overlines")
+		doc.OverLines = overlines.ToJsonProperty("overlines")
 	}
 
 	if nl.KeywordLine != nil {
-		keywordlines := UniqueStrings{}
+		keywordlines := uniqueArray{}
 		for _, kw := range nl.KeywordLine {
-			keywordlines.Add(kw)
+			keywordlines.AddString(kw)
 		}
-		aj.KeywordLines = keywordlines.ToJsonProperty("keywordlines")
+		doc.KeywordLines = keywordlines.ToJsonProperty("keywordlines")
 	}
 
 	return nil
 }
 
-func getHeadline(aj *ApplJson) {
+func getHeadline(doc *document) {
 	var headline string
 
-	t := aj.MediaType
+	t := doc.MediaType
 
 	if t == MEDIATYPE_TEXT || t == MEDIATYPE_AUDIO {
-		if aj.Xml.NewsLines.HeadLine != "" {
-			headline = aj.Xml.NewsLines.HeadLine
-		} else if aj.Xml.NewsLines.Title != "" {
-			headline = aj.Xml.NewsLines.Title
+		if doc.Xml.NewsLines.HeadLine != "" {
+			headline = doc.Xml.NewsLines.HeadLine
+		} else if doc.Xml.NewsLines.Title != "" {
+			headline = doc.Xml.NewsLines.Title
 		}
-	} else if t == MEDIATYPE_VIDEO && (aj.Xml.PublicationManagement.Function == "" || !strings.EqualFold(aj.Xml.PublicationManagement.Function, "APTNLibrary")) {
-		if aj.Xml.NewsLines.HeadLine != "" {
-			headline = aj.Xml.NewsLines.HeadLine
-		} else if aj.Xml.NewsLines.Title != "" {
-			headline = aj.Xml.NewsLines.Title
+	} else if t == MEDIATYPE_VIDEO && (doc.Xml.PublicationManagement.Function == "" || !strings.EqualFold(doc.Xml.PublicationManagement.Function, "APTNLibrary")) {
+		if doc.Xml.NewsLines.HeadLine != "" {
+			headline = doc.Xml.NewsLines.HeadLine
+		} else if doc.Xml.NewsLines.Title != "" {
+			headline = doc.Xml.NewsLines.Title
 		}
-	} else if t == MEDIATYPE_PHOTO || t == MEDIATYPE_GRAPHIC || (t == MEDIATYPE_VIDEO && strings.EqualFold(aj.Xml.PublicationManagement.Function, "APTNLibrary")) {
-		if aj.Xml.NewsLines.Title != "" {
-			headline = aj.Xml.NewsLines.Title
-		} else if aj.Xml.NewsLines.HeadLine != "" {
-			headline = aj.Xml.NewsLines.HeadLine
+	} else if t == MEDIATYPE_PHOTO || t == MEDIATYPE_GRAPHIC || (t == MEDIATYPE_VIDEO && strings.EqualFold(doc.Xml.PublicationManagement.Function, "APTNLibrary")) {
+		if doc.Xml.NewsLines.Title != "" {
+			headline = doc.Xml.NewsLines.Title
+		} else if doc.Xml.NewsLines.HeadLine != "" {
+			headline = doc.Xml.NewsLines.HeadLine
 		}
 	} else if t == MEDIATYPE_AUDIO {
-		if aj.Xml.NewsLines.HeadLine != "" {
-			headline = aj.Xml.NewsLines.HeadLine
-		} else if aj.Xml.NewsLines.Title != "" {
-			headline = aj.Xml.NewsLines.Title
+		if doc.Xml.NewsLines.HeadLine != "" {
+			headline = doc.Xml.NewsLines.HeadLine
+		} else if doc.Xml.NewsLines.Title != "" {
+			headline = doc.Xml.NewsLines.Title
 		}
 	}
 
-	aj.Headline = json.NewStringProperty("headline", headline)
+	doc.Headline = json.NewStringProperty("headline", headline)
 }
 
-func getCopyrightNotice(aj *ApplJson) {
-	nl := aj.Xml.NewsLines
+func getCopyrightNotice(doc *document) {
+	nl := doc.Xml.NewsLines
 	var copyrightnotice string
 	if nl.CopyrightLine != "" {
 		copyrightnotice = nl.CopyrightLine
-	} else if aj.FirstCreatedYear > 0 && aj.Xml.RightsMetadata.Copyright.Holder != "" {
-		copyrightnotice = fmt.Sprintf("Copyright %d %s. All rights reserved. This material may not be published, broadcast, rewritten or redistributed.", aj.FirstCreatedYear, aj.Xml.RightsMetadata.Copyright.Holder)
+	} else if doc.FirstCreatedYear > 0 && doc.Xml.RightsMetadata.Copyright.Holder != "" {
+		copyrightnotice = fmt.Sprintf("Copyright %d %s. All rights reserved. This material may not be published, broadcast, rewritten or redistributed.", doc.FirstCreatedYear, doc.Xml.RightsMetadata.Copyright.Holder)
 	}
-	aj.CopyrightNotice = json.NewStringProperty("copyrightnotice", copyrightnotice)
+	doc.CopyrightNotice = json.NewStringProperty("copyrightnotice", copyrightnotice)
 }
 
-func getBylines(aj *ApplJson) {
-	nl := aj.Xml.NewsLines
+func getBylines(doc *document) {
+	nl := doc.Xml.NewsLines
 	if nl.ByLine == nil || len(nl.ByLine) == 0 {
 		return
 	}
@@ -111,8 +111,8 @@ func getBylines(aj *ApplJson) {
 						producer.AddString("code", bl.Id)
 					}
 					producer.AddString("name", bl.Value)
-					aj.Producer = json.NewObjectProperty("producer", &producer)
-				} else if strings.EqualFold(bl.Parametric, "PHOTOGRAPHER") && aj.Photographer == nil {
+					doc.Producer = json.NewObjectProperty("producer", &producer)
+				} else if strings.EqualFold(bl.Parametric, "PHOTOGRAPHER") && doc.Photographer == nil {
 					photographer := json.Object{}
 					if bl.Id != "" {
 						photographer.AddString("code", bl.Id)
@@ -121,9 +121,9 @@ func getBylines(aj *ApplJson) {
 					if bl.Title != "" {
 						photographer.AddString("title", bl.Title)
 					}
-					aj.Photographer = json.NewObjectProperty("photographer", &photographer)
+					doc.Photographer = json.NewObjectProperty("photographer", &photographer)
 
-				} else if strings.EqualFold(bl.Parametric, "CAPTIONWRITER") && aj.CaptionWriter == nil {
+				} else if strings.EqualFold(bl.Parametric, "CAPTIONWRITER") && doc.CaptionWriter == nil {
 					captionwriter := json.Object{}
 					if bl.Id != "" {
 						captionwriter.AddString("code", bl.Id)
@@ -132,7 +132,7 @@ func getBylines(aj *ApplJson) {
 					if bl.Title != "" {
 						captionwriter.AddString("title", bl.Title)
 					}
-					aj.CaptionWriter = json.NewObjectProperty("captionwriter", &captionwriter)
+					doc.CaptionWriter = json.NewObjectProperty("captionwriter", &captionwriter)
 				} else if strings.EqualFold(bl.Parametric, "EDITEDBY") {
 					edit := json.Object{}
 					edit.AddString("name", bl.Value)
@@ -156,16 +156,16 @@ func getBylines(aj *ApplJson) {
 	}
 
 	if bylines.Length() > 0 {
-		aj.Bylines = json.NewArrayProperty("bylines", &bylines)
+		doc.Bylines = json.NewArrayProperty("bylines", &bylines)
 	}
 
 	if edits.Length() > 0 {
-		aj.Edits = json.NewArrayProperty("edits", &edits)
+		doc.Edits = json.NewArrayProperty("edits", &edits)
 	}
 }
 
-func getPersons(aj *ApplJson) {
-	nl := aj.Xml.NewsLines
+func getPerson(doc *document) {
+	nl := doc.Xml.NewsLines
 
 	if nl.NameLine != nil && len(nl.NameLine) > 0 {
 		persons := json.Array{}
@@ -180,6 +180,6 @@ func getPersons(aj *ApplJson) {
 			person.AddString("creator", "Editorial")
 			persons.AddObject(&person)
 		}
-		aj.Persons = json.NewArrayProperty("person", &persons)
+		doc.Person = json.NewArrayProperty("person", &persons)
 	}
 }

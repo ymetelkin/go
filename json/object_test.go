@@ -80,34 +80,6 @@ func TestObjectAdd(t *testing.T) {
 	fmt.Printf("%s\n", jo.ToString())
 }
 
-func TestObjectCopy(t *testing.T) {
-	jo := Object{}
-	jo.AddInt("id", 1)
-	jo.AddString("name", "YM")
-	jo.AddBool("cool", true)
-
-	child := Object{}
-	child.AddString("a", "b")
-	jo.AddObject("child", &child)
-
-	for key, value := range jo.Properties {
-		fmt.Printf("%s: %#v\n", key, value)
-		jv, err := jo.getValue(key)
-		if err != nil {
-			t.Error(err.Error())
-		} else {
-			fmt.Printf("%s: %v\n", key, jv.Value)
-		}
-	}
-
-	fmt.Printf("Is empty: %t\n", jo.IsEmpty())
-	if jo.IsEmpty() {
-		t.Error("Must not be empty")
-	}
-
-	fmt.Printf("%s\n", jo.ToString())
-}
-
 func TestObjectRemove(t *testing.T) {
 	jo := Object{}
 	jo.AddInt("id", 1)

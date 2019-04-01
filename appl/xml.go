@@ -252,6 +252,13 @@ type Occurrence struct {
 	ActualMatch bool   `xml:"ActualMatch,attr"`
 	ParentId    string `xml:"ParentId,attr"`
 	TopParent   bool   `xml:"TopParent,attr"`
+	Property    []Property
+}
+
+type Property struct {
+	Id    string `xml:"Id,attr"`
+	Name  string `xml:"Name,attr"`
+	Value string `xml:"Value,attr"`
 }
 
 type ForeignKeys struct {
