@@ -62,7 +62,7 @@ func (identification *XmlIdentification) GetMediaType() (MediaType, error) {
 	return identification.mediaType, nil
 }
 
-func (identification *XmlIdentification) ToJson(jo *json.JsonObject) error {
+func (identification *XmlIdentification) ToJson(jo *json.Object) error {
 	if identification.ItemId == "" {
 		return errors.New("[Identification.ItemId] is missing")
 	}

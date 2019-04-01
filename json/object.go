@@ -6,11 +6,6 @@ import (
 	"strings"
 )
 
-type Property struct {
-	Field string
-	Value value
-}
-
 type Object struct {
 	names      []string
 	pnames     map[string]ParameterizedString
@@ -46,27 +41,27 @@ func (jo *Object) addValue(name string, jv *value) error {
 }
 
 func (jo *Object) AddString(name string, value string) error {
-	return jo.addValue(name, NewString(value))
+	return jo.addValue(name, newString(value))
 }
 
 func (jo *Object) AddInt(name string, value int) error {
-	return jo.addValue(name, NewInt(value))
+	return jo.addValue(name, newInt(value))
 }
 
 func (jo *Object) AddFloat(name string, value float64) error {
-	return jo.addValue(name, NewFloat(value))
+	return jo.addValue(name, newFloat(value))
 }
 
 func (jo *Object) AddBool(name string, value bool) error {
-	return jo.addValue(name, NewBool(value))
+	return jo.addValue(name, newBool(value))
 }
 
 func (jo *Object) AddObject(name string, value *Object) error {
-	return jo.addValue(name, NewObject(value))
+	return jo.addValue(name, newObject(value))
 }
 
 func (jo *Object) AddArray(name string, value *Array) error {
-	return jo.addValue(name, NewArray(value))
+	return jo.addValue(name, newArray(value))
 }
 
 func (jo *Object) setValue(name string, value *value) error {
@@ -92,27 +87,27 @@ func (jo *Object) setValue(name string, value *value) error {
 }
 
 func (jo *Object) SetInt(name string, value int) error {
-	return jo.setValue(name, NewInt(value))
+	return jo.setValue(name, newInt(value))
 }
 
 func (jo *Object) SetFloat(name string, value float64) error {
-	return jo.setValue(name, NewFloat(value))
+	return jo.setValue(name, newFloat(value))
 }
 
 func (jo *Object) SetBool(name string, value bool) error {
-	return jo.setValue(name, NewBool(value))
+	return jo.setValue(name, newBool(value))
 }
 
 func (jo *Object) SetString(name string, value string) error {
-	return jo.setValue(name, NewString(value))
+	return jo.setValue(name, newString(value))
 }
 
 func (jo *Object) SetObject(name string, value *Object) error {
-	return jo.setValue(name, NewObject(value))
+	return jo.setValue(name, newObject(value))
 }
 
 func (jo *Object) SetArray(name string, value *Array) error {
-	return jo.setValue(name, NewArray(value))
+	return jo.setValue(name, newArray(value))
 }
 
 func (jo *Object) Remove(name string) error {

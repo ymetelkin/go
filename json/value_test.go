@@ -6,7 +6,7 @@ import (
 )
 
 func TestStringValue(test *testing.T) {
-	jv := NewString("test")
+	jv := newString("test")
 	if jv.Type != STRING {
 		test.Errorf("Expecting type %d, actual is %d", STRING, jv.Type)
 	} else {
@@ -22,7 +22,7 @@ func TestStringValue(test *testing.T) {
 }
 
 func TestIntValue(test *testing.T) {
-	jv := NewInt(123)
+	jv := newInt(123)
 	i, err := jv.GetInt()
 	if jv.Type != INT {
 		test.Errorf("Expecting type %d, actual is %d", INT, jv.Type)
@@ -39,7 +39,7 @@ func TestIntValue(test *testing.T) {
 }
 
 func TestFloatValue(test *testing.T) {
-	jv := NewFloat(1.23)
+	jv := newFloat(1.23)
 	if jv.Type != FLOAT {
 		test.Errorf("Expecting type %d, actual is %d", FLOAT, jv.Type)
 	} else {
@@ -69,7 +69,7 @@ func TestFloatValue(test *testing.T) {
 }
 
 func TestBooleanValue(test *testing.T) {
-	jv := NewBool(true)
+	jv := newBool(true)
 	if jv.Type != BOOL {
 		test.Errorf("Expecting type %d, actual is %d", BOOL, jv.Type)
 	} else {

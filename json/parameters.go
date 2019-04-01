@@ -186,7 +186,7 @@ func (ja *Array) setArrayParameters(props map[string]value) bool {
 				modified = jo.setObjectParameters(props)
 				if modified {
 					if !jo.IsEmpty() {
-						values = append(values, *NewObject(jo))
+						values = append(values, *newObject(jo))
 					}
 				} else {
 					values = append(values, jv)
@@ -198,7 +198,7 @@ func (ja *Array) setArrayParameters(props map[string]value) bool {
 				modified = ja.setArrayParameters(props)
 				if modified {
 					if !ja.IsEmpty() {
-						values = append(values, *NewArray(ja))
+						values = append(values, *newArray(ja))
 					}
 				} else {
 					values = append(values, jv)
@@ -221,7 +221,7 @@ func setValueParameters(s string, ps ParameterizedString, params map[string]valu
 		if ok {
 			return &jv
 		} else if p.Default != "" {
-			return NewString(p.Default)
+			return newString(p.Default)
 		}
 	} else {
 		runes := []rune(s)
@@ -244,7 +244,7 @@ func setValueParameters(s string, ps ParameterizedString, params map[string]valu
 		}
 
 		if len(s) > 0 {
-			return NewString(s)
+			return newString(s)
 		}
 	}
 

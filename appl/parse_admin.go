@@ -19,7 +19,7 @@ func (admin *AdministrativeMetadata) parse(aj *ApplJson) error {
 	getInPackages(aj)
 
 	if admin.Contributor != nil && len(admin.Contributor) > 0 {
-		aj.Contributor = &json.JsonProperty{Field: "contributor", Value: &json.JsonStringValue{Value: admin.Contributor[0]}}
+		aj.Contributor = json.NewStringProperty("contributor", admin.Contributor[0])
 	}
 
 	return nil
@@ -28,7 +28,7 @@ func (admin *AdministrativeMetadata) parse(aj *ApplJson) error {
 func getProvider(aj *ApplJson) {
 	p := aj.Xml.AdministrativeMetadata.Provider
 
-	provider := json.JsonObject{}
+	provider := json.Object{}
 	if p.Id != "" {
 		provider.AddString("code", p.Id)
 	}
@@ -43,7 +43,7 @@ func getProvider(aj *ApplJson) {
 	}
 
 	if !provider.IsEmpty() {
-		aj.Provider = &json.JsonProperty{Field: "provider", Value: &json.JsonObjectValue{Value: provider}}
+		aj.Provider = json.NewObjectProperty("provider", &provider)
 	}
 }
 
@@ -53,10 +53,10 @@ func getSources(aj *ApplJson) {
 		return
 	}
 
-	sources := json.JsonArray{}
+	sources := json.Array{}
 
 	for _, src := range srcs {
-		source := json.JsonObject{}
+		source := json.Object{}
 
 		if src.City != "" {
 			source.AddString("city", src.City)
@@ -83,7 +83,7 @@ func getSources(aj *ApplJson) {
 		sources.AddObject(&source)
 	}
 
-	aj.Sources = &json.JsonProperty{Field: "sources", Value: &json.JsonArrayValue{Value: sources}}
+	aj.Sources = json.NewArrayProperty("sources", &sources)
 }
 
 func getSourceMaterials(aj *ApplJson) {
@@ -92,15 +92,15 @@ func getSourceMaterials(aj *ApplJson) {
 		return
 	}
 
-	sourcematerials := json.JsonArray{}
+	sourcematerials := json.Array{}
 	for _, src := range srcs {
 		name := src.Name
 		if strings.EqualFold(name, "alternate") {
 			if aj.CanonicalLink == nil && src.Url != "" {
-				aj.CanonicalLink = &json.JsonProperty{Field: "canonicallink", Value: &json.JsonStringValue{Value: src.Url}}
+				aj.CanonicalLink = json.NewStringProperty("canonicallink", src.Url)
 			}
 		} else {
-			sourcematerial := json.JsonObject{}
+			sourcematerial := json.Object{}
 			if name != "" {
 				sourcematerial.AddString("name", name)
 			}
@@ -119,7 +119,7 @@ func getSourceMaterials(aj *ApplJson) {
 	}
 
 	if sourcematerials.Length() > 0 {
-		aj.SourceMaterials = &json.JsonProperty{Field: "sourcematerials", Value: &json.JsonArrayValue{Value: sourcematerials}}
+		aj.SourceMaterials = json.NewArrayProperty("sourcematerials", &sourcematerials)
 	}
 }
 
@@ -147,7 +147,7 @@ func getProductSources(aj *ApplJson) {
 
 func getItemContentType(aj *ApplJson) {
 	ict := aj.Xml.AdministrativeMetadata.ItemContentType
-	itemcontenttype := json.JsonObject{}
+	itemcontenttype := json.Object{}
 	if ict.System != "" {
 		itemcontenttype.AddString("creator", ict.System)
 	}
@@ -157,7 +157,7 @@ func getItemContentType(aj *ApplJson) {
 	if ict.Value != "" {
 		itemcontenttype.AddString("name", ict.Value)
 	}
-	aj.ItemContentType = &json.JsonProperty{Field: "itemcontenttype", Value: &json.JsonObjectValue{Value: itemcontenttype}}
+	aj.ItemContentType = json.NewObjectProperty("itemcontenttype", &itemcontenttype)
 }
 
 func getDistributionChannels(aj *ApplJson) {
@@ -173,7 +173,7 @@ func getDistributionChannels(aj *ApplJson) {
 
 func getFixture(aj *ApplJson) {
 	f := aj.Xml.AdministrativeMetadata.Fixture
-	fixture := json.JsonObject{}
+	fixture := json.Object{}
 	if f.Id != "" {
 		fixture.AddString("code", f.Id)
 	}
@@ -182,7 +182,7 @@ func getFixture(aj *ApplJson) {
 	}
 
 	if !fixture.IsEmpty() {
-		aj.Fixture = &json.JsonProperty{Field: "fixture", Value: &json.JsonObjectValue{Value: fixture}}
+		aj.Fixture = json.NewObjectProperty("fixture", &fixture)
 	}
 }
 
@@ -227,11 +227,11 @@ func getInPackages(aj *ApplJson) {
 func getRatings(aj *ApplJson) {
 	rs := aj.Xml.AdministrativeMetadata.Rating
 	if rs != nil {
-		ratings := json.JsonArray{}
+		ratings := json.Array{}
 
 		for _, r := range rs {
 			if r.Value > 0 && r.ScaleMin > 0 && r.ScaleMax > 0 && r.ScaleUnit != "" {
-				rating := json.JsonObject{}
+				rating := json.Object{}
 				rating.AddInt("rating", r.Value)
 				rating.AddInt("scalemin", r.ScaleMin)
 				rating.AddInt("scalemax", r.ScaleMax)
@@ -247,7 +247,7 @@ func getRatings(aj *ApplJson) {
 		}
 
 		if ratings.Length() > 0 {
-			aj.Ratings = &json.JsonProperty{Field: "ratings", Value: &json.JsonArrayValue{Value: ratings}}
+			aj.Ratings = json.NewArrayProperty("ratings", &ratings)
 		}
 	}
 }

@@ -37,27 +37,27 @@ func (ja *Array) addValue(jv *value) int {
 }
 
 func (ja *Array) AddString(value string) int {
-	return ja.addValue(NewString(value))
+	return ja.addValue(newString(value))
 }
 
 func (ja *Array) AddInt(value int) int {
-	return ja.addValue(NewInt(value))
+	return ja.addValue(newInt(value))
 }
 
 func (ja *Array) AddFloat(value float64) int {
-	return ja.addValue(NewFloat(value))
+	return ja.addValue(newFloat(value))
 }
 
 func (ja *Array) AddBool(value bool) int {
-	return ja.addValue(NewBool(value))
+	return ja.addValue(newBool(value))
 }
 
 func (ja *Array) AddObject(value *Object) int {
-	return ja.addValue(NewObject(value))
+	return ja.addValue(newObject(value))
 }
 
 func (ja *Array) AddArray(value *Array) int {
-	return ja.addValue(NewArray(value))
+	return ja.addValue(newArray(value))
 }
 
 func (ja *Array) setValue(index int, value *value) error {
@@ -70,27 +70,27 @@ func (ja *Array) setValue(index int, value *value) error {
 }
 
 func (ja *Array) SetInt(index int, value int) error {
-	return ja.setValue(index, NewInt(value))
+	return ja.setValue(index, newInt(value))
 }
 
 func (ja *Array) SetFloat(index int, value float64) error {
-	return ja.setValue(index, NewFloat(value))
+	return ja.setValue(index, newFloat(value))
 }
 
 func (ja *Array) SetBool(index int, value bool) error {
-	return ja.setValue(index, NewBool(value))
+	return ja.setValue(index, newBool(value))
 }
 
 func (ja *Array) SetString(index int, value string) error {
-	return ja.setValue(index, NewString(value))
+	return ja.setValue(index, newString(value))
 }
 
 func (ja *Array) SetObject(index int, value *Object) error {
-	return ja.setValue(index, NewObject(value))
+	return ja.setValue(index, newObject(value))
 }
 
 func (ja *Array) SetArray(index int, value *Array) error {
-	return ja.setValue(index, NewArray(value))
+	return ja.setValue(index, newArray(value))
 }
 
 func (ja *Array) Remove(index int) error {

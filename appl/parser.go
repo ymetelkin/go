@@ -28,42 +28,42 @@ const (
 type ApplJson struct {
 	Xml                  *Publication
 	MediaType            MediaType
-	Language             *json.JsonProperty
-	ReferenceId          *json.JsonProperty
+	Language             *json.Property
+	ReferenceId          *json.Property
 	PubStatus            PubStatus
-	FirstCreated         *json.JsonProperty
+	FirstCreated         *json.Property
 	FirstCreatedYear     int
 	Signals              UniqueStrings
-	OutingInstructions   *json.JsonProperty
-	EditorialTypes       *json.JsonProperty
-	Embargoed            *json.JsonProperty
+	OutingInstructions   *json.Property
+	EditorialTypes       *json.Property
+	Embargoed            *json.Property
 	TimeRestrictions     map[string]bool
-	Associations         *json.JsonProperty
-	RefersTo             *json.JsonProperty
-	Headline             *json.JsonProperty
-	CopyrightNotice      *json.JsonProperty
-	KeywordLines         *json.JsonProperty
-	Bylines              *json.JsonProperty
-	Producer             *json.JsonProperty
-	Photographer         *json.JsonProperty
-	CaptionWriter        *json.JsonProperty
-	Edits                *json.JsonProperty
-	OverLines            *json.JsonProperty
-	Persons              *json.JsonProperty
-	Provider             *json.JsonProperty
-	Sources              *json.JsonProperty
-	Contributor          *json.JsonProperty
-	CanonicalLink        *json.JsonProperty
-	SourceMaterials      *json.JsonProperty
-	TransmissionSources  *json.JsonProperty
-	ProductSources       *json.JsonProperty
-	ItemContentType      *json.JsonProperty
-	DistributionChannels *json.JsonProperty
-	Fixture              *json.JsonProperty
-	InPackages           *json.JsonProperty
-	Ratings              *json.JsonProperty
-	UsageRights          *json.JsonProperty
-	Descriptions         *json.JsonProperty
+	Associations         *json.Property
+	RefersTo             *json.Property
+	Headline             *json.Property
+	CopyrightNotice      *json.Property
+	KeywordLines         *json.Property
+	Bylines              *json.Property
+	Producer             *json.Property
+	Photographer         *json.Property
+	CaptionWriter        *json.Property
+	Edits                *json.Property
+	OverLines            *json.Property
+	Persons              *json.Property
+	Provider             *json.Property
+	Sources              *json.Property
+	Contributor          *json.Property
+	CanonicalLink        *json.Property
+	SourceMaterials      *json.Property
+	TransmissionSources  *json.Property
+	ProductSources       *json.Property
+	ItemContentType      *json.Property
+	DistributionChannels *json.Property
+	Fixture              *json.Property
+	InPackages           *json.Property
+	Ratings              *json.Property
+	UsageRights          *json.Property
+	Descriptions         *json.Property
 	Generators           []ApplGenerator
 	Categories           map[string]string
 	SuppCategories       map[string]string
@@ -181,7 +181,7 @@ type ApplFiling struct {
 	Products    []int
 }
 
-func XmlToJson(s string) (*json.JsonObject, error) {
+func XmlToJson(s string) (*json.Object, error) {
 	pub, err := NewXml(s)
 	if err != nil {
 		return nil, err
@@ -227,8 +227,8 @@ func XmlToJson(s string) (*json.JsonObject, error) {
 	return jo, nil
 }
 
-func (aj *ApplJson) ToJson() (*json.JsonObject, error) {
-	jo := json.JsonObject{}
+func (aj *ApplJson) ToJson() (*json.Object, error) {
+	jo := json.Object{}
 	jo.AddString("representationversion", "1.0")
 	jo.AddString("representationtype", "full")
 
@@ -329,7 +329,7 @@ func (aj *ApplJson) ToJson() (*json.JsonObject, error) {
 
 	if aj.TimeRestrictions != nil {
 		for k, v := range aj.TimeRestrictions {
-			jo.AddBoolean(k, v)
+			jo.AddBool(k, v)
 		}
 	}
 
@@ -444,7 +444,7 @@ func (aj *ApplJson) ToJson() (*json.JsonObject, error) {
 
 	has_geo := desc.DateLineLocation.LatitudeDD != 0 && desc.DateLineLocation.LongitudeDD != 0
 	if desc.DateLineLocation.City != "" || desc.DateLineLocation.Country != "" || desc.DateLineLocation.CountryArea != "" || desc.DateLineLocation.CountryAreaName != "" || desc.DateLineLocation.CountryName != "" || has_geo {
-		datelinelocation := json.JsonObject{}
+		datelinelocation := json.Object{}
 		if desc.DateLineLocation.City != "" {
 			datelinelocation.AddString("city", desc.DateLineLocation.City)
 		}
@@ -461,10 +461,10 @@ func (aj *ApplJson) ToJson() (*json.JsonObject, error) {
 			datelinelocation.AddString("countryname", desc.DateLineLocation.CountryName)
 		}
 		if has_geo {
-			coordinates := json.JsonArray{}
+			coordinates := json.Array{}
 			coordinates.AddFloat(desc.DateLineLocation.LongitudeDD)
 			coordinates.AddFloat(desc.DateLineLocation.LatitudeDD)
-			geo := json.JsonObject{}
+			geo := json.Object{}
 			geo.AddString("type", "Point")
 			geo.AddArray("coordinates", &coordinates)
 
@@ -473,9 +473,9 @@ func (aj *ApplJson) ToJson() (*json.JsonObject, error) {
 	}
 
 	if aj.Generators != nil && len(aj.Generators) > 0 {
-		generators := json.JsonArray{}
+		generators := json.Array{}
 		for _, g := range aj.Generators {
-			generator := json.JsonObject{}
+			generator := json.Object{}
 			generator.AddString("name", g.Name)
 			generator.AddString("version", g.Version)
 			generators.AddObject(&generator)
@@ -498,8 +498,7 @@ func (aj *ApplJson) ToJson() (*json.JsonObject, error) {
 	}
 
 	if !aj.AlertCategories.IsEmpty() {
-		alertcategories := aj.AlertCategories.ToJson()
-		jo.AddArray("alertcategories", alertcategories)
+		jo.AddProperty(aj.AlertCategories.ToJsonProperty("alertcategories"))
 	}
 
 	addSubjects(&aj.Subjects, &jo, "subject")
@@ -508,12 +507,12 @@ func (aj *ApplJson) ToJson() (*json.JsonObject, error) {
 	return &jo, nil
 }
 
-func addSubjects(items *[]ApplSubject, jo *json.JsonObject, field string) {
+func addSubjects(items *[]ApplSubject, jo *json.Object, field string) {
 	values := *items
 	if values != nil && len(values) > 0 {
-		subjects := json.JsonArray{}
+		subjects := json.Array{}
 		for _, sbj := range values {
-			subject := json.JsonObject{}
+			subject := json.Object{}
 			subject.AddString("name", sbj.Name)
 			subject.AddString("scheme", "http://cv.ap.org/id/")
 			subject.AddString("code", sbj.Code)
@@ -521,12 +520,12 @@ func addSubjects(items *[]ApplSubject, jo *json.JsonObject, field string) {
 				subject.AddString("creator", sbj.Creator)
 			}
 			if !sbj.Rels.IsEmpty() {
-				subject.AddArray("rels", sbj.Rels.ToJson())
+				subject.AddProperty(sbj.Rels.ToJsonProperty("rels"))
 			}
 			if !sbj.ParentIds.IsEmpty() {
-				subject.AddArray("parentids", sbj.ParentIds.ToJson())
+				subject.AddProperty(sbj.ParentIds.ToJsonProperty("parentids"))
 			}
-			subject.AddBoolean("topparent", sbj.TopParent)
+			subject.AddBool("topparent", sbj.TopParent)
 			subjects.AddObject(&subject)
 		}
 		jo.AddArray(field, &subjects)

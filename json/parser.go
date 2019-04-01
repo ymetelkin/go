@@ -82,14 +82,14 @@ func parseJsonValue(s string, parameterize bool) (*value, error) {
 		if err != nil {
 			return nil, err
 		}
-		return NewObject(jo), nil
+		return newObject(jo), nil
 	} else if runes[0] == TOKEN_LEFT_SQUARE {
 		ja, _, err := parseArray(runes, size, 0, false)
 
 		if err != nil {
 			return nil, err
 		}
-		return NewArray(ja), nil
+		return newArray(ja), nil
 	} else {
 		return nil, errors.New("Invalid string input")
 	}
@@ -138,9 +138,9 @@ func addProperty(jo *Object, runes []rune, size int, index int, parameterize boo
 
 		if pvalue.Value != "" {
 			if pvalue.IsParameterized {
-				value = NewParameterizedString(pvalue)
+				value = newParameterizedString(pvalue)
 			} else {
-				value = NewString(pvalue.Value)
+				value = newString(pvalue.Value)
 			}
 		}
 
@@ -230,7 +230,7 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (*value, i
 						}
 					}
 				} else if r == TOKEN_QUOTE {
-					return NewString(sb.String()), index, ParameterizedString{}, nil
+					return newString(sb.String()), index, ParameterizedString{}, nil
 				} else {
 					sb.WriteRune(r)
 				}
@@ -246,7 +246,7 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (*value, i
 		if err != nil {
 			return nil, index, ParameterizedString{}, err
 		}
-		return NewObject(jo), index, ParameterizedString{}, nil
+		return newObject(jo), index, ParameterizedString{}, nil
 	}
 
 	if r == TOKEN_LEFT_SQUARE {
@@ -254,7 +254,7 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (*value, i
 		if err != nil {
 			return nil, index, ParameterizedString{}, err
 		}
-		return NewArray(ja), index, ParameterizedString{}, nil
+		return newArray(ja), index, ParameterizedString{}, nil
 	}
 
 	if r == TOKEN_T {
@@ -264,7 +264,7 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (*value, i
 			if index < size && runes[index] == TOKEN_U {
 				index++
 				if index < size && runes[index] == TOKEN_E {
-					return NewBool(true), index, ParameterizedString{}, nil
+					return newBool(true), index, ParameterizedString{}, nil
 				}
 			}
 		}
@@ -277,7 +277,7 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (*value, i
 				if index < size && runes[index] == TOKEN_S {
 					index++
 					if index < size && runes[index] == TOKEN_E {
-						return NewBool(false), index, ParameterizedString{}, nil
+						return newBool(false), index, ParameterizedString{}, nil
 					}
 				}
 			}
@@ -289,7 +289,7 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (*value, i
 			if index < size && runes[index] == TOKEN_L {
 				index++
 				if index < size && runes[index] == TOKEN_L {
-					return NewNull(), index, ParameterizedString{}, nil
+					return newNull(), index, ParameterizedString{}, nil
 				}
 			}
 		}
@@ -327,12 +327,12 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (*value, i
 		if floating {
 			f, err := strconv.ParseFloat(s, 64)
 			if err == nil {
-				return NewFloat(f), index, ParameterizedString{}, nil
+				return newFloat(f), index, ParameterizedString{}, nil
 			}
 		} else {
 			i, err := strconv.Atoi(s)
 			if err == nil {
-				return NewInt(i), index, ParameterizedString{}, nil
+				return newInt(i), index, ParameterizedString{}, nil
 			}
 		}
 
@@ -381,9 +381,9 @@ func addValue(ja *Array, runes []rune, size int, index int, parameterize bool) (
 
 		if ps.Value != "" {
 			if ps.IsParameterized {
-				value = NewParameterizedString(ps)
+				value = newParameterizedString(ps)
 			} else {
-				value = NewString(ps.Value)
+				value = newString(ps.Value)
 			}
 		}
 

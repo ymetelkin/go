@@ -75,10 +75,10 @@ func getClassification(aj *ApplJson) {
 						if o.Id != "" && o.Value != "" {
 							i, err := strconv.Atoi(o.Id)
 							if err == nil && i >= 900 {
-								fixture := json.JsonObject{}
+								fixture := json.Object{}
 								fixture.AddInt("code", i)
 								fixture.AddString("name", o.Value)
-								aj.Fixture = &json.JsonProperty{Field: "fixture", Value: &json.JsonObjectValue{Value: fixture}}
+								aj.Fixture = json.NewObjectProperty("fixture", &fixture)
 								break
 							}
 						}

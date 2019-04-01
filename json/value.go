@@ -23,35 +23,35 @@ type value struct {
 	Type  int
 }
 
-func NewInt(i int) *value {
+func newInt(i int) *value {
 	return &value{Value: i, Type: INT}
 }
 
-func NewFloat(f float64) *value {
+func newFloat(f float64) *value {
 	return &value{Value: f, Type: FLOAT}
 }
 
-func NewBool(b bool) *value {
+func newBool(b bool) *value {
 	return &value{Value: b, Type: BOOL}
 }
 
-func NewString(s string) *value {
+func newString(s string) *value {
 	return &value{Value: s, Type: STRING}
 }
 
-func NewObject(o *Object) *value {
+func newObject(o *Object) *value {
 	return &value{Value: o, Type: OBJECT}
 }
 
-func NewArray(a *Array) *value {
+func newArray(a *Array) *value {
 	return &value{Value: a, Type: ARRAY}
 }
 
-func NewNull() *value {
+func newNull() *value {
 	return &value{Value: nil, Type: NULL}
 }
 
-func NewParameterizedString(ps ParameterizedString) *value {
+func newParameterizedString(ps ParameterizedString) *value {
 	return &value{Value: ps, Type: PARAMETERIZED}
 }
 

@@ -29,7 +29,7 @@ func (id *Identification) parse(aj *ApplJson) error {
 
 	if len(id.DefaultLanguage) >= 2 {
 		language := string([]rune(id.DefaultLanguage)[0:2])
-		aj.Language = &json.JsonProperty{Field: "language", Value: &json.JsonStringValue{Value: language}}
+		aj.Language = json.NewStringProperty("language", language)
 	}
 
 	getReferenceId(aj)
@@ -100,5 +100,5 @@ func getReferenceId(aj *ApplJson) {
 		}
 	}
 
-	aj.ReferenceId = &json.JsonProperty{Field: "referenceid", Value: &json.JsonStringValue{Value: ref}}
+	aj.ReferenceId = json.NewStringProperty("referenceid", ref)
 }

@@ -40,29 +40,29 @@ func (us *UniqueStrings) Values() []string {
 	return us.values
 }
 
-func (us *UniqueStrings) ToJsonProperty(field string) *json.JsonProperty {
+func (us *UniqueStrings) ToJsonProperty(field string) *json.Property {
 	if us.values == nil {
 		return nil
 	}
 
-	ja := json.JsonArray{}
+	ja := json.Array{}
 
 	for _, s := range us.values {
 		ja.AddString(s)
 	}
 
-	return &json.JsonProperty{Field: field, Value: &json.JsonArrayValue{Value: ja}}
+	return json.NewArrayProperty(field, &ja)
 }
 
-func codeNamesToJsonArray(hash map[string]string) (*json.JsonArray, bool) {
+func codeNamesToJsonArray(hash map[string]string) (*json.Array, bool) {
 	if hash == nil || len(hash) == 0 {
 		return nil, false
 	}
 
-	ja := json.JsonArray{}
+	ja := json.Array{}
 
 	for code, name := range hash {
-		jo := json.JsonObject{}
+		jo := json.Object{}
 		jo.AddString("code", code)
 		jo.AddString("name", name)
 		ja.AddObject(&jo)

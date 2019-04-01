@@ -37,7 +37,7 @@ func (pm *PublicationManagement) parse(aj *ApplJson) error {
 	getTimeRestrictions(aj)
 
 	if len(pm.RefersTo) > 0 {
-		aj.RefersTo = &json.JsonProperty{Field: "refersto", Value: &json.JsonStringValue{Value: pm.RefersTo[0]}}
+		aj.RefersTo = json.NewStringProperty("refersto", pm.RefersTo[0])
 	}
 
 	return nil
@@ -99,7 +99,7 @@ func getFirstCreatedDate(aj *ApplJson) error {
 				date = fmt.Sprintf("%d-%s-%sT%sZ", fc.Year, month, day, fc.Time)
 			}
 
-			aj.FirstCreated = &json.JsonProperty{Field: "firstcreated", Value: &json.JsonStringValue{Value: date}}
+			aj.FirstCreated = json.NewStringProperty("firstcreated", date)
 		}
 	}
 
@@ -149,7 +149,7 @@ func getEditorialTypes(aj *ApplJson) {
 			if embargoed {
 				if strings.EqualFold(editorialtype.Type, "Advance") || strings.EqualFold(editorialtype.Type, "HoldForRelease") {
 					embargoed = false
-					aj.Embargoed = &json.JsonProperty{Field: "embargoed", Value: &json.JsonStringValue{Value: pm.ReleaseDateTime + "Z"}}
+					aj.Embargoed = json.NewStringProperty("embargoed", pm.ReleaseDateTime+"Z")
 				}
 			}
 		}
@@ -186,7 +186,7 @@ func getAssociatedWith(aj *ApplJson) {
 	   --load the sequence number of the AssociatedWith node by @CompositionType (a number starting at 1) to $.associations[i].typerank as a number; note that CompositionType may be absent OR ‘StandardIngestedContent’ (which does not output a type) and any such AssociatedWith nodes should be ranked on their own.
 	*/
 	pm := aj.Xml.PublicationManagement
-	associations := json.JsonArray{}
+	associations := json.Array{}
 
 	rank := 0
 	types := make(map[string]int)
@@ -205,7 +205,7 @@ func getAssociatedWith(aj *ApplJson) {
 			continue
 		}
 
-		association := json.JsonObject{}
+		association := json.Object{}
 
 		t := ""
 
@@ -266,6 +266,6 @@ func getAssociatedWith(aj *ApplJson) {
 	}
 
 	if associations.Length() > 0 {
-		aj.Associations = &json.JsonProperty{Field: "associations", Value: &json.JsonArrayValue{Value: associations}}
+		aj.Associations = json.NewArrayProperty("associations", &associations)
 	}
 }

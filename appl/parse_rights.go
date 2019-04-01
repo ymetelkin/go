@@ -14,10 +14,10 @@ func getUsageRights(aj *ApplJson) {
 		return
 	}
 
-	usagerights := json.JsonArray{}
+	usagerights := json.Array{}
 
 	for _, ur := range urs {
-		usageright := json.JsonObject{}
+		usageright := json.Object{}
 		if ur.UsageType != "" {
 			usageright.AddString("usagetype", ur.UsageType)
 		}
@@ -45,9 +45,9 @@ func getUsageRights(aj *ApplJson) {
 			usageright.AddString("enddate", ur.EndDate)
 		}
 		if ur.Group != nil {
-			groups := json.JsonArray{}
+			groups := json.Array{}
 			for _, g := range ur.Group {
-				group := json.JsonObject{}
+				group := json.Object{}
 				if g.Type != "" {
 					group.AddString("type", g.Type)
 				}
@@ -72,6 +72,6 @@ func getUsageRights(aj *ApplJson) {
 	}
 
 	if !usagerights.IsEmpty() {
-		aj.UsageRights = &json.JsonProperty{Field: "usagerights", Value: &json.JsonArrayValue{Value: usagerights}}
+		aj.UsageRights = json.NewArrayProperty("usagerights", &usagerights)
 	}
 }

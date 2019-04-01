@@ -63,7 +63,7 @@ func getHeadline(aj *ApplJson) {
 		}
 	}
 
-	aj.Headline = &json.JsonProperty{Field: "headline", Value: &json.JsonStringValue{Value: headline}}
+	aj.Headline = json.NewStringProperty("headline", headline)
 }
 
 func getCopyrightNotice(aj *ApplJson) {
@@ -74,7 +74,7 @@ func getCopyrightNotice(aj *ApplJson) {
 	} else if aj.FirstCreatedYear > 0 && aj.Xml.RightsMetadata.Copyright.Holder != "" {
 		copyrightnotice = fmt.Sprintf("Copyright %d %s. All rights reserved. This material may not be published, broadcast, rewritten or redistributed.", aj.FirstCreatedYear, aj.Xml.RightsMetadata.Copyright.Holder)
 	}
-	aj.CopyrightNotice = &json.JsonProperty{Field: "copyrightnotice", Value: &json.JsonStringValue{Value: copyrightnotice}}
+	aj.CopyrightNotice = json.NewStringProperty("copyrightnotice", copyrightnotice)
 }
 
 func getBylines(aj *ApplJson) {
@@ -83,12 +83,12 @@ func getBylines(aj *ApplJson) {
 		return
 	}
 
-	bylines := json.JsonArray{}
-	edits := json.JsonArray{}
+	bylines := json.Array{}
+	edits := json.Array{}
 
 	if nl.ByLineOriginal != nil || len(nl.ByLineOriginal) > 0 {
 		for _, blo := range nl.ByLineOriginal {
-			byline := json.JsonObject{}
+			byline := json.Object{}
 			byline.AddString("by", blo.Value)
 			if blo.Title != "" {
 				byline.AddString("title", blo.Title)
@@ -106,14 +106,14 @@ func getBylines(aj *ApplJson) {
 		for _, bl := range nl.ByLine {
 			if bl.Value != "" {
 				if strings.EqualFold(bl.Title, "EditedBy") {
-					producer := json.JsonObject{}
+					producer := json.Object{}
 					if bl.Id != "" {
 						producer.AddString("code", bl.Id)
 					}
 					producer.AddString("name", bl.Value)
-					aj.Producer = &json.JsonProperty{Field: "producer", Value: &json.JsonObjectValue{Value: producer}}
+					aj.Producer = json.NewObjectProperty("producer", &producer)
 				} else if strings.EqualFold(bl.Parametric, "PHOTOGRAPHER") && aj.Photographer == nil {
-					photographer := json.JsonObject{}
+					photographer := json.Object{}
 					if bl.Id != "" {
 						photographer.AddString("code", bl.Id)
 					}
@@ -121,10 +121,10 @@ func getBylines(aj *ApplJson) {
 					if bl.Title != "" {
 						photographer.AddString("title", bl.Title)
 					}
-					aj.Photographer = &json.JsonProperty{Field: "photographer", Value: &json.JsonObjectValue{Value: photographer}}
+					aj.Photographer = json.NewObjectProperty("photographer", &photographer)
 
 				} else if strings.EqualFold(bl.Parametric, "CAPTIONWRITER") && aj.CaptionWriter == nil {
-					captionwriter := json.JsonObject{}
+					captionwriter := json.Object{}
 					if bl.Id != "" {
 						captionwriter.AddString("code", bl.Id)
 					}
@@ -132,13 +132,13 @@ func getBylines(aj *ApplJson) {
 					if bl.Title != "" {
 						captionwriter.AddString("title", bl.Title)
 					}
-					aj.CaptionWriter = &json.JsonProperty{Field: "captionwriter", Value: &json.JsonObjectValue{Value: captionwriter}}
+					aj.CaptionWriter = json.NewObjectProperty("captionwriter", &captionwriter)
 				} else if strings.EqualFold(bl.Parametric, "EDITEDBY") {
-					edit := json.JsonObject{}
+					edit := json.Object{}
 					edit.AddString("name", bl.Value)
 					edits.AddObject(&edit)
 				} else {
-					byline := json.JsonObject{}
+					byline := json.Object{}
 					if bl.Id != "" {
 						byline.AddString("code", bl.Id)
 					}
@@ -156,11 +156,11 @@ func getBylines(aj *ApplJson) {
 	}
 
 	if bylines.Length() > 0 {
-		aj.Bylines = &json.JsonProperty{Field: "bylines", Value: &json.JsonArrayValue{Value: bylines}}
+		aj.Bylines = json.NewArrayProperty("bylines", &bylines)
 	}
 
 	if edits.Length() > 0 {
-		aj.Edits = &json.JsonProperty{Field: "edits", Value: &json.JsonArrayValue{Value: edits}}
+		aj.Edits = json.NewArrayProperty("edits", &edits)
 	}
 }
 
@@ -168,18 +168,18 @@ func getPersons(aj *ApplJson) {
 	nl := aj.Xml.NewsLines
 
 	if nl.NameLine != nil && len(nl.NameLine) > 0 {
-		persons := json.JsonArray{}
+		persons := json.Array{}
 		for _, name := range nl.NameLine {
-			person := json.JsonObject{}
+			person := json.Object{}
 			person.AddString("name", name.Value)
 			if strings.EqualFold(name.Parametric, "PERSON_FEATURED") {
-				rel := json.JsonArray{}
+				rel := json.Array{}
 				rel.AddString("personfeatured")
 				person.AddArray("rel", &rel)
 			}
 			person.AddString("creator", "Editorial")
 			persons.AddObject(&person)
 		}
-		aj.Persons = &json.JsonProperty{Field: "person", Value: &json.JsonArrayValue{Value: persons}}
+		aj.Persons = json.NewArrayProperty("person", &persons)
 	}
 }
