@@ -92,9 +92,9 @@ func TestIdentificationReferenceId(t *testing.T) {
 	err := pub.Identification.parse(&aj)
 	if err != nil {
 		t.Error(err.Error())
-	}	
-	
-	if jv, _ := aj.ReferenceId.Value.Get(); v, _ := jv.(string); v != "xyz" {
+	}
+
+	if s, _ := aj.ReferenceId.Value.GetString(); s != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
 	} else {
 		fmt.Println(aj.ReferenceId)
@@ -117,7 +117,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
-	if jv, _ := aj.ReferenceId.Value.Get(); v, _ := jv.(string); v != "00000000000000000000000000000001" {
+	if s, _ := aj.ReferenceId.Value.GetString(); s != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")
 	} else {
 		fmt.Println(aj.ReferenceId)
@@ -143,7 +143,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
-	if jv, _ := aj.ReferenceId.Value.Get(); v, _ := jv.(string); v != "xyz" {
+	if s, _ := aj.ReferenceId.Value.GetString(); s != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
 	} else {
 		fmt.Println(aj.ReferenceId)
@@ -166,7 +166,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
-	if jv, _ := aj.ReferenceId.Value.Get(); v, _ := jv.(string); v != "00000000000000000000000000000001" {
+	if s, _ := aj.ReferenceId.Value.GetString(); s != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")
 	} else {
 		fmt.Println(aj.ReferenceId)
@@ -192,7 +192,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
-	if jv, _ := aj.ReferenceId.Value.Get(); v, _ := jv.(string); v != "xyz" {
+	if s, _ := aj.ReferenceId.Value.GetString(); s != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
 	} else {
 		fmt.Println(aj.ReferenceId)
@@ -215,7 +215,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
-	if jv, _ := aj.ReferenceId.Value.Get(); v, _ := jv.(string); v != "00000000000000000000000000000001" {
+	if s, _ := aj.ReferenceId.Value.GetString(); s != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")
 	} else {
 		fmt.Println(aj.ReferenceId)
@@ -241,7 +241,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
-	if jv, _ := aj.ReferenceId.Value.Get(); v, _ := jv.(string); v != "xyz" {
+	if s, _ := aj.ReferenceId.Value.GetString(); s != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
 	} else {
 		fmt.Println(aj.ReferenceId)
@@ -264,7 +264,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
-	if jv, _ := aj.ReferenceId.Value.Get(); v, _ := jv.(string); v != "00000000000000000000000000000001" {
+	if s, _ := aj.ReferenceId.Value.GetString(); s != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")
 	} else {
 		fmt.Println(aj.ReferenceId)

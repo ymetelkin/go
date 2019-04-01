@@ -72,39 +72,39 @@ func TestAdmin(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if aj.Provider.Name == "" {
+	if aj.Provider == nil {
 		t.Error("[provider] is expected")
 	}
 
-	if len(aj.Sources) == 0 {
+	if aj.Sources == nil {
 		t.Error("[sources] is expected")
 	}
 
-	if aj.CanonicalLink == "" {
+	if aj.CanonicalLink == nil {
 		t.Error("[canonicallink] is expected")
 	}
 
-	if len(aj.SourceMaterials) == 0 {
+	if aj.SourceMaterials == nil {
 		t.Error("[sourcematerials] is expected")
 	}
 
-	if aj.TransmissionSources.IsEmpty() {
+	if aj.TransmissionSources == nil {
 		t.Error("[transmissionsources] is expected")
 	}
 
-	if aj.ProductSources.IsEmpty() {
+	if aj.ProductSources == nil {
 		t.Error("[productsources] is expected")
 	}
 
-	if aj.ItemContentType.Name == "" {
+	if aj.ItemContentType == nil {
 		t.Error("[itemcontenttype] is expected")
 	}
 
-	if aj.DistributionChannels.IsEmpty() {
+	if aj.DistributionChannels == nil {
 		t.Error("[distributionchannels] is expected")
 	}
 
-	if aj.Fixture.Name == "" {
+	if aj.Fixture == nil {
 		t.Error("[fixture] is expected")
 	}
 
@@ -112,7 +112,7 @@ func TestAdmin(t *testing.T) {
 		t.Error("[signals] is expected")
 	}
 
-	if aj.InPackages.IsEmpty() {
+	if aj.InPackages == nil {
 		t.Error("[inpackages] is expected")
 	}
 

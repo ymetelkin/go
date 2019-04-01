@@ -40,11 +40,7 @@ func TestNewslines(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if aj.Headline == "" {
-		t.Error("[headline] is expected")
-	}
-
-	if aj.Headline == "" {
+	if aj.Headline == nil {
 		t.Error("[headline] is expected")
 	}
 

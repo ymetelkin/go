@@ -127,7 +127,7 @@ func TestDescriptions(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if aj.Descriptions.IsEmpty() {
+	if aj.Descriptions == nil {
 		t.Error("[descriptions] is expected")
 	}
 
