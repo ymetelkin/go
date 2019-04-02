@@ -249,7 +249,7 @@ type Classification struct {
 type Occurrence struct {
 	Id          string `xml:"Id,attr"`
 	Value       string `xml:"Value,attr"`
-	ActualMatch bool   `xml:"ActualMatch,attr"`
+	ActualMatch string `xml:"ActualMatch,attr"`
 	ParentId    string `xml:"ParentId,attr"`
 	TopParent   bool   `xml:"TopParent,attr"`
 	Property    []Property

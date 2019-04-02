@@ -72,112 +72,11 @@ type document struct {
 	Subjects             *json.Property
 	Persons              *json.Property
 	Companies            *json.Property
+	Places               *json.Property
+	Events               *json.Property
 	Organizations        *json.Property
 	Filings              []ApplFiling
 }
-
-/*
-type ApplAssociation struct {
-	Type     string
-	ItemId   string
-	Rank     int
-	TypeRank int
-}
-
-type ApplByline struct {
-	Name       string
-	Code       string
-	Title      string
-	Parametric string
-}
-
-
-type ApplPerson struct {
-	Name       string
-	IsFeatured bool
-}
-
-type ApplProvider struct {
-	Name    string
-	Code    string
-	Type    string
-	Subtype string
-	IsEmpty bool
-}
-
-type ApplSource struct {
-	Name    string
-	Code    string
-	Type    string
-	Subtype string
-	City    string
-	Country string
-	Url     string
-	IsEmpty bool
-}
-
-type ApplSourceMaterial struct {
-	Name              string
-	Code              string
-	Type              string
-	PermissionGranted string
-	IsEmpty           bool
-}
-
-
-type ApplItemContentType struct {
-	Name    string
-	Code    string
-	Creator string
-	IsEmpty bool
-}
-
-type ApplFixture struct {
-	Name    string
-	Code    string
-	IsEmpty bool
-}
-
-
-type ApplRating struct {
-	Value     int
-	ScaleMin  int
-	ScaleMax  int
-	ScaleUnit string
-	Raters    int
-	RaterType string
-}
-
-type ApplUsageRights struct {
-	UsageType    string
-	Geography    uniqueArray
-	RightsHolder string
-	Limitations  uniqueArray
-	StartDate    string
-	EndDate      string
-	Groups       []ApplGroup
-}
-
-type ApplGroup struct {
-	Name string
-	Code string
-	Type string
-}
-
-type ApplGenerator struct {
-	Name    string
-	Version string
-}
-
-type ApplSubject struct {
-	Name      string
-	Code      string
-	Creator   string
-	Rels      uniqueArray
-	ParentIds uniqueArray
-	TopParent bool
-}
-*/
 
 type ApplFiling struct {
 	Xml         *FilingMetadata
@@ -452,8 +351,10 @@ func (doc *document) ToJson() (*json.Object, error) {
 	jo.AddProperty(doc.AlertCategories)
 	jo.AddProperty(doc.Subjects)
 	jo.AddProperty(doc.Persons)
-	jo.AddProperty(doc.Companies)
 	jo.AddProperty(doc.Organizations)
+	jo.AddProperty(doc.Companies)
+	jo.AddProperty(doc.Places)
+	jo.AddProperty(doc.Events)
 
 	return &jo, nil
 }

@@ -50,9 +50,7 @@ func (sbjs *subjects) Parse(c Classification) {
 			setRels(c, o, &sbj.Rels)
 
 			sbj.ParentIds.AddString(o.ParentId)
-			if o.TopParent {
-				sbj.TopParent = true
-			}
+			sbj.TopParent = o.TopParent
 
 			sbjs.Subjects[i] = sbj
 		}
@@ -77,7 +75,9 @@ func (sbjs *subjects) ToJsonProperty(field string) *json.Property {
 			if !sbj.ParentIds.IsEmpty() {
 				subject.AddProperty(sbj.ParentIds.ToJsonProperty("parentids"))
 			}
-			subject.AddBool("topparent", sbj.TopParent)
+			if sbj.TopParent {
+				subject.AddBool("topparent", true)
+			}
 			ja.AddObject(&subject)
 		}
 		return json.NewArrayProperty(field, &ja)

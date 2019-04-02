@@ -85,9 +85,23 @@ func (ua *uniqueArray) ToJsonProperty(field string) *json.Property {
 func setRels(c Classification, o Occurrence, rels *uniqueArray) {
 	if strings.EqualFold(c.System, "RTE") {
 		rels.AddString("inferred")
-	} else if o.ActualMatch {
+	} else if strings.EqualFold(o.ActualMatch, "true") {
 		rels.AddString("direct")
-	} else {
+	} else if strings.EqualFold(o.ActualMatch, "false") {
 		rels.AddString("ancestor")
 	}
+}
+
+func getGeoProperty(lat float64, long float64) *json.Property {
+	if lat == 0 || long == 0 {
+		return nil
+	}
+
+	coordinates := json.Array{}
+	coordinates.AddFloat(long)
+	coordinates.AddFloat(lat)
+	geometry := json.Object{}
+	geometry.AddString("type", "Point")
+	geometry.AddArray("coordinates", &coordinates)
+	return json.NewObjectProperty("geometry_geojson", &geometry)
 }

@@ -45,16 +45,8 @@ func getDatelineLocation(doc *document) {
 	if dll.CountryName != "" {
 		datelinelocation.AddString("countryname", dll.CountryName)
 	}
-	if dll.LatitudeDD != 0 && dll.LongitudeDD != 0 {
-		coordinates := json.Array{}
-		coordinates.AddFloat(dll.LongitudeDD)
-		coordinates.AddFloat(dll.LatitudeDD)
-		geometry := json.Object{}
-		geometry.AddString("type", "Point")
-		geometry.AddArray("coordinates", &coordinates)
 
-		datelinelocation.AddObject("geometry_geojson", &geometry)
-	}
+	datelinelocation.AddProperty(getGeoProperty(dll.LatitudeDD, dll.LongitudeDD))
 
 	if !datelinelocation.IsEmpty() {
 		doc.DatelineLocation = json.NewObjectProperty("datelinelocation", &datelinelocation)
@@ -69,6 +61,8 @@ func getClassification(doc *document) {
 	orgs := subjects{}
 	persons := persons{}
 	companies := companies{}
+	places := places{}
+	events := events{}
 	alerts := uniqueArray{}
 
 	classification := doc.Xml.DescriptiveMetadata.SubjectClassification
@@ -127,15 +121,9 @@ func getClassification(doc *document) {
 				} else if authority == "ap company" {
 					companies.Parse(c)
 				} else if authority == "ap geography" || authority == "ap country" || authority == "ap region" {
-					for _, o := range c.Occurrence {
-						if o.Id != "" && o.Value != "" {
-						}
-					}
+					places.Parse(c)
 				} else if authority == "ap event" {
-					for _, o := range c.Occurrence {
-						if o.Id != "" && o.Value != "" {
-						}
-					}
+					events.Parse(c)
 				}
 			}
 		}
@@ -148,6 +136,8 @@ func getClassification(doc *document) {
 
 	doc.Subjects = sbjs.ToJsonProperty("subjects")
 	doc.Persons = persons.ToJsonProperty()
-	doc.Companies = companies.ToJsonProperty()
 	doc.Organizations = orgs.ToJsonProperty("organizations")
+	doc.Companies = companies.ToJsonProperty()
+	doc.Places = places.ToJsonProperty()
+	doc.Events = events.ToJsonProperty()
 }
