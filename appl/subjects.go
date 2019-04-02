@@ -22,6 +22,10 @@ type subjects struct {
 }
 
 func (sbjs *subjects) Parse(c Classification) {
+	if c.Occurrence == nil {
+		return
+	}
+
 	for _, o := range c.Occurrence {
 		if o.Id != "" && o.Value != "" {
 			var sbj subject

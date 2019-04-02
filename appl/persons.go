@@ -25,6 +25,10 @@ type persons struct {
 }
 
 func (ps *persons) Parse(c Classification) {
+	if c.Occurrence == nil {
+		return
+	}
+
 	for _, o := range c.Occurrence {
 		if o.Id != "" && o.Value != "" {
 			var p person

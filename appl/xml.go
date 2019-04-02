@@ -105,7 +105,7 @@ type DescriptiveMetadata struct {
 	EntityClassification   []Classification
 	AudienceClassification []Classification
 	SalesClassification    []Classification
-	Comment                []Classification
+	Comment                []string
 	ThirdPartyMeta         []Classification
 }
 

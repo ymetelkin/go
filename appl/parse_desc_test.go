@@ -165,3 +165,46 @@ func TestDescriptions(t *testing.T) {
 	}
 	fmt.Printf("%s\n", jo.ToString())
 }
+
+func TestServices(t *testing.T) {
+	s := `
+<Publication>
+	<DescriptiveMetadata>
+		<SalesClassification System="Editorial" Authority="AP Sales Code">
+			<Occurrence Id="E8509C508A0F10048A48D56C852D093E" Value="Basic" />
+		</SalesClassification>
+		<SalesClassification System="Editorial" Authority="AP Sales Code">
+			<Occurrence Id="F61F0E271160409AA80E05DDB4CF7C19" Value="Standard" />
+		</SalesClassification>
+		<SalesClassification System="Editorial" Authority="AP Sales Code">
+			<Occurrence Id="E8509C508A0F10048A48D56C852D093E" Value="Basic" />
+		</SalesClassification>
+		<SalesClassification System="Editorial" Authority="AP Sales Code">
+			<Occurrence Id="F61F0E271160409AA80E05DDB4CF7C19" Value="Standard" />
+		</SalesClassification>
+		<SalesClassification System="Editorial" Authority="AP Sales Code">
+			<Occurrence Id="E8509C508A0F10048A48D56C852D093E" Value="Basic" />
+		</SalesClassification>
+		<Comment>Select</Comment>
+		<Comment>Plus</Comment>
+		<Comment>Strange</Comment>
+	</DescriptiveMetadata>
+</Publication>`
+	pub, _ := NewXml(s)
+	doc := document{Xml: pub}
+
+	err := pub.DescriptiveMetadata.parse(&doc)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	if doc.Services == nil {
+		t.Error("[services] is expected")
+	}
+
+	jo, err := doc.ToJson()
+	if err != nil {
+		t.Error(err.Error())
+	}
+	fmt.Printf("%s\n", jo.ToString())
+}

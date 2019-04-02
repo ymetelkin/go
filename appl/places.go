@@ -25,6 +25,10 @@ type places struct {
 }
 
 func (ps *places) Parse(c Classification) {
+	if c.Occurrence == nil {
+		return
+	}
+
 	for _, o := range c.Occurrence {
 		if o.Id != "" && o.Value != "" {
 			var p place

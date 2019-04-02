@@ -71,10 +71,12 @@ type document struct {
 	AlertCategories      *json.Property
 	Subjects             *json.Property
 	Persons              *json.Property
+	Organizations        *json.Property
 	Companies            *json.Property
 	Places               *json.Property
 	Events               *json.Property
-	Organizations        *json.Property
+	Audiences            *json.Property
+	Services             *json.Property
 	Filings              []ApplFiling
 }
 
@@ -355,6 +357,8 @@ func (doc *document) ToJson() (*json.Object, error) {
 	jo.AddProperty(doc.Companies)
 	jo.AddProperty(doc.Places)
 	jo.AddProperty(doc.Events)
+	jo.AddProperty(doc.Audiences)
+	jo.AddProperty(doc.Services)
 
 	return &jo, nil
 }

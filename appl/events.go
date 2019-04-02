@@ -7,18 +7,16 @@ import (
 	"github.com/ymetelkin/go/json"
 )
 
-type event struct {
-	Name    string
-	Code    string
-	Creator string
-}
-
 type events struct {
 	Keys   map[string]bool
 	Events json.Array
 }
 
 func (es *events) Parse(c Classification) {
+	if c.Occurrence == nil {
+		return
+	}
+
 	for _, o := range c.Occurrence {
 		if o.Id != "" && o.Value != "" {
 			key := fmt.Sprintf("%s_%s", o.Id, o.Value)

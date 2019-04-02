@@ -57,13 +57,15 @@ func getClassification(doc *document) {
 	generators := uniqueArray{}
 	categories := uniqueArray{}
 	suppcategories := uniqueArray{}
+	alerts := uniqueArray{}
 	sbjs := subjects{}
 	orgs := subjects{}
 	persons := persons{}
 	companies := companies{}
 	places := places{}
 	events := events{}
-	alerts := uniqueArray{}
+	audiences := audiences{}
+	services := uniqueArray{}
 
 	classification := doc.Xml.DescriptiveMetadata.SubjectClassification
 	if classification != nil && len(classification) > 0 {
@@ -129,6 +131,40 @@ func getClassification(doc *document) {
 		}
 	}
 
+	classification = doc.Xml.DescriptiveMetadata.AudienceClassification
+	if classification != nil && len(classification) > 0 {
+		for _, c := range classification {
+			audiences.Parse(c)
+		}
+	}
+
+	classification = doc.Xml.DescriptiveMetadata.SalesClassification
+	if classification != nil && len(classification) > 0 {
+		for _, c := range classification {
+			if c.Occurrence != nil {
+				for _, o := range c.Occurrence {
+					if o.Id != "" && o.Value != "" {
+						service := json.Object{}
+						service.AddString("code", o.Id)
+						service.AddString("name", o.Value)
+						services.AddObject(o.Id, &service)
+					}
+				}
+			}
+		}
+	}
+
+	comments := doc.Xml.DescriptiveMetadata.Comment
+	if comments != nil && len(comments) > 0 {
+		for _, c := range comments {
+			if c != "" {
+				service := json.Object{}
+				service.AddString("apservice", c)
+				services.AddObject(c, &service)
+			}
+		}
+	}
+
 	doc.Generators = generators.ToJsonProperty("generators")
 	doc.Categories = categories.ToJsonProperty("categories")
 	doc.SuppCategories = suppcategories.ToJsonProperty("suppcategories")
@@ -140,4 +176,6 @@ func getClassification(doc *document) {
 	doc.Companies = companies.ToJsonProperty()
 	doc.Places = places.ToJsonProperty()
 	doc.Events = events.ToJsonProperty()
+	doc.Audiences = audiences.ToJsonProperty()
+	doc.Services = services.ToJsonProperty("services")
 }
