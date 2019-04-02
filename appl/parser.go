@@ -71,6 +71,7 @@ type document struct {
 	AlertCategories      *json.Property
 	Subjects             *json.Property
 	Persons              *json.Property
+	Companies            *json.Property
 	Organizations        *json.Property
 	Filings              []ApplFiling
 }
@@ -388,7 +389,7 @@ func (doc *document) ToJson() (*json.Object, error) {
 		jo.AddString("outcue", nl.OutCue)
 	}
 
-	jo.AddProperty(doc.Persons)
+	jo.AddProperty(doc.Person)
 
 	if nl.LocationLine != "" {
 		jo.AddString("locationline", nl.LocationLine)
@@ -450,6 +451,8 @@ func (doc *document) ToJson() (*json.Object, error) {
 	jo.AddProperty(doc.SuppCategories)
 	jo.AddProperty(doc.AlertCategories)
 	jo.AddProperty(doc.Subjects)
+	jo.AddProperty(doc.Persons)
+	jo.AddProperty(doc.Companies)
 	jo.AddProperty(doc.Organizations)
 
 	return &jo, nil

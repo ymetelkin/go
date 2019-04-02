@@ -2,6 +2,7 @@ package appl
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/ymetelkin/go/json"
 )
@@ -18,7 +19,6 @@ func (ua *uniqueArray) AddString(s string) {
 
 	if ua.keys == nil {
 		ua.keys = make(map[string]bool)
-		ua.keys[s] = true
 	} else {
 		_, ok := ua.keys[s]
 		if ok {
@@ -26,6 +26,7 @@ func (ua *uniqueArray) AddString(s string) {
 		}
 	}
 
+	ua.keys[s] = true
 	ua.values.AddString(s)
 }
 
@@ -37,7 +38,6 @@ func (ua *uniqueArray) AddKeyValue(kn string, kv string, vn string, vv string) {
 	key := fmt.Sprintf("%s_%s", kv, vv)
 	if ua.keys == nil {
 		ua.keys = make(map[string]bool)
-		ua.keys[key] = true
 	} else {
 		_, ok := ua.keys[key]
 		if ok {
@@ -45,10 +45,30 @@ func (ua *uniqueArray) AddKeyValue(kn string, kv string, vn string, vv string) {
 		}
 	}
 
+	ua.keys[key] = true
+
 	jo := json.Object{}
 	jo.AddString(kn, kv)
 	jo.AddString(vn, vv)
 	ua.values.AddObject(&jo)
+}
+
+func (ua *uniqueArray) AddObject(key string, jo *json.Object) {
+	if jo.IsEmpty() {
+		return
+	}
+
+	if ua.keys == nil {
+		ua.keys = make(map[string]bool)
+	} else {
+		_, ok := ua.keys[key]
+		if ok {
+			return
+		}
+	}
+
+	ua.keys[key] = true
+	ua.values.AddObject(jo)
 }
 
 func (ua *uniqueArray) IsEmpty() bool {
@@ -60,4 +80,14 @@ func (ua *uniqueArray) ToJsonProperty(field string) *json.Property {
 		return nil
 	}
 	return json.NewArrayProperty(field, &ua.values)
+}
+
+func setRels(c Classification, o Occurrence, rels *uniqueArray) {
+	if strings.EqualFold(c.System, "RTE") {
+		rels.AddString("inferred")
+	} else if o.ActualMatch {
+		rels.AddString("direct")
+	} else {
+		rels.AddString("ancestor")
+	}
 }

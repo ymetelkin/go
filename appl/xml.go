@@ -256,9 +256,10 @@ type Occurrence struct {
 }
 
 type Property struct {
-	Id    string `xml:"Id,attr"`
-	Name  string `xml:"Name,attr"`
-	Value string `xml:"Value,attr"`
+	Id       string `xml:"Id,attr"`
+	Name     string `xml:"Name,attr"`
+	Value    string `xml:"Value,attr"`
+	ParentId string `xml:"ParentId,attr"`
 }
 
 type ForeignKeys struct {
