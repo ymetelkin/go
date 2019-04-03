@@ -282,6 +282,22 @@ func TestAudences(t *testing.T) {
 			</Occurrence>
 		</AudienceClassification>
 	</DescriptiveMetadata>
+	<FilingMetadata>
+		<Id>71c947a7587e4a468fd55d3e125e02c2</Id>
+		<ArrivalDateTime>2011-07-12T17:33:51</ArrivalDateTime>
+		<Cycle>BC</Cycle>
+		<Format>bx</Format>
+		<Source>ny---</Source>
+		<Category>n</Category>
+	</FilingMetadata>
+	<FilingMetadata>
+		<Id>71c947a7587e4a468fd55d3e125e02c2</Id>
+		<ArrivalDateTime>2011-07-12T17:33:51</ArrivalDateTime>
+		<Cycle>BC</Cycle>
+		<Format>bx</Format>
+		<Source>nyc---</Source>
+		<Category>n</Category>
+    </FilingMetadata>
 </Publication>`
 	pub, _ := NewXml(s)
 	doc := document{Xml: pub}
@@ -296,6 +312,50 @@ func TestAudences(t *testing.T) {
 	}
 
 	jo, err := doc.ToJson()
+	if err != nil {
+		t.Error(err.Error())
+	}
+	fmt.Printf("%s\n", jo.ToString())
+
+	s = `
+<Publication>
+	<DescriptiveMetadata>
+		<AudienceClassification System="Editorial" Authority="AP Audience">
+			<Occurrence Id="9add4649b53b4702ba7d9de5d4fa607a" Value="Online" ActualMatch="true">
+				<Property Id="B6F34A252AF74F0EBCD885E6AC1057BE" Name="AudienceType" Value="AUDPLATFORM" />
+			</Occurrence>
+		</AudienceClassification>
+	</DescriptiveMetadata>
+	<FilingMetadata>
+		<Id>71c947a7587e4a468fd55d3e125e02c2</Id>
+		<ArrivalDateTime>2011-07-12T17:33:51</ArrivalDateTime>
+		<Cycle>BC</Cycle>
+		<Format>bx</Format>
+		<Source>ny---</Source>
+		<Category>n</Category>
+	</FilingMetadata>
+	<FilingMetadata>
+		<Id>71c947a7587e4a468fd55d3e125e02c2</Id>
+		<ArrivalDateTime>2011-07-12T17:33:51</ArrivalDateTime>
+		<Cycle>BC</Cycle>
+		<Format>bx</Format>
+		<Source>nyc---</Source>
+		<Category>n</Category>
+    </FilingMetadata>
+</Publication>`
+	pub, _ = NewXml(s)
+	doc = document{Xml: pub}
+
+	err = pub.DescriptiveMetadata.parse(&doc)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	if doc.Audiences == nil {
+		t.Error("[audences] is expected")
+	}
+
+	jo, err = doc.ToJson()
 	if err != nil {
 		t.Error(err.Error())
 	}

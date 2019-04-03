@@ -131,12 +131,7 @@ func getClassification(doc *document) {
 		}
 	}
 
-	classification = doc.Xml.DescriptiveMetadata.AudienceClassification
-	if classification != nil && len(classification) > 0 {
-		for _, c := range classification {
-			getAudences(c, doc)
-		}
-	}
+	getAudences(doc)
 
 	classification = doc.Xml.DescriptiveMetadata.SalesClassification
 	if classification != nil && len(classification) > 0 {
@@ -216,29 +211,35 @@ func getThirdParty(doc *document) {
 	}
 }
 
-func getAudences(c Classification, doc *document) {
+func getAudences(doc *document) {
 	geo := false
 	audiences := uniqueArray{}
 
-	if strings.EqualFold(c.Authority, "AP Audience") && strings.EqualFold(c.System, "Editorial") {
-		if c.Occurrence != nil {
-			for _, o := range c.Occurrence {
-				if o.Id != "" && o.Value != "" {
-					audience := json.Object{}
-					audience.AddString("code", o.Id)
-					audience.AddString("name", o.Value)
+	classification := doc.Xml.DescriptiveMetadata.AudienceClassification
+	if classification != nil && len(classification) > 0 {
+		for _, c := range classification {
+			if strings.EqualFold(c.Authority, "AP Audience") && strings.EqualFold(c.System, "Editorial") {
+				if c.Occurrence != nil {
+					for _, o := range c.Occurrence {
+						if o.Id != "" && o.Value != "" {
+							key := o.Id
+							audience := json.Object{}
+							audience.AddString("code", o.Id)
+							audience.AddString("name", o.Value)
 
-					if o.Property != nil && len(o.Property) > 0 {
-						prop := o.Property[0]
-						if prop.Value != "" {
-							if strings.EqualFold(prop.Value, "AUDGEOGRAPHY") {
-								geo = true
+							if o.Property != nil && len(o.Property) > 0 {
+								prop := o.Property[0]
+								if prop.Value != "" {
+									if strings.EqualFold(prop.Value, "AUDGEOGRAPHY") {
+										geo = true
+									}
+									audience.AddString("type", prop.Value)
+								}
 							}
-							audience.AddString("type", prop.Value)
+
+							audiences.AddObject(key, &audience)
 						}
 					}
-
-					audiences.AddObject(o.Id, &audience)
 				}
 			}
 		}

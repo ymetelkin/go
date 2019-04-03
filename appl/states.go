@@ -25,7 +25,7 @@ func getState(s string) *state {
 	}
 
 	key := strings.ToUpper(s)
-	if strings.Index(s, "NYC") == 0 {
+	if strings.Index(key, "NYC") == 0 {
 		return &state{"b836d07082c610048807df092526b43e", "New York City"}
 	} else {
 		runes := []rune(key)
