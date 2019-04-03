@@ -77,13 +77,18 @@ type document struct {
 	Events               *json.Property
 	Audiences            *json.Property
 	Services             *json.Property
-	Filings              []ApplFiling
+	ThirdPartyMeta       *json.Property
+	Filings              filings
 }
 
-type ApplFiling struct {
-	Xml         *FilingMetadata
+type filings struct {
+	Filings []filing
+	Json    *json.Property
+}
+
+type filing struct {
+	SlugLine    string
 	ForeignKeys map[string]string
-	Products    []int
 }
 
 func XmlToJson(s string) (*json.Object, error) {
@@ -120,6 +125,11 @@ func XmlToJson(s string) (*json.Object, error) {
 	}
 
 	err = pub.DescriptiveMetadata.parse(&doc)
+	if err != nil {
+		return nil, err
+	}
+
+	err = pub.parseFilings(&doc)
 	if err != nil {
 		return nil, err
 	}
@@ -359,6 +369,9 @@ func (doc *document) ToJson() (*json.Object, error) {
 	jo.AddProperty(doc.Events)
 	jo.AddProperty(doc.Audiences)
 	jo.AddProperty(doc.Services)
+	jo.AddProperty(doc.ThirdPartyMeta)
+
+	jo.AddProperty(doc.Filings.Json)
 
 	return &jo, nil
 }

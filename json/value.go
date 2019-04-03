@@ -21,6 +21,7 @@ const (
 type value struct {
 	Value interface{}
 	Type  int
+	Text  string
 }
 
 func newInt(i int) *value {
@@ -193,6 +194,10 @@ func (jv *value) GetParameterizedString() (ParameterizedString, error) {
 func (jv *value) ToString(pretty bool, level int) string {
 	if jv.Value == nil {
 		return "null"
+	}
+
+	if jv.Text != "" {
+		return jv.Text
 	}
 
 	switch jv.Type {

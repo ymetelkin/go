@@ -208,3 +208,46 @@ func TestServices(t *testing.T) {
 	}
 	fmt.Printf("%s\n", jo.ToString())
 }
+
+func TestThirdParties(t *testing.T) {
+	s := `
+<Publication>
+	<DescriptiveMetadata>
+		<ThirdPartyMeta Vocabulary="ExtendedDeskInfo" VocabularyOwner="http://cv.ap.org">
+			<Occurrence Id="IPTCFormat" Value="false" />
+		</ThirdPartyMeta>
+		<ThirdPartyMeta Vocabulary="BWRegionKeywords" VocabularyOwner="http://businesswire.">
+			<Occurrence Value="North America" />
+		</ThirdPartyMeta>
+		<ThirdPartyMeta Vocabulary="BWIndustryKeywords" VocabularyOwner="http://businesswire.">
+			<Occurrence Value="Health" />
+		</ThirdPartyMeta>
+		<ThirdPartyMeta Vocabulary="IngestionManagerMeta" VocabularyOwner="cv.ap.org">
+				<Occurrence Id="FeedID" Value="2940" />
+		</ThirdPartyMeta>
+		<ThirdPartyMeta Vocabulary="IngestionManagerMeta" VocabularyOwner="cv.ap.org">
+				<Occurrence Id="FeedName" Value="Businesswire NewsML Feed" />
+		</ThirdPartyMeta>
+		<ThirdPartyMeta Vocabulary="apsubject" VocabularyOwner="cv.ap.org">
+			<Occurrence Id="http://cv.ap.org/apsubject/F25AF2D07E4E100484F5DF092526B43E" Value="General News" />
+		</ThirdPartyMeta>
+	</DescriptiveMetadata>
+</Publication>`
+	pub, _ := NewXml(s)
+	doc := document{Xml: pub}
+
+	err := pub.DescriptiveMetadata.parse(&doc)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	if doc.ThirdPartyMeta == nil {
+		t.Error("[thirdpartymeta] is expected")
+	}
+
+	jo, err := doc.ToJson()
+	if err != nil {
+		t.Error(err.Error())
+	}
+	fmt.Printf("%s\n", jo.ToString())
+}

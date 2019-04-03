@@ -9,7 +9,7 @@ type Publication struct {
 	AdministrativeMetadata AdministrativeMetadata
 	RightsMetadata         RightsMetadata
 	DescriptiveMetadata    DescriptiveMetadata
-	FilingMetadata         []FilingMetadata
+	FilingMetadata         []Filing
 }
 
 type Identification struct {
@@ -101,17 +101,49 @@ type RightsMetadata struct {
 type DescriptiveMetadata struct {
 	Description            []string
 	DateLineLocation       DateLineLocation
-	SubjectClassification  []Classification `xml:"SubjectClassification"`
+	SubjectClassification  []Classification
 	EntityClassification   []Classification
 	AudienceClassification []Classification
 	SalesClassification    []Classification
 	Comment                []string
-	ThirdPartyMeta         []Classification
+	ThirdPartyMeta         []ThirdPartyMeta
 }
 
-type FilingMetadata struct {
-	SlugLine    string
-	ForeignKeys ForeignKeys
+type Filing struct {
+	Id                     string
+	ArrivalDateTime        string
+	Cycle                  string
+	TransmissionReference  string
+	TransmissionFilename   string
+	TransmissionContent    string
+	ServiceLevelDesignator string
+	Selector               string
+	Format                 string
+	Source                 string
+	Category               string
+	Routing                []Routing
+	SlugLine               string
+	OriginalMediaId        string
+	ImportFolder           string
+	ImportWarnings         string
+	LibraryTwinCheck       string
+	LibraryRequestId       string
+	SpecialFieldAttn       string
+	FeedLine               string
+	LibraryRequestLogin    string
+	Products               Products
+	PriorityLine           string
+	ForeignKeys            []ForeignKeys
+	FilingCountry          []string
+	FilingRegion           []string
+	FilingSubject          []string
+	FilingSubSubject       []string
+	FilingTopic            []string
+	FilingOnlineCode       string
+	DistributionScope      string
+	BreakingNews           string
+	FilingStyle            string
+	JunkLine               string
 }
 
 type FirstCreated struct {
@@ -246,6 +278,13 @@ type Classification struct {
 	Occurrence       []Occurrence
 }
 
+type ThirdPartyMeta struct {
+	System          string `xml:"System,attr"`
+	Vocabulary      string `xml:"Vocabulary,attr"`
+	VocabularyOwner string `xml:"VocabularyOwner,attr"`
+	Occurrence      []Occurrence
+}
+
 type Occurrence struct {
 	Id          string `xml:"Id,attr"`
 	Value       string `xml:"Value,attr"`
@@ -260,6 +299,17 @@ type Property struct {
 	Name     string `xml:"Name,attr"`
 	Value    string `xml:"Value,attr"`
 	ParentId string `xml:"ParentId,attr"`
+}
+
+type Routing struct {
+	Value    string `xml:",chardata"`
+	Type     string `xml:"Type,attr"`
+	Expanded bool   `xml:"Expanded,attr"`
+	Outed    bool   `xml:"Outed,attr"`
+}
+
+type Products struct {
+	Product []int
 }
 
 type ForeignKeys struct {

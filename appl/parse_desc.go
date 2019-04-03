@@ -11,6 +11,7 @@ func (desc *DescriptiveMetadata) parse(doc *document) error {
 	getDescriptions(doc)
 	getDatelineLocation(doc)
 	getClassification(doc)
+	getThirdParty(doc)
 
 	return nil
 }
@@ -178,4 +179,41 @@ func getClassification(doc *document) {
 	doc.Events = events.ToJsonProperty()
 	doc.Audiences = audiences.ToJsonProperty()
 	doc.Services = services.ToJsonProperty("services")
+}
+
+func getThirdParty(doc *document) {
+	tpms := doc.Xml.DescriptiveMetadata.ThirdPartyMeta
+	if tpms != nil && len(tpms) > 0 {
+		thirdpartymeta := json.Array{}
+
+		for _, tpm := range tpms {
+			jo := json.Object{}
+			if tpm.System != "" {
+				jo.AddString("creator", tpm.System)
+			}
+			if tpm.Vocabulary != "" {
+				jo.AddString("vocabulary", tpm.Vocabulary)
+			}
+			if tpm.VocabularyOwner != "" {
+				jo.AddString("vocabularyowner", tpm.VocabularyOwner)
+			}
+			if tpm.Occurrence != nil && len(tpm.Occurrence) > 0 {
+				o := tpm.Occurrence[0]
+				if o.Id != "" {
+					jo.AddString("code", o.Id)
+				}
+				if o.Value != "" {
+					jo.AddString("name", o.Value)
+				}
+			}
+
+			if !jo.IsEmpty() {
+				thirdpartymeta.AddObject(&jo)
+			}
+		}
+
+		if !thirdpartymeta.IsEmpty() {
+			doc.ThirdPartyMeta = json.NewArrayProperty("thirdpartymeta", &thirdpartymeta)
+		}
+	}
 }

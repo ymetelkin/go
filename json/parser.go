@@ -264,7 +264,9 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (*value, i
 			if index < size && runes[index] == TOKEN_U {
 				index++
 				if index < size && runes[index] == TOKEN_E {
-					return newBool(true), index, ParameterizedString{}, nil
+					jv := newBool(true)
+					jv.Text = "true"
+					return jv, index, ParameterizedString{}, nil
 				}
 			}
 		}
@@ -277,7 +279,9 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (*value, i
 				if index < size && runes[index] == TOKEN_S {
 					index++
 					if index < size && runes[index] == TOKEN_E {
-						return newBool(false), index, ParameterizedString{}, nil
+						jv := newBool(false)
+						jv.Text = "false"
+						return jv, index, ParameterizedString{}, nil
 					}
 				}
 			}
@@ -327,12 +331,16 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (*value, i
 		if floating {
 			f, err := strconv.ParseFloat(s, 64)
 			if err == nil {
-				return newFloat(f), index, ParameterizedString{}, nil
+				jv := newFloat(f)
+				jv.Text = s
+				return jv, index, ParameterizedString{}, nil
 			}
 		} else {
 			i, err := strconv.Atoi(s)
 			if err == nil {
-				return newInt(i), index, ParameterizedString{}, nil
+				jv := newInt(i)
+				jv.Text = s
+				return jv, index, ParameterizedString{}, nil
 			}
 		}
 

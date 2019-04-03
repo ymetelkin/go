@@ -29,6 +29,11 @@ func (jo *Object) addValue(name string, jv *value) error {
 		jo.Properties = make(map[string]value)
 	}
 
+	_, ok := jo.Properties[name]
+	if ok {
+		return errors.New("Field already exists: " + name)
+	}
+
 	jo.Properties[name] = *jv
 
 	if jo.names == nil {
