@@ -14,13 +14,11 @@ func (pub *Publication) parseFilings(doc *document) error {
 		return nil
 	}
 
-	fs := []filing{}
 	ja := json.Array{}
 
 	for _, fm := range pub.FilingMetadata {
 		tmp := fm
 		jo := json.Object{}
-		f := filing{}
 
 		if tmp.Id == "" {
 			return errors.New("[FilingMetadata.Id] is missing")
@@ -91,7 +89,6 @@ func (pub *Publication) parseFilings(doc *document) error {
 		}
 		if tmp.SlugLine != "" {
 			jo.AddString("slugline", tmp.SlugLine)
-			f.SlugLine = tmp.SlugLine
 		}
 		if tmp.OriginalMediaId != "" {
 			jo.AddString("originalmediaid", tmp.OriginalMediaId)
@@ -140,11 +137,6 @@ func (pub *Publication) parseFilings(doc *document) error {
 							foreignkey := json.Object{}
 							foreignkey.AddString(field, k.Id)
 							foreignkeys.AddObject(&foreignkey)
-
-							if f.ForeignKeys == nil {
-								f.ForeignKeys = make(map[string]string)
-							}
-							f.ForeignKeys[field] = k.Id
 						}
 					}
 				}
@@ -206,11 +198,10 @@ func (pub *Publication) parseFilings(doc *document) error {
 		}
 
 		ja.AddObject(&jo)
-		fs = append(fs, f)
 	}
 
 	if !ja.IsEmpty() {
-		doc.Filings = filings{Filings: fs, Json: json.NewArrayProperty("filings", &ja)}
+		doc.Filings = json.NewArrayProperty("filings", &ja)
 	}
 
 	return nil

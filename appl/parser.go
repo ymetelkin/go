@@ -78,17 +78,7 @@ type document struct {
 	Audiences            *json.Property
 	Services             *json.Property
 	ThirdPartyMeta       *json.Property
-	Filings              filings
-}
-
-type filings struct {
-	Filings []filing
-	Json    *json.Property
-}
-
-type filing struct {
-	SlugLine    string
-	ForeignKeys map[string]string
+	Filings              *json.Property
 }
 
 func XmlToJson(s string) (*json.Object, error) {
@@ -371,7 +361,7 @@ func (doc *document) ToJson() (*json.Object, error) {
 	jo.AddProperty(doc.Services)
 	jo.AddProperty(doc.ThirdPartyMeta)
 
-	jo.AddProperty(doc.Filings.Json)
+	jo.AddProperty(doc.Filings)
 
 	return &jo, nil
 }

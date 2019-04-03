@@ -77,7 +77,7 @@ func TestFilings(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if doc.Filings.Filings == nil {
+	if doc.Filings == nil {
 		t.Error("[filings] is expected")
 	}
 

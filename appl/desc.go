@@ -65,7 +65,6 @@ func getClassification(doc *document) {
 	companies := companies{}
 	places := places{}
 	events := events{}
-	audiences := audiences{}
 	services := uniqueArray{}
 
 	classification := doc.Xml.DescriptiveMetadata.SubjectClassification
@@ -135,7 +134,7 @@ func getClassification(doc *document) {
 	classification = doc.Xml.DescriptiveMetadata.AudienceClassification
 	if classification != nil && len(classification) > 0 {
 		for _, c := range classification {
-			audiences.Parse(c)
+			getAudences(c, doc)
 		}
 	}
 
@@ -177,7 +176,6 @@ func getClassification(doc *document) {
 	doc.Companies = companies.ToJsonProperty()
 	doc.Places = places.ToJsonProperty()
 	doc.Events = events.ToJsonProperty()
-	doc.Audiences = audiences.ToJsonProperty()
 	doc.Services = services.ToJsonProperty("services")
 }
 
@@ -215,5 +213,49 @@ func getThirdParty(doc *document) {
 		if !thirdpartymeta.IsEmpty() {
 			doc.ThirdPartyMeta = json.NewArrayProperty("thirdpartymeta", &thirdpartymeta)
 		}
+	}
+}
+
+func getAudences(c Classification, doc *document) {
+	geo := false
+	audiences := uniqueArray{}
+
+	if strings.EqualFold(c.Authority, "AP Audience") && strings.EqualFold(c.System, "Editorial") {
+		if c.Occurrence != nil {
+			for _, o := range c.Occurrence {
+				if o.Id != "" && o.Value != "" {
+					audience := json.Object{}
+					audience.AddString("code", o.Id)
+					audience.AddString("name", o.Value)
+
+					if o.Property != nil && len(o.Property) > 0 {
+						prop := o.Property[0]
+						if prop.Value != "" {
+							if strings.EqualFold(prop.Value, "AUDGEOGRAPHY") {
+								geo = true
+							}
+							audience.AddString("type", prop.Value)
+						}
+					}
+
+					audiences.AddObject(o.Id, &audience)
+				}
+			}
+		}
+	}
+
+	if !geo && doc.Xml.FilingMetadata != nil {
+		for _, f := range doc.Xml.FilingMetadata {
+			if strings.EqualFold(f.Category, "n") {
+				state := getState(f.Source)
+				if state != nil {
+					audiences.AddObject(state.Code, state.ToJson())
+				}
+			}
+		}
+	}
+
+	if !audiences.IsEmpty() {
+		doc.Audiences = audiences.ToJsonProperty("audiences")
 	}
 }

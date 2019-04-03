@@ -72,8 +72,8 @@ func getReferenceId(doc *document) {
 	} else if doc.MediaType == MEDIATYPE_TEXT {
 		if doc.Xml.NewsLines.Title != "" {
 			ref = doc.Xml.NewsLines.Title
-		} else if doc.Filings.Filings != nil {
-			for _, f := range doc.Filings.Filings {
+		} else if doc.Xml.FilingMetadata != nil {
+			for _, f := range doc.Xml.FilingMetadata {
 				if f.SlugLine != "" {
 					ref = f.SlugLine
 					break
@@ -86,16 +86,28 @@ func getReferenceId(doc *document) {
 				ref = doc.Xml.PublicationManagement.EditorialId
 			}
 		} else {
-			if doc.Filings.Filings != nil {
-				for _, f := range doc.Filings.Filings {
+			id := ""
+			if doc.Xml.FilingMetadata != nil {
+				for _, f := range doc.Xml.FilingMetadata {
 					if f.ForeignKeys != nil {
-						for _, v := range f.ForeignKeys {
-							ref = v
-							break
+						for _, fk := range f.ForeignKeys {
+							for _, k := range fk.Keys {
+								if k.Id != "" && k.Field != "" {
+									id = k.Id
+									break
+								}
+							}
+							if id != "" {
+								break
+							}
 						}
 						break
 					}
 				}
+			}
+
+			if id != "" {
+				ref = id
 			}
 		}
 	}
