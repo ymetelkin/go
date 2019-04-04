@@ -112,7 +112,7 @@ func getBylines(doc *document) {
 					}
 					producer.AddString("name", bl.Value)
 					doc.Producer = json.NewObjectProperty("producer", &producer)
-				} else if strings.EqualFold(bl.Parametric, "PHOTOGRAPHER") && doc.Photographer == nil {
+				} else if strings.EqualFold(bl.Parametric, "PHOTOGRAPHER") && doc.Photographer.IsEmtpy() {
 					photographer := json.Object{}
 					if bl.Id != "" {
 						photographer.AddString("code", bl.Id)
@@ -123,7 +123,7 @@ func getBylines(doc *document) {
 					}
 					doc.Photographer = json.NewObjectProperty("photographer", &photographer)
 
-				} else if strings.EqualFold(bl.Parametric, "CAPTIONWRITER") && doc.CaptionWriter == nil {
+				} else if strings.EqualFold(bl.Parametric, "CAPTIONWRITER") && doc.CaptionWriter.IsEmtpy() {
 					captionwriter := json.Object{}
 					if bl.Id != "" {
 						captionwriter.AddString("code", bl.Id)

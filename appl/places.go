@@ -15,8 +15,8 @@ type place struct {
 	Rels         uniqueArray
 	ParentIds    uniqueArray
 	TopParent    bool
-	LocationType *json.Property
-	Geo          *json.Property
+	LocationType json.Property
+	Geo          json.Property
 }
 
 type places struct {
@@ -67,7 +67,7 @@ func (ps *places) Parse(c Classification) {
 			for _, prop := range o.Property {
 				if prop.Name != "" && prop.Value != "" {
 					name := strings.ToLower(prop.Name)
-					if name == "locationtype" && prop.Id != "" && p.LocationType == nil {
+					if name == "locationtype" && prop.Id != "" && p.LocationType.IsEmtpy() {
 						jo := json.Object{}
 						jo.AddString("code", prop.Id)
 						jo.AddString("name", prop.Value)
@@ -93,7 +93,7 @@ func (ps *places) Parse(c Classification) {
 	}
 }
 
-func (ps *places) ToJsonProperty() *json.Property {
+func (ps *places) ToJsonProperty() json.Property {
 	if ps.Keys != nil {
 		ja := json.Array{}
 		for _, item := range ps.Places {
@@ -121,5 +121,5 @@ func (ps *places) ToJsonProperty() *json.Property {
 		return json.NewArrayProperty("places", &ja)
 	}
 
-	return nil
+	return json.Property{}
 }

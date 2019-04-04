@@ -89,7 +89,7 @@ func getClassification(doc *document) {
 					for _, o := range c.Occurrence {
 						alerts.AddString(o.Id)
 					}
-				} else if doc.Fixture == nil && authority == "ap audio cut number code" {
+				} else if doc.Fixture.IsEmtpy() && authority == "ap audio cut number code" {
 					for _, o := range c.Occurrence {
 						if o.Id != "" && o.Value != "" {
 							i, err := strconv.Atoi(o.Id)

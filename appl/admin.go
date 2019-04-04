@@ -96,7 +96,7 @@ func getSourceMaterials(doc *document) {
 	for _, src := range srcs {
 		name := src.Name
 		if strings.EqualFold(name, "alternate") {
-			if doc.CanonicalLink == nil && src.Url != "" {
+			if doc.CanonicalLink.IsEmtpy() && src.Url != "" {
 				doc.CanonicalLink = json.NewStringProperty("canonicallink", src.Url)
 			}
 		} else {

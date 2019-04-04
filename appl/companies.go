@@ -127,7 +127,7 @@ func (cs *companies) Parse(c Classification) {
 	}
 }
 
-func (cs *companies) ToJsonProperty() *json.Property {
+func (cs *companies) ToJsonProperty() json.Property {
 	if cs.Keys != nil {
 		ja := json.Array{}
 		for _, item := range cs.Companies {
@@ -155,5 +155,5 @@ func (cs *companies) ToJsonProperty() *json.Property {
 		return json.NewArrayProperty("companies", &ja)
 	}
 
-	return nil
+	return json.Property{}
 }

@@ -97,10 +97,10 @@ func (es *events) Parse(c Classification) {
 	}
 }
 
-func (es *events) ToJsonProperty() *json.Property {
+func (es *events) ToJsonProperty() json.Property {
 	if es.Keys != nil {
 		return json.NewArrayProperty("events", &es.Events)
 	}
 
-	return nil
+	return json.Property{}
 }

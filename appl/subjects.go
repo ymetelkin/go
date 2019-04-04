@@ -61,7 +61,7 @@ func (sbjs *subjects) Parse(c Classification) {
 	}
 }
 
-func (sbjs *subjects) ToJsonProperty(field string) *json.Property {
+func (sbjs *subjects) ToJsonProperty(field string) json.Property {
 	if sbjs.Keys != nil {
 		ja := json.Array{}
 		for _, item := range sbjs.Subjects {
@@ -87,5 +87,5 @@ func (sbjs *subjects) ToJsonProperty(field string) *json.Property {
 		return json.NewArrayProperty(field, &ja)
 	}
 
-	return nil
+	return json.Property{}
 }

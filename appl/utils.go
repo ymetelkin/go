@@ -75,9 +75,9 @@ func (ua *uniqueArray) IsEmpty() bool {
 	return ua.values.Length() == 0
 }
 
-func (ua *uniqueArray) ToJsonProperty(field string) *json.Property {
+func (ua *uniqueArray) ToJsonProperty(field string) json.Property {
 	if ua.values.Length() == 0 {
-		return nil
+		return json.Property{}
 	}
 	return json.NewArrayProperty(field, &ua.values)
 }
@@ -92,9 +92,9 @@ func setRels(c Classification, o Occurrence, rels *uniqueArray) {
 	}
 }
 
-func getGeoProperty(lat float64, long float64) *json.Property {
+func getGeoProperty(lat float64, long float64) json.Property {
 	if lat == 0 || long == 0 {
-		return nil
+		return json.Property{}
 	}
 
 	coordinates := json.Array{}
