@@ -28,7 +28,7 @@ func (ps *ParameterizedString) IsOneParameter() bool {
 	return p.StartIndex == 0 && p.EndIndex == len(ps.Value)
 }
 
-func (jo *Object) AddWithParameters(pname ParameterizedString, jv *value) error {
+func (jo *Object) AddWithParameters(pname ParameterizedString, jv value) error {
 	name := pname.Value
 	name = strings.Trim(name, " ")
 	if name == "" {
@@ -39,7 +39,7 @@ func (jo *Object) AddWithParameters(pname ParameterizedString, jv *value) error 
 		jo.Properties = make(map[string]value)
 	}
 
-	jo.Properties[name] = *jv
+	jo.Properties[name] = jv
 	if jo.names == nil {
 		jo.names = []string{name}
 	} else {
@@ -94,7 +94,7 @@ func (jo *Object) setObjectParameters(props map[string]value) bool {
 			ps, err := jv.GetParameterizedString()
 			if err == nil {
 				update := setValueParameters(ps.Value, ps, props)
-				if update == nil {
+				if update.IsEmpty() {
 					jo.Remove(name)
 				} else {
 					jo.setValue(name, update)
@@ -136,7 +136,7 @@ func (jo *Object) setObjectParameters(props map[string]value) bool {
 			jv, ok := jo.Properties[name]
 			if ok {
 				update := setValueParameters(name, ps, props)
-				if update == nil {
+				if update.IsEmpty() {
 					jo.Remove(name)
 				} else {
 					s, err := update.GetString()
@@ -176,8 +176,8 @@ func (ja *Array) setArrayParameters(props map[string]value) bool {
 			ps, err := jv.GetParameterizedString()
 			if err == nil {
 				add := setValueParameters(ps.Value, ps, props)
-				if add != nil {
-					values = append(values, *add)
+				if !add.IsEmpty() {
+					values = append(values, add)
 				}
 			}
 		} else if jv.Type == OBJECT {
@@ -186,7 +186,7 @@ func (ja *Array) setArrayParameters(props map[string]value) bool {
 				modified = jo.setObjectParameters(props)
 				if modified {
 					if !jo.IsEmpty() {
-						values = append(values, *newObject(jo))
+						values = append(values, newObject(jo))
 					}
 				} else {
 					values = append(values, jv)
@@ -198,7 +198,7 @@ func (ja *Array) setArrayParameters(props map[string]value) bool {
 				modified = ja.setArrayParameters(props)
 				if modified {
 					if !ja.IsEmpty() {
-						values = append(values, *newArray(ja))
+						values = append(values, newArray(ja))
 					}
 				} else {
 					values = append(values, jv)
@@ -214,12 +214,12 @@ func (ja *Array) setArrayParameters(props map[string]value) bool {
 	return modified
 }
 
-func setValueParameters(s string, ps ParameterizedString, params map[string]value) *value {
+func setValueParameters(s string, ps ParameterizedString, params map[string]value) value {
 	if ps.IsOneParameter() {
 		p := ps.Parameters[0]
 		jv, ok := params[p.Name]
 		if ok {
-			return &jv
+			return jv
 		} else if p.Default != "" {
 			return newString(p.Default)
 		}
@@ -248,7 +248,7 @@ func setValueParameters(s string, ps ParameterizedString, params map[string]valu
 		}
 	}
 
-	return nil
+	return value{}
 }
 
 func parsePropertyNameWithParameters(runes []rune, size int, index int) (ParameterizedString, int, error) {

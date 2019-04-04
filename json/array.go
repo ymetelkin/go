@@ -10,11 +10,11 @@ type Array struct {
 	Values []value
 }
 
-func (ja *Array) addValue(jv *value) int {
+func (ja *Array) addValue(jv value) int {
 	if ja.Values == nil {
-		ja.Values = []value{*jv}
+		ja.Values = []value{jv}
 	} else {
-		ja.Values = append(ja.Values, *jv)
+		ja.Values = append(ja.Values, jv)
 	}
 
 	return len(ja.Values) - 1
@@ -44,12 +44,12 @@ func (ja *Array) AddArray(value *Array) int {
 	return ja.addValue(newArray(value))
 }
 
-func (ja *Array) setValue(index int, value *value) error {
+func (ja *Array) setValue(index int, value value) error {
 	if ja.Values == nil || len(ja.Values) <= index {
 		err := fmt.Sprintf("Position [%d] does not exist", index)
 		return errors.New(err)
 	}
-	ja.Values[index] = *value
+	ja.Values[index] = value
 	return nil
 }
 

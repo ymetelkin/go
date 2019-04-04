@@ -12,14 +12,14 @@ type Object struct {
 	Properties map[string]value
 }
 
-func (jo *Object) AddProperty(jp *Property) error {
-	if jp == nil {
+func (jo *Object) AddProperty(jp Property) error {
+	if jp.IsEmtpy() {
 		return errors.New("Missing property")
 	}
-	return jo.addValue(jp.Field, &jp.Value)
+	return jo.addValue(jp.Field, jp.Value)
 }
 
-func (jo *Object) addValue(name string, jv *value) error {
+func (jo *Object) addValue(name string, jv value) error {
 	name = strings.Trim(name, " ")
 	if name == "" {
 		return errors.New("Missing field name")
@@ -34,7 +34,7 @@ func (jo *Object) addValue(name string, jv *value) error {
 		return errors.New("Field already exists: " + name)
 	}
 
-	jo.Properties[name] = *jv
+	jo.Properties[name] = jv
 
 	if jo.names == nil {
 		jo.names = []string{name}
@@ -69,7 +69,7 @@ func (jo *Object) AddArray(name string, value *Array) error {
 	return jo.addValue(name, newArray(value))
 }
 
-func (jo *Object) setValue(name string, value *value) error {
+func (jo *Object) setValue(name string, value value) error {
 	name = strings.Trim(name, " ")
 	if name == "" {
 		return errors.New("Missing field name")
@@ -86,7 +86,7 @@ func (jo *Object) setValue(name string, value *value) error {
 		return errors.New(err)
 	}
 
-	jo.Properties[name] = *value
+	jo.Properties[name] = value
 
 	return nil
 }

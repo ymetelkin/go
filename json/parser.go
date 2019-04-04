@@ -63,35 +63,35 @@ func ParseJsonArray(s string) (*Array, error) {
 	}
 }
 
-func parseJsonValue(s string, parameterize bool) (*value, error) {
+func parseJsonValue(s string, parameterize bool) (value, error) {
 	s = strings.Trim(s, " ")
 	if s == "" {
-		return nil, errors.New("Missing string input")
+		return value{}, errors.New("Missing string input")
 	}
 
 	runes := []rune(s)
 	size := len(runes)
 
 	if size < 2 {
-		return nil, errors.New("Invalid string input")
+		return value{}, errors.New("Invalid string input")
 	}
 
 	if runes[0] == TOKEN_LEFT_CURLY {
 		jo, _, err := parseObject(runes, size, 0, parameterize)
 
 		if err != nil {
-			return nil, err
+			return value{}, err
 		}
 		return newObject(jo), nil
 	} else if runes[0] == TOKEN_LEFT_SQUARE {
 		ja, _, err := parseArray(runes, size, 0, false)
 
 		if err != nil {
-			return nil, err
+			return value{}, err
 		}
 		return newArray(ja), nil
 	} else {
-		return nil, errors.New("Invalid string input")
+		return value{}, errors.New("Invalid string input")
 	}
 }
 
@@ -144,7 +144,7 @@ func addProperty(jo *Object, runes []rune, size int, index int, parameterize boo
 			}
 		}
 
-		if value != nil {
+		if !value.IsEmpty() {
 			if pname.IsParameterized || pvalue.IsParameterized {
 				jo.AddWithParameters(pname, value)
 			} else {
@@ -191,7 +191,7 @@ func parsePropertyName(runes []rune, size int, index int) (string, int, error) {
 	return "", index, errors.New(err)
 }
 
-func parseValue(runes []rune, size int, index int, parameterize bool) (*value, int, ParameterizedString, error) {
+func parseValue(runes []rune, size int, index int, parameterize bool) (value, int, ParameterizedString, error) {
 	r, index := skipWhitespace(runes, size, index)
 
 	if r == TOKEN_QUOTE {
@@ -200,9 +200,9 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (*value, i
 		if parameterize {
 			ps, index, err := parseTextValueWithParameters(runes, size, index)
 			if err != nil {
-				return nil, index, ps, err
+				return value{}, index, ps, err
 			}
-			return nil, index, ps, nil
+			return value{}, index, ps, nil
 		} else {
 			var sb strings.Builder
 
@@ -237,14 +237,14 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (*value, i
 
 				index++
 			}
-			return nil, index, ParameterizedString{}, nil
+			return value{}, index, ParameterizedString{}, nil
 		}
 	}
 
 	if r == TOKEN_LEFT_CURLY {
 		jo, index, err := parseObject(runes, size, index, parameterize)
 		if err != nil {
-			return nil, index, ParameterizedString{}, err
+			return value{}, index, ParameterizedString{}, err
 		}
 		return newObject(jo), index, ParameterizedString{}, nil
 	}
@@ -252,7 +252,7 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (*value, i
 	if r == TOKEN_LEFT_SQUARE {
 		ja, index, err := parseArray(runes, size, index, parameterize)
 		if err != nil {
-			return nil, index, ParameterizedString{}, err
+			return value{}, index, ParameterizedString{}, err
 		}
 		return newArray(ja), index, ParameterizedString{}, nil
 	}
@@ -345,11 +345,11 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (*value, i
 		}
 
 		err := fmt.Sprintf("Expected number, found '%s'", s)
-		return nil, index, ParameterizedString{}, errors.New(err)
+		return value{}, index, ParameterizedString{}, errors.New(err)
 	}
 
 	err := fmt.Sprintf("Unexpected character: '%c'", r)
-	return nil, index, ParameterizedString{}, errors.New(err)
+	return value{}, index, ParameterizedString{}, errors.New(err)
 }
 
 func parseObject(runes []rune, size int, index int, parameterize bool) (*Object, int, error) {
@@ -395,7 +395,7 @@ func addValue(ja *Array, runes []rune, size int, index int, parameterize bool) (
 			}
 		}
 
-		if value != nil {
+		if !value.IsEmpty() {
 			ja.addValue(value)
 		}
 		index++

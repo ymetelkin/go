@@ -24,36 +24,40 @@ type value struct {
 	Text  string
 }
 
-func newInt(i int) *value {
-	return &value{Value: i, Type: INT}
+func (jv *value) IsEmpty() bool {
+	return jv.Value == nil
 }
 
-func newFloat(f float64) *value {
-	return &value{Value: f, Type: FLOAT}
+func newInt(i int) value {
+	return value{Value: i, Type: INT}
 }
 
-func newBool(b bool) *value {
-	return &value{Value: b, Type: BOOL}
+func newFloat(f float64) value {
+	return value{Value: f, Type: FLOAT}
 }
 
-func newString(s string) *value {
-	return &value{Value: s, Type: STRING}
+func newBool(b bool) value {
+	return value{Value: b, Type: BOOL}
 }
 
-func newObject(o *Object) *value {
-	return &value{Value: o, Type: OBJECT}
+func newString(s string) value {
+	return value{Value: s, Type: STRING}
 }
 
-func newArray(a *Array) *value {
-	return &value{Value: a, Type: ARRAY}
+func newObject(o *Object) value {
+	return value{Value: o, Type: OBJECT}
 }
 
-func newNull() *value {
-	return &value{Value: nil, Type: NULL}
+func newArray(a *Array) value {
+	return value{Value: a, Type: ARRAY}
 }
 
-func newParameterizedString(ps ParameterizedString) *value {
-	return &value{Value: ps, Type: PARAMETERIZED}
+func newNull() value {
+	return value{Value: nil, Type: NULL}
+}
+
+func newParameterizedString(ps ParameterizedString) value {
+	return value{Value: ps, Type: PARAMETERIZED}
 }
 
 func (jv *value) GetInt() (int, error) {
