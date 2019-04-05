@@ -105,3 +105,34 @@ func getGeoProperty(lat float64, long float64) json.Property {
 	geometry.AddArray("coordinates", &coordinates)
 	return json.NewObjectProperty("geometry_geojson", &geometry)
 }
+
+func makePrettyString(s string) string {
+	if s == "" {
+		return s
+	}
+
+	s = strings.Trim(s, " ")
+	if s == "" {
+		return s
+	}
+
+	runes := []rune(s)
+	size := len(runes)
+	t := make([]rune, size)
+	i := 0
+	w := 0
+
+	for i < size {
+		r := runes[i]
+		if r > 13 || r < 7 {
+			t[w] = r
+			w++
+		}
+		i++
+	}
+	if w == 0 {
+		return s
+	}
+
+	return string(t[0:w])
+}

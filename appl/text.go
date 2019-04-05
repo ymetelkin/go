@@ -41,8 +41,7 @@ func (tci *TextContentItem) parse(role string, doc *document) {
 
 	if len(ss) > 0 {
 		nitf := strings.Join(ss, "")
-		nitf = strings.ReplaceAll(nitf, "\t", "")
-		nitf = strings.ReplaceAll(nitf, "\n", "")
+		nitf = makePrettyString(nitf)
 		jo := json.Object{}
 		jo.AddString("nitf", nitf)
 		if tci.Words > 0 {
