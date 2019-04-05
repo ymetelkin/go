@@ -35,7 +35,7 @@ func TestRights(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if doc.UsageRights == nil {
+	if doc.UsageRights.IsEmtpy() {
 		t.Error("[usagerights] is expected")
 	}
 

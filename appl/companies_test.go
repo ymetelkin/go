@@ -47,7 +47,7 @@ func TestCompanies(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if doc.Companies == nil {
+	if doc.Companies.IsEmtpy() {
 		t.Error("[companies] is expected")
 	}
 

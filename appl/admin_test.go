@@ -72,39 +72,39 @@ func TestAdmin(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if doc.Provider == nil {
+	if doc.Provider.IsEmtpy() {
 		t.Error("[provider] is expected")
 	}
 
-	if doc.Sources == nil {
+	if doc.Sources.IsEmtpy() {
 		t.Error("[sources] is expected")
 	}
 
-	if doc.CanonicalLink == nil {
+	if doc.CanonicalLink.IsEmtpy() {
 		t.Error("[canonicallink] is expected")
 	}
 
-	if doc.SourceMaterials == nil {
+	if doc.SourceMaterials.IsEmtpy() {
 		t.Error("[sourcematerials] is expected")
 	}
 
-	if doc.TransmissionSources == nil {
+	if doc.TransmissionSources.IsEmtpy() {
 		t.Error("[transmissionsources] is expected")
 	}
 
-	if doc.ProductSources == nil {
+	if doc.ProductSources.IsEmtpy() {
 		t.Error("[productsources] is expected")
 	}
 
-	if doc.ItemContentType == nil {
+	if doc.ItemContentType.IsEmtpy() {
 		t.Error("[itemcontenttype] is expected")
 	}
 
-	if doc.DistributionChannels == nil {
+	if doc.DistributionChannels.IsEmtpy() {
 		t.Error("[distributionchannels] is expected")
 	}
 
-	if doc.Fixture == nil {
+	if doc.Fixture.IsEmtpy() {
 		t.Error("[fixture] is expected")
 	}
 
@@ -112,7 +112,7 @@ func TestAdmin(t *testing.T) {
 		t.Error("[signals] is expected")
 	}
 
-	if doc.InPackages == nil {
+	if doc.InPackages.IsEmtpy() {
 		t.Error("[inpackages] is expected")
 	}
 

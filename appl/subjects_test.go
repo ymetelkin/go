@@ -9,6 +9,18 @@ func TestSubjects(t *testing.T) {
 	s := `
 <Publication>
 	<DescriptiveMetadata>
+		<Description>A</Description>
+		<Description>B</Description>
+		<Description>A</Description>
+		<DateLineLocation>
+			<City>Terre Haute</City>
+			<CountryArea>IN</CountryArea>
+			<CountryAreaName>Indiana</CountryAreaName>
+			<Country>USA</Country>
+			<CountryName>United States</CountryName>
+			<LatitudeDD>39.4667000000</LatitudeDD>
+			<LongitudeDD>-87.4139100000</LongitudeDD>
+		</DateLineLocation>
 		<SubjectClassification SystemVersion="1" AuthorityVersion="3163" System="Teragram" Authority="AP Subject"></SubjectClassification>
 		 <SubjectClassification SystemVersion="1" AuthorityVersion="3164" System="Teragram"  Authority="AP Subject"></SubjectClassification>
 		 <SubjectClassification System="Editorial" Authority="AP Supplemental Category Code">

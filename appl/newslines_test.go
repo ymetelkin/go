@@ -40,7 +40,7 @@ func TestNewslines(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if doc.Headline == nil {
+	if doc.Headline.IsEmtpy() {
 		t.Error("[headline] is expected")
 	}
 

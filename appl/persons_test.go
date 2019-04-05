@@ -65,7 +65,7 @@ func TestPersons(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if doc.Persons == nil {
+	if doc.Persons.IsEmtpy() {
 		t.Error("[persons] is expected")
 	}
 

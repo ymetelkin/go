@@ -66,7 +66,7 @@ func TestEvents(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if doc.Events == nil {
+	if doc.Events.IsEmtpy() {
 		t.Error("[events] is expected")
 	}
 

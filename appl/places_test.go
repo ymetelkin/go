@@ -29,7 +29,7 @@ func TestPlaces(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if doc.Places == nil {
+	if doc.Places.IsEmtpy() {
 		t.Error("[places] is expected")
 	}
 

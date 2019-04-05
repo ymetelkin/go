@@ -9,7 +9,8 @@ type Publication struct {
 	AdministrativeMetadata AdministrativeMetadata
 	RightsMetadata         RightsMetadata
 	DescriptiveMetadata    DescriptiveMetadata
-	FilingMetadata         []Filing
+	FilingMetadata         []FilingMetadata
+	PublicationComponent   []PublicationComponent
 }
 
 type Identification struct {
@@ -109,7 +110,7 @@ type DescriptiveMetadata struct {
 	ThirdPartyMeta         []ThirdPartyMeta
 }
 
-type Filing struct {
+type FilingMetadata struct {
 	Id                     string
 	ArrivalDateTime        string
 	Cycle                  string
@@ -144,6 +145,12 @@ type Filing struct {
 	BreakingNews           string
 	FilingStyle            string
 	JunkLine               string
+}
+
+type PublicationComponent struct {
+	Role            string `xml:"Role,attr"`
+	MediaType       string `xml:"MediaType,attr"`
+	TextContentItem TextContentItem
 }
 
 type FirstCreated struct {
@@ -320,6 +327,15 @@ type ForeignKeys struct {
 type Keys struct {
 	Id    string `xml:"Id,attr"`
 	Field string `xml:"Field,attr"`
+}
+
+type TextContentItem struct {
+	Body  NITF `xml:"DataContent>nitf"`
+	Words int  `xml:"Characteristics>Words"`
+}
+
+type NITF struct {
+	Xml string `xml:",innerxml"`
 }
 
 func NewXml(s string) (*Publication, error) {

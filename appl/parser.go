@@ -28,57 +28,58 @@ const (
 type document struct {
 	Xml                  *Publication
 	MediaType            MediaType
-	Language             *json.Property
-	ReferenceId          *json.Property
+	Language             json.Property
+	ReferenceId          json.Property
 	PubStatus            PubStatus
-	FirstCreated         *json.Property
+	FirstCreated         json.Property
 	FirstCreatedYear     int
 	Signals              uniqueArray
-	OutingInstructions   *json.Property
-	EditorialTypes       *json.Property
-	Embargoed            *json.Property
+	OutingInstructions   json.Property
+	EditorialTypes       json.Property
+	Embargoed            json.Property
 	TimeRestrictions     map[string]bool
-	Associations         *json.Property
-	RefersTo             *json.Property
-	Headline             *json.Property
-	CopyrightNotice      *json.Property
-	KeywordLines         *json.Property
-	Bylines              *json.Property
-	Producer             *json.Property
-	Photographer         *json.Property
-	CaptionWriter        *json.Property
-	Edits                *json.Property
-	OverLines            *json.Property
-	Person               *json.Property
-	Provider             *json.Property
-	Sources              *json.Property
-	Contributor          *json.Property
-	CanonicalLink        *json.Property
-	SourceMaterials      *json.Property
-	TransmissionSources  *json.Property
-	ProductSources       *json.Property
-	ItemContentType      *json.Property
-	DistributionChannels *json.Property
-	Fixture              *json.Property
-	InPackages           *json.Property
-	Ratings              *json.Property
-	UsageRights          *json.Property
-	Descriptions         *json.Property
-	DatelineLocation     *json.Property
-	Generators           *json.Property
-	Categories           *json.Property
-	SuppCategories       *json.Property
-	AlertCategories      *json.Property
-	Subjects             *json.Property
-	Persons              *json.Property
-	Organizations        *json.Property
-	Companies            *json.Property
-	Places               *json.Property
-	Events               *json.Property
-	Audiences            *json.Property
-	Services             *json.Property
-	ThirdPartyMeta       *json.Property
-	Filings              *json.Property
+	Associations         json.Property
+	RefersTo             json.Property
+	Headline             json.Property
+	CopyrightNotice      json.Property
+	KeywordLines         json.Property
+	Bylines              json.Property
+	Producer             json.Property
+	Photographer         json.Property
+	CaptionWriter        json.Property
+	Edits                json.Property
+	OverLines            json.Property
+	Person               json.Property
+	Provider             json.Property
+	Sources              json.Property
+	Contributor          json.Property
+	CanonicalLink        json.Property
+	SourceMaterials      json.Property
+	TransmissionSources  json.Property
+	ProductSources       json.Property
+	ItemContentType      json.Property
+	DistributionChannels json.Property
+	Fixture              json.Property
+	InPackages           json.Property
+	Ratings              json.Property
+	UsageRights          json.Property
+	Descriptions         json.Property
+	DatelineLocation     json.Property
+	Generators           json.Property
+	Categories           json.Property
+	SuppCategories       json.Property
+	AlertCategories      json.Property
+	Subjects             json.Property
+	Persons              json.Property
+	Organizations        json.Property
+	Companies            json.Property
+	Places               json.Property
+	Events               json.Property
+	Audiences            json.Property
+	Services             json.Property
+	ThirdPartyMeta       json.Property
+	Filings              json.Property
+	Texts                map[string]*json.Object
 }
 
 func XmlToJson(s string) (*json.Object, error) {
@@ -120,6 +121,11 @@ func XmlToJson(s string) (*json.Object, error) {
 	}
 
 	err = pub.parseFilings(&doc)
+	if err != nil {
+		return nil, err
+	}
+
+	err = pub.parsePubComponents(&doc)
 	if err != nil {
 		return nil, err
 	}
@@ -362,6 +368,12 @@ func (doc *document) ToJson() (*json.Object, error) {
 	jo.AddProperty(doc.ThirdPartyMeta)
 
 	jo.AddProperty(doc.Filings)
+
+	if doc.Texts != nil {
+		for k, v := range doc.Texts {
+			jo.AddObject(k, v)
+		}
+	}
 
 	return &jo, nil
 }

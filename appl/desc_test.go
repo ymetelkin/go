@@ -127,7 +127,7 @@ func TestDescriptions(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if doc.Descriptions == nil {
+	if doc.Descriptions.IsEmtpy() {
 		t.Error("[descriptions] is expected")
 	}
 
@@ -135,27 +135,27 @@ func TestDescriptions(t *testing.T) {
 		t.Error("[datelinelocation] is expected")
 	}
 
-	if doc.Generators == nil {
+	if doc.Generators.IsEmtpy() {
 		t.Error("[generators] is expected")
 	}
 
-	if doc.Categories == nil {
+	if doc.Categories.IsEmtpy() {
 		t.Error("[categories] is expected")
 	}
 
-	if doc.SuppCategories == nil {
+	if doc.SuppCategories.IsEmtpy() {
 		t.Error("[suppcategories] is expected")
 	}
 
-	if doc.AlertCategories == nil {
+	if doc.AlertCategories.IsEmtpy() {
 		t.Error("[alertcategories] is expected")
 	}
 
-	if doc.Subjects == nil {
+	if doc.Subjects.IsEmtpy() {
 		t.Error("[subjects] is expected")
 	}
 
-	if doc.Organizations == nil {
+	if doc.Organizations.IsEmtpy() {
 		t.Error("[organizations] is expected")
 	}
 
@@ -198,7 +198,7 @@ func TestServices(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if doc.Services == nil {
+	if doc.Services.IsEmtpy() {
 		t.Error("[services] is expected")
 	}
 
@@ -241,7 +241,7 @@ func TestThirdParties(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if doc.ThirdPartyMeta == nil {
+	if doc.ThirdPartyMeta.IsEmtpy() {
 		t.Error("[thirdpartymeta] is expected")
 	}
 
@@ -307,7 +307,7 @@ func TestAudences(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if doc.Audiences == nil {
+	if doc.Audiences.IsEmtpy() {
 		t.Error("[audences] is expected")
 	}
 
@@ -351,7 +351,7 @@ func TestAudences(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if doc.Audiences == nil {
+	if doc.Audiences.IsEmtpy() {
 		t.Error("[audences] is expected")
 	}
 

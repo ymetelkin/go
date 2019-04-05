@@ -77,7 +77,7 @@ func TestFilings(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if doc.Filings == nil {
+	if doc.Filings.IsEmtpy() {
 		t.Error("[filings] is expected")
 	}
 

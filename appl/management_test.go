@@ -86,28 +86,28 @@ func TestManagement(t *testing.T) {
 	if doc.FirstCreatedYear == 0 {
 		t.Error("[firstcreated.year] is expected")
 	}
-	if doc.FirstCreated == nil {
+	if doc.FirstCreated.IsEmtpy() {
 		t.Error("[firstcreated] is expected")
 	}
-	if doc.RefersTo == nil {
+	if doc.RefersTo.IsEmtpy() {
 		t.Error("[refersto] is expected")
 	}
-	if doc.Embargoed == nil {
+	if doc.Embargoed.IsEmtpy() {
 		t.Error("[embargoed] is expected")
 	}
 	if doc.Signals.IsEmpty() {
 		t.Error("[signals] is expected")
 	}
-	if doc.OutingInstructions == nil {
+	if doc.OutingInstructions.IsEmtpy() {
 		t.Error("[outinginstructions] is expected")
 	}
-	if doc.EditorialTypes == nil {
+	if doc.EditorialTypes.IsEmtpy() {
 		t.Error("[editorialtypes] is expected")
 	}
 	if doc.TimeRestrictions == nil || len(doc.TimeRestrictions) == 0 {
 		t.Error("[timerestrictions] is expected")
 	}
-	if doc.Associations == nil {
+	if doc.Associations.IsEmtpy() {
 		t.Error("[associations] is expected")
 	}
 
