@@ -25,10 +25,10 @@ func NewBoolProperty(name string, value bool) Property {
 	return Property{Field: name, Value: newBool(value)}
 }
 
-func NewObjectProperty(name string, value *Object) Property {
+func NewObjectProperty(name string, value Object) Property {
 	return Property{Field: name, Value: newObject(value)}
 }
 
-func NewArrayProperty(name string, value *Array) Property {
+func NewArrayProperty(name string, value Array) Property {
 	return Property{Field: name, Value: newArray(value)}
 }

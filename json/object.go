@@ -61,11 +61,11 @@ func (jo *Object) AddBool(name string, value bool) error {
 	return jo.addValue(name, newBool(value))
 }
 
-func (jo *Object) AddObject(name string, value *Object) error {
+func (jo *Object) AddObject(name string, value Object) error {
 	return jo.addValue(name, newObject(value))
 }
 
-func (jo *Object) AddArray(name string, value *Array) error {
+func (jo *Object) AddArray(name string, value Array) error {
 	return jo.addValue(name, newArray(value))
 }
 
@@ -107,11 +107,11 @@ func (jo *Object) SetString(name string, value string) error {
 	return jo.setValue(name, newString(value))
 }
 
-func (jo *Object) SetObject(name string, value *Object) error {
+func (jo *Object) SetObject(name string, value Object) error {
 	return jo.setValue(name, newObject(value))
 }
 
-func (jo *Object) SetArray(name string, value *Array) error {
+func (jo *Object) SetArray(name string, value Array) error {
 	return jo.setValue(name, newArray(value))
 }
 
@@ -213,32 +213,28 @@ func (jo *Object) GetBool(name string) (bool, error) {
 	return b, nil
 }
 
-func (jo *Object) GetObject(name string) (*Object, error) {
+func (jo *Object) GetObject(name string) (Object, error) {
 	jv, err := jo.getValue(name)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		o, err := jv.GetObject()
+		if err == nil {
+			return o, nil
+		}
 	}
 
-	o, err := jv.GetObject()
-	if err != nil {
-		return nil, err
-	}
-
-	return o, nil
+	return Object{}, err
 }
 
-func (jo *Object) GetArray(name string) (*Array, error) {
+func (jo *Object) GetArray(name string) (Array, error) {
 	jv, err := jo.getValue(name)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		ja, err := jv.GetArray()
+		if err == nil {
+			return ja, nil
+		}
 	}
 
-	ja, err := jv.GetArray()
-	if err != nil {
-		return nil, err
-	}
-
-	return ja, nil
+	return Array{}, err
 }
 
 func (jo *Object) IsEmpty() bool {

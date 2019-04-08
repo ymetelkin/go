@@ -57,13 +57,13 @@ func (jo *Object) AddWithParameters(pname ParameterizedString, jv value) error {
 	return nil
 }
 
-func ParseJsonObjectWithParameters(s string) (*Object, error) {
+func ParseJsonObjectWithParameters(s string) (Object, error) {
 	jo, err := parseJsonObject(s, true)
 	if err != nil {
-		return nil, err
+		return Object{}, err
 	}
 
-	if jo != nil && !jo.IsEmpty() {
+	if !jo.IsEmpty() {
 		jo.setObjectParameters(nil)
 	}
 
@@ -79,7 +79,7 @@ func (jo *Object) setObjectParameters(props map[string]value) bool {
 
 	if props == nil || len(props) == 0 {
 		params, err := jo.GetObject("params")
-		if err == nil && params != nil && !params.IsEmpty() {
+		if err == nil && !params.IsEmpty() {
 			props = params.Properties
 			jo.Remove("params")
 		}

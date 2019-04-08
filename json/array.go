@@ -36,11 +36,11 @@ func (ja *Array) AddBool(value bool) int {
 	return ja.addValue(newBool(value))
 }
 
-func (ja *Array) AddObject(value *Object) int {
+func (ja *Array) AddObject(value Object) int {
 	return ja.addValue(newObject(value))
 }
 
-func (ja *Array) AddArray(value *Array) int {
+func (ja *Array) AddArray(value Array) int {
 	return ja.addValue(newArray(value))
 }
 
@@ -69,11 +69,11 @@ func (ja *Array) SetString(index int, value string) error {
 	return ja.setValue(index, newString(value))
 }
 
-func (ja *Array) SetObject(index int, value *Object) error {
+func (ja *Array) SetObject(index int, value Object) error {
 	return ja.setValue(index, newObject(value))
 }
 
-func (ja *Array) SetArray(index int, value *Array) error {
+func (ja *Array) SetArray(index int, value Array) error {
 	return ja.setValue(index, newArray(value))
 }
 
@@ -154,32 +154,28 @@ func (ja *Array) GetBool(index int) (bool, error) {
 	return b, nil
 }
 
-func (ja *Array) GetObject(index int) (*Object, error) {
+func (ja *Array) GetObject(index int) (Object, error) {
 	jv, err := ja.getValue(index)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		jo, err := jv.GetObject()
+		if err == nil {
+			return jo, nil
+		}
 	}
 
-	obj, err := jv.GetObject()
-	if err != nil {
-		return nil, err
-	}
-
-	return obj, nil
+	return Object{}, err
 }
 
-func (ja *Array) GetArray(index int) (*Array, error) {
+func (ja *Array) GetArray(index int) (Array, error) {
 	jv, err := ja.getValue(index)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		a, err := jv.GetArray()
+		if err == nil {
+			return a, nil
+		}
 	}
 
-	a, err := jv.GetArray()
-	if err != nil {
-		return nil, err
-	}
-
-	return a, nil
+	return Array{}, err
 }
 
 func (ja *Array) IsEmpty() bool {

@@ -44,11 +44,11 @@ func newString(s string) value {
 	return value{Value: s, Type: STRING}
 }
 
-func newObject(o *Object) value {
+func newObject(o Object) value {
 	return value{Value: o, Type: OBJECT}
 }
 
-func newArray(a *Array) value {
+func newArray(a Array) value {
 	return value{Value: a, Type: ARRAY}
 }
 
@@ -153,32 +153,32 @@ func (jv *value) GetBool() (bool, error) {
 	return false, errors.New(err)
 }
 
-func (jv *value) GetObject() (*Object, error) {
+func (jv *value) GetObject() (Object, error) {
 	if jv.Type == OBJECT {
-		jo, ok := jv.Value.(*Object)
+		jo, ok := jv.Value.(Object)
 		if ok {
 			return jo, nil
 		} else {
-			return nil, errors.New("Cannot read Object value")
+			return Object{}, errors.New("Cannot read Object value")
 		}
 	}
 
 	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
-	return nil, errors.New(err)
+	return Object{}, errors.New(err)
 }
 
-func (jv *value) GetArray() (*Array, error) {
+func (jv *value) GetArray() (Array, error) {
 	if jv.Type == ARRAY {
-		ja, ok := jv.Value.(*Array)
+		ja, ok := jv.Value.(Array)
 		if ok {
 			return ja, nil
 		} else {
-			return nil, errors.New("Cannot read Array value")
+			return Array{}, errors.New("Cannot read Array value")
 		}
 	}
 
 	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
-	return nil, errors.New(err)
+	return Array{}, errors.New(err)
 }
 
 func (jv *value) GetParameterizedString() (ParameterizedString, error) {

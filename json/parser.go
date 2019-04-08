@@ -45,22 +45,20 @@ const (
 	TOKEN_RIGHT_CURLY  rune = 125
 )
 
-func ParseJsonObject(s string) (*Object, error) {
+func ParseJsonObject(s string) (Object, error) {
 	return parseJsonObject(s, false)
 }
 
-func ParseJsonArray(s string) (*Array, error) {
+func ParseJsonArray(s string) (Array, error) {
 	jv, err := parseJsonValue(s, false)
-	if err != nil {
-		return nil, err
-	} else {
+	if err == nil {
 		ja, err := jv.GetArray()
-		if err != nil {
-			return nil, err
-		} else {
+		if err == nil {
 			return ja, nil
 		}
 	}
+
+	return Array{}, err
 }
 
 func parseJsonValue(s string, parameterize bool) (value, error) {
@@ -95,18 +93,16 @@ func parseJsonValue(s string, parameterize bool) (value, error) {
 	}
 }
 
-func parseJsonObject(s string, parameterize bool) (*Object, error) {
+func parseJsonObject(s string, parameterize bool) (Object, error) {
 	jv, err := parseJsonValue(s, parameterize)
-	if err != nil {
-		return nil, err
-	} else {
+	if err == nil {
 		jo, err := jv.GetObject()
-		if err != nil {
-			return nil, err
-		} else {
+		if err == nil {
 			return jo, nil
 		}
 	}
+
+	return Object{}, err
 }
 
 func addProperty(jo *Object, runes []rune, size int, index int, parameterize bool) (rune, int, error) {
@@ -352,27 +348,27 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (value, in
 	return value{}, index, ParameterizedString{}, errors.New(err)
 }
 
-func parseObject(runes []rune, size int, index int, parameterize bool) (*Object, int, error) {
+func parseObject(runes []rune, size int, index int, parameterize bool) (Object, int, error) {
 	jo := Object{}
 
 	r, index, err := addProperty(&jo, runes, size, index, parameterize)
 	if err != nil {
-		return nil, index, err
+		return Object{}, index, err
 	}
 
 	for r == TOKEN_COMMA {
 		r, index, err = addProperty(&jo, runes, size, index, parameterize)
 		if err != nil {
-			return nil, index, err
+			return Object{}, index, err
 		}
 	}
 
 	if r != TOKEN_RIGHT_CURLY {
 		err := fmt.Sprintf("Expected '}', found '%c'", r)
-		return nil, index, errors.New(err)
+		return Object{}, index, errors.New(err)
 	}
 
-	return &jo, index, nil
+	return jo, index, nil
 }
 
 func addValue(ja *Array, runes []rune, size int, index int, parameterize bool) (rune, int, error) {
@@ -404,27 +400,27 @@ func addValue(ja *Array, runes []rune, size int, index int, parameterize bool) (
 	}
 }
 
-func parseArray(runes []rune, size int, index int, parameterize bool) (*Array, int, error) {
+func parseArray(runes []rune, size int, index int, parameterize bool) (Array, int, error) {
 	ja := Array{}
 
 	r, index, err := addValue(&ja, runes, size, index, parameterize)
 	if err != nil {
-		return nil, index, err
+		return Array{}, index, err
 	}
 
 	for r == TOKEN_COMMA {
 		r, index, err = addValue(&ja, runes, size, index, parameterize)
 		if err != nil {
-			return nil, index, err
+			return Array{}, index, err
 		}
 	}
 
 	if r != TOKEN_RIGHT_SQUARE {
 		err := fmt.Sprintf("Expected ']', found '%c'", r)
-		return nil, index, errors.New(err)
+		return Array{}, index, errors.New(err)
 	}
 
-	return &ja, index, nil
+	return ja, index, nil
 }
 
 func skipWhitespace(runes []rune, size int, index int) (rune, int) {
