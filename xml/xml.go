@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+//Node represents XML node with name, optional attributes, text and children nodes
 type Node struct {
 	Name       string
 	Attributes []Attribute
@@ -14,11 +15,13 @@ type Node struct {
 	parent     *Node
 }
 
+//Attribute represents XML attribute with name and value
 type Attribute struct {
 	Name  string
 	Value string
 }
 
+//New creates a new node from a string
 func New(s string) (Node, error) {
 	decoder := xml.NewDecoder(strings.NewReader(s))
 
@@ -42,13 +45,13 @@ func New(s string) (Node, error) {
 				root = &nd
 			}
 			if se.Attr != nil {
-				for _, a := range se.Attr {
-					attr := Attribute{Name: a.Name.Local, Value: a.Value}
-					if nd.Attributes == nil {
-						nd.Attributes = []Attribute{attr}
-					} else {
-						nd.Attributes = append(nd.Attributes, attr)
+				size := len(se.Attr)
+				if size > 0 {
+					attributes := make([]Attribute, size)
+					for i, attr := range se.Attr {
+						attributes[i] = Attribute{Name: attr.Name.Local, Value: attr.Value}
 					}
+					nd.Attributes = attributes
 				}
 			}
 		case xml.CharData:
@@ -70,6 +73,7 @@ func New(s string) (Node, error) {
 	return *root, nil
 }
 
+//ToString method serializes Node into XML string
 func (nd *Node) ToString() string {
 	return nd.toString(0)
 }
