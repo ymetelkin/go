@@ -3,12 +3,23 @@ package appl
 import (
 	"fmt"
 	"testing"
-
-	"github.com/ymetelkin/go/json"
 )
 
 func TestManagement(t *testing.T) {
 	s := `
+<Publication>
+	<PublicationManagement>
+  	</PublicationManagement> 
+</Publication>
+`
+	_, err := XmlToJson(s)
+	if err == nil {
+		t.Error("Must throw")
+	} else {
+		fmt.Printf("%s\n", err.Error())
+	}
+
+	s = `
 <Publication>
 	<PublicationManagement>
 		<RecordType>Change</RecordType>
@@ -61,10 +72,10 @@ func TestManagement(t *testing.T) {
 	 </PublicationManagement>   
 </Publication>
 `
-	doc, _ := parseXml(s)
-	jo := json.Object{}
+	pub, _ := NewXml(s)
+	doc := document{Xml: pub}
 
-	err = doc.ParsePublicationManagement(&jo)
+	err = pub.PublicationManagement.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -75,30 +86,34 @@ func TestManagement(t *testing.T) {
 	if doc.FirstCreatedYear == 0 {
 		t.Error("[firstcreated.year] is expected")
 	}
-	if _, err := jo.GetString("firstcreated"); err != nil {
+	if doc.FirstCreated.IsEmtpy() {
 		t.Error("[firstcreated] is expected")
 	}
-	if _, err := jo.GetString("refersto"); err != nil {
+	if doc.RefersTo.IsEmtpy() {
 		t.Error("[refersto] is expected")
 	}
-	if _, err := jo.GetString("embargoed"); err != nil {
+	if doc.Embargoed.IsEmtpy() {
 		t.Error("[embargoed] is expected")
 	}
-	if _, err := jo.GetArray("signals"); err != nil {
+	if doc.Signals.IsEmpty() {
 		t.Error("[signals] is expected")
 	}
-	if _, err := jo.GetArray("outinginstructions"); err != nil {
+	if doc.OutingInstructions.IsEmtpy() {
 		t.Error("[outinginstructions] is expected")
 	}
-	if _, err := jo.GetArray("editorialtypes"); err != nil {
+	if doc.EditorialTypes.IsEmtpy() {
 		t.Error("[editorialtypes] is expected")
 	}
-	if _, err := jo.GetArray("timerestrictions"); err != nil {
+	if doc.TimeRestrictions == nil || len(doc.TimeRestrictions) == 0 {
 		t.Error("[timerestrictions] is expected")
 	}
-	if _, err := jo.GetArray("associations"); err != nil {
+	if doc.Associations.IsEmtpy() {
 		t.Error("[associations] is expected")
 	}
 
+	jo, err := doc.ToJson()
+	if err != nil {
+		t.Error(err.Error())
+	}
 	fmt.Printf("%s\n", jo.ToString())
 }

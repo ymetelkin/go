@@ -1,54 +1,206 @@
 package appl
 
 import (
+	"errors"
+	"strconv"
 	"strings"
 
 	"github.com/ymetelkin/go/json"
 )
 
-func (admin *AdministrativeMetadata) parse(doc *document) error {
-	getProvider(doc)
-	getSources(doc)
-	getSourceMaterials(doc)
-	getTransmissionSources(doc)
-	getProductSources(doc)
-	getItemContentType(doc)
-	getDistributionChannels(doc)
-	getFixture(doc)
-	getAdminSignals(doc)
-	getInPackages(doc)
-
-	if admin.Contributor != nil && len(admin.Contributor) > 0 {
-		doc.Contributor = json.NewStringProperty("contributor", admin.Contributor[0])
+func (doc *document) ParseAdministrativeMetadata(jo *json.Object) error {
+	if doc.AdministrativeMetadata == nil {
+		return errors.New("AdministrativeMetadata is missing")
 	}
 
-	return nil
+	var (
+		summary, s1, s2    bool
+		tss, pss, dcs, ins uniqueArray
+		srcs, sms, rts     []Node
+		ict, fx            json.Object
+		cntr               string
+	)
+
+	s1 = !doc.Signals.IsEmpty()
+
+	for _, nd := range doc.NewsLines.Nodes {
+		switch nd.Name {
+		case "Provider":
+			getProvider(nd, &jo)
+		case "Source":
+			if srcs == nil {
+				srcs = []Node{nd}
+			} else {
+				srcs = append(srcs, nd)
+			}
+		case "SourceMaterial":
+			if sms == nil {
+				sms = []Node{nd}
+			} else {
+				sms = append(sms, nd)
+			}
+		case "TransmissionSource":
+			if nd.Text != "" {
+				if tss == nil {
+					tss = uniqueArray{}
+				}
+				tss.AddString(nd.Text)
+			}
+		case "ProductSource":
+			if nd.Text != "" {
+				if pss == nil {
+					pss = uniqueArray{}
+				}
+				pss.AddString(nd.Text)
+			}
+		case "DistributionChannel":
+			if nd.Text != "" {
+				if dcs == nil {
+					dcs = uniqueArray{}
+				}
+				dcs.AddString(nd.Text)
+			}
+		case "InPackage":
+			if nd.Text != "" {
+				if ins == nil {
+					ins = uniqueArray{}
+				}
+				tokens := strings.Split(nd.Text, " ")
+				for _, token := range tokens {
+					ins.AddString(token)
+				}
+			}
+		case "ItemContentType":
+			ict := json.Object{}
+			if nd.Attributes != nil {
+				for _, a := range nd.Attributes {
+					switch a.Name {
+					case "Id":
+						if a.Value != "" {
+							ict.AddString("code", a.Value)
+						}
+					case "System":
+						if a.Value != "" {
+							ict.AddString("creator", a.Value)
+						}
+					}
+				}
+			}
+
+			if nd.Text != "" {
+				ict.AddString("name", nd.Text)
+			}
+		case "Fixture":
+			fx := json.Object{}
+			id := nd.GetAttribute("Id")
+			if id != "" {
+				fx.AddString("code", id)
+			}
+			if nd.Text != "" {
+				fx.AddString("name", nd.Text)
+			}
+		case "Rating":
+			if rts == nil {
+				rts = []Node{nd}
+			} else {
+				rts = append(rts, nd)
+			}
+		case "Reach":
+			if nd.Text != "" && !strings.EqualFold(nd.Text, "UNKNOWN") {
+				if doc.Signals == nil {
+					doc.Signals = uniqueArray{}
+				}
+				doc.Signals.AddString(nd.Text)
+				s2 = true
+			}
+		case "ConsumerReady":
+			if nd.Text != "" && strings.EqualFold(nd.Text, "TRUE") {
+				if doc.Signals == nil {
+					doc.Signals = uniqueArray{}
+				}
+				doc.Signals.AddString("newscontent")
+				s2 = true
+			}
+		case "Signal":
+			if nd.Text != "" {
+				if doc.Signals == nil {
+					doc.Signals = uniqueArray{}
+				}
+				doc.Signals.AddString("newscontent")
+				s2 = true
+			}
+		case "Contributor":
+			if cntr == "" {
+				cntr = nd.Text
+			}
+		}
+	}
+
+	getSources(srcs, &jo)
+	getSourceMaterials(sms, &jo)
+
+	jo.AddProperty(tss.ToJsonProperty("transmissionsources"))
+	jo.AddProperty(pss.ToJsonProperty("productsources"))
+
+	if ict != nil && !ict.IsEmpty() {
+		jo.AddObject("itemcontenttype", ict)
+	}
+
+	jo.AddProperty(dcs.ToJsonProperty("distributionchannels"))
+
+	if fx != nil && !fx.IsEmpty() {
+		jo.AddObject("fixture", fx)
+	}
+
+	jo.AddProperty(ins.ToJsonProperty("inpackages"))
+
+	if cntr != "" {
+		jo.AddString("contributor", cntr)
+	}
+
+	getRatings(rts, &jo)
+
+	if s2 {
+		if s1 {
+			jo.SetArray("signals", doc.Signals.ToJsonArray())
+		} else {
+			jo.AddProperty(doc.Signals.ToJsonProperty("signals"))
+		}
+	}
 }
 
-func getProvider(doc *document) {
-	p := doc.Xml.AdministrativeMetadata.Provider
-
+func getProvider(nd Node, jo *json.Object) {
 	provider := json.Object{}
-	if p.Id != "" {
-		provider.AddString("code", p.Id)
+
+	if nd.Attributes != nil {
+		for _, a := range nd.Attributes {
+			switch a.Name {
+			case "Id":
+				if a.Value != "" {
+					provider.AddString("code", a.Value)
+				}
+			case "Type":
+				if a.Value != "" {
+					provider.AddString("type", a.Value)
+				}
+			case "SubType":
+				if a.Value != "" {
+					provider.AddString("subtype", a.Value)
+				}
+			}
+		}
 	}
-	if p.Type != "" {
-		provider.AddString("type", p.Type)
-	}
-	if p.SubType != "" {
-		provider.AddString("subtype", p.SubType)
-	}
-	if p.Value != "" {
-		provider.AddString("name", p.Value)
+
+	if nd.Text != "" {
+		provider.AddString("name", nd.Text)
 	}
 
 	if !provider.IsEmpty() {
-		doc.Provider = json.NewObjectProperty("provider", &provider)
+		jo.AddObject("provider", provider)
 	}
 }
 
-func getSources(doc *document) {
-	srcs := doc.Xml.AdministrativeMetadata.Source
+func getSources(srcs []Node, jo *json.Object) {
 	if srcs == nil || len(srcs) == 0 {
 		return
 	}
@@ -58,196 +210,184 @@ func getSources(doc *document) {
 	for _, src := range srcs {
 		source := json.Object{}
 
-		if src.City != "" {
-			source.AddString("city", src.City)
-		}
-		if src.Country != "" {
-			source.AddString("country", src.Country)
-		}
-		if src.Id != "" {
-			source.AddString("code", src.Id)
-		}
-		if src.Url != "" {
-			source.AddString("url", src.Url)
-		}
-		if src.Type != "" {
-			source.AddString("type", src.Type)
-		}
-		if src.SubType != "" {
-			source.AddString("subtype", src.SubType)
-		}
-		if src.Value != "" {
-			source.AddString("name", src.Value)
+		if src.Attributes != nil {
+			for _, a := range src.Attributes {
+				switch a.Name {
+				case "City":
+					if a.Value != "" {
+						source.AddString("city", a.Value)
+					}
+				case "Country":
+					if a.Value != "" {
+						source.AddString("country", a.Value)
+					}
+				case "Id":
+					if a.Value != "" {
+						source.AddString("code", a.Value)
+					}
+				case "Url":
+					if a.Value != "" {
+						source.AddString("url", a.Value)
+					}
+				case "Type":
+					if a.Value != "" {
+						source.AddString("type", a.Value)
+					}
+				case "SubType":
+					if a.Value != "" {
+						source.AddString("subtype", a.Value)
+					}
+				}
+			}
+
+			if src.Text != "" {
+				source.AddString("name", src.Text)
+			}
 		}
 
-		sources.AddObject(&source)
+		if !source.IsEmpty() {
+			sources.AddObject(source)
+		}
 	}
 
-	doc.Sources = json.NewArrayProperty("sources", &sources)
+	if len(sources) > 0 {
+		jo.AddArray("sources", sources)
+	}
 }
 
-func getSourceMaterials(doc *document) {
-	srcs := doc.Xml.AdministrativeMetadata.SourceMaterial
+func getSourceMaterials(srcs []Node, jo *json.Object) {
 	if srcs == nil || len(srcs) == 0 {
 		return
 	}
 
 	sourcematerials := json.Array{}
+	var cl bool
+
 	for _, src := range srcs {
-		name := src.Name
+		var id, name, t, url, pg string
+
+		if src.Nodes != nil {
+			for _, n := range src.Nodes {
+				switch n.Name {
+				case "Type":
+					t = n.Text
+				case "Url":
+					url = n.Text
+				case "PermissionGranted":
+					pm = n.Text
+				}
+			}
+		}
+
+		if src.Attributes != nil {
+			for _, a := range src.Attributes {
+				switch a.Name {
+				case "Id":
+					id = a.Value
+				case "Name":
+					name = a.Value
+				}
+			}
+		}
+
 		if strings.EqualFold(name, "alternate") {
-			if doc.CanonicalLink.IsEmtpy() && src.Url != "" {
-				doc.CanonicalLink = json.NewStringProperty("canonicallink", src.Url)
+			if !cl && url != "" {
+				jo.AddString("canonicallink", url)
+				cl = true
 			}
 		} else {
 			sourcematerial := json.Object{}
 			if name != "" {
 				sourcematerial.AddString("name", name)
 			}
-			if src.Id != "" {
-				sourcematerial.AddString("code", src.Id)
+			if id != "" {
+				sourcematerial.AddString("code", id)
 			}
-			if src.Type != "" {
-				sourcematerial.AddString("type", src.Type)
+			if t != "" {
+				sourcematerial.AddString("type", t)
 			}
-			if src.PermissionGranted != "" {
-				sourcematerial.AddString("permissiongranted", src.PermissionGranted)
+			if pg != "" {
+				sourcematerial.AddString("permissiongranted", pg)
 			}
 
-			sourcematerials.AddObject(&sourcematerial)
+			if !sourcematerial.IsEmpty() {
+				sourcematerials.AddObject(sourcematerial)
+			}
 		}
 	}
 
 	if sourcematerials.Length() > 0 {
-		doc.SourceMaterials = json.NewArrayProperty("sourcematerials", &sourcematerials)
+		jo.AddArray("sourcematerials", sourcematerials)
 	}
 }
 
-func getTransmissionSources(doc *document) {
-	tss := doc.Xml.AdministrativeMetadata.TransmissionSource
-	if tss != nil {
-		transmissionsources := uniqueArray{}
-		for _, ts := range tss {
-			transmissionsources.AddString(ts)
-		}
-		doc.TransmissionSources = transmissionsources.ToJsonProperty("transmissionsources")
-	}
-}
-
-func getProductSources(doc *document) {
-	pss := doc.Xml.AdministrativeMetadata.ProductSource
-	if pss != nil {
-		productsources := uniqueArray{}
-		for _, ps := range pss {
-			productsources.AddString(ps)
-		}
-		doc.ProductSources = productsources.ToJsonProperty("productsources")
-	}
-}
-
-func getItemContentType(doc *document) {
-	ict := doc.Xml.AdministrativeMetadata.ItemContentType
-	itemcontenttype := json.Object{}
-	if ict.System != "" {
-		itemcontenttype.AddString("creator", ict.System)
-	}
-	if ict.Id != "" {
-		itemcontenttype.AddString("code", ict.Id)
-	}
-	if ict.Value != "" {
-		itemcontenttype.AddString("name", ict.Value)
-	}
-	doc.ItemContentType = json.NewObjectProperty("itemcontenttype", &itemcontenttype)
-}
-
-func getDistributionChannels(doc *document) {
-	dcs := doc.Xml.AdministrativeMetadata.DistributionChannel
-	if dcs != nil {
-		distributionchannels := uniqueArray{}
-		for _, dc := range dcs {
-			distributionchannels.AddString(dc)
-		}
-		doc.DistributionChannels = distributionchannels.ToJsonProperty("distributionchannels")
-	}
-}
-
-func getFixture(doc *document) {
-	f := doc.Xml.AdministrativeMetadata.Fixture
-	fixture := json.Object{}
-	if f.Id != "" {
-		fixture.AddString("code", f.Id)
-	}
-	if f.Value != "" {
-		fixture.AddString("name", f.Value)
-	}
-
-	if !fixture.IsEmpty() {
-		doc.Fixture = json.NewObjectProperty("fixture", &fixture)
-	}
-}
-
-func getAdminSignals(doc *document) {
-	admin := doc.Xml.AdministrativeMetadata
-
-	if admin.Reach != nil {
-		for _, reach := range admin.Reach {
-			if !strings.EqualFold(reach, "UNKNOWN") {
-				doc.Signals.AddString(reach)
-			}
-		}
-	}
-
-	if strings.EqualFold(admin.ConsumerReady, "TRUE") {
-		doc.Signals.AddString("newscontent")
-	}
-
-	if admin.Signal != nil {
-		for _, signal := range admin.Signal {
-			doc.Signals.AddString(signal)
-		}
-	}
-}
-
-func getInPackages(doc *document) {
-	ips := doc.Xml.AdministrativeMetadata.InPackage
-	if ips != nil {
-		inpackages := uniqueArray{}
-
-		for _, ip := range ips {
-			tokens := strings.Split(ip, " ")
-			for _, token := range tokens {
-				inpackages.AddString(token)
-			}
-		}
-
-		doc.InPackages = inpackages.ToJsonProperty("inpackages")
-	}
-}
-
-func getRatings(doc *document) {
-	rs := doc.Xml.AdministrativeMetadata.Rating
-	if rs != nil {
+func getRatings(rts []Node, jo *json.Object) {
+	if rts != nil {
 		ratings := json.Array{}
 
-		for _, r := range rs {
-			if r.Value > 0 && r.ScaleMin > 0 && r.ScaleMax > 0 && r.ScaleUnit != "" {
-				rating := json.Object{}
-				rating.AddInt("rating", r.Value)
-				rating.AddInt("scalemin", r.ScaleMin)
-				rating.AddInt("scalemax", r.ScaleMax)
-				rating.AddString("scaleunit", r.ScaleUnit)
-				if r.Raters > 0 {
-					rating.AddInt("raters", r.Raters)
+		for _, r := range rts {
+			if r.Attributes != nil {
+				var (
+					rate, min, max, raters int
+					unit, rt               string
+				)
+
+				for _, a := range r.Attributes {
+					switch a.Name {
+					case "Value":
+						if a.Value != "" {
+							i, err := strconv.Atoi(nd.Text)
+							if err == nil {
+								rate = i
+							}
+						}
+					case "ScaleMin":
+						if a.Value != "" {
+							i, err := strconv.Atoi(nd.Text)
+							if err == nil {
+								min = i
+							}
+						}
+					case "ScaleMax":
+						if a.Value != "" {
+							i, err := strconv.Atoi(nd.Text)
+							if err == nil {
+								max = i
+							}
+						}
+					case "ScaleUnit":
+						unit = a.Value
+					case "Raters":
+						if a.Value != "" {
+							i, err := strconv.Atoi(nd.Text)
+							if err == nil {
+								raters = i
+							}
+						}
+					case "RaterType":
+						rt = a.Value
+					}
 				}
-				if r.RaterType != "" {
-					rating.AddString("ratertype", r.RaterType)
+
+				if rate > 0 && min > 0 && max > 0 && unit != "" {
+					rating := json.Object{}
+					rating.AddInt("rating", rate)
+					rating.AddInt("scalemin", min)
+					rating.AddInt("scalemax", max)
+					rating.AddString("scaleunit", unit)
+					if raters > 0 {
+						rating.AddInt("raters", raters)
+					}
+					if rt != "" {
+						rating.AddString("ratertype", rt)
+					}
+					ratings.AddObject(rating)
 				}
-				ratings.AddObject(&rating)
 			}
 		}
 
 		if ratings.Length() > 0 {
-			doc.Ratings = json.NewArrayProperty("ratings", &ratings)
+			jo.AddArray("ratings", ratings)
 		}
 	}
 }

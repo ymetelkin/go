@@ -271,6 +271,6 @@ func (jv *value) ToString(pretty bool, level int) string {
 			return ja.toString(pretty, level)
 		}
 	}
-
+	
 	return "null"
 }

@@ -3,6 +3,7 @@ package appl
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/ymetelkin/go/json"
@@ -12,170 +13,282 @@ const (
 	DIGIT_ZERO rune = 48
 )
 
-func (pm *PublicationManagement) parse(doc *document) error {
-	if pm.RecordType == "" {
-		return errors.New("[PublicationManagement.RecordType] is missing")
+func (doc *document) ParsePublicationManagement(jo *json.Object) error {
+	if doc.PublicationManagement == nil {
+		return errors.New("PublicationManagement is missing")
 	}
-	if pm.FilingType == "" {
-		return errors.New("[PublicationManagement.FilingType] is missing")
-	}
-
-	err := getPubStatus(doc)
-	if err != nil {
-		return err
-	}
-
-	err = getFirstCreatedDate(doc)
-	if err != nil {
-		return err
-	}
-
-	getManagementSignals(doc)
-	getOutingInstructions(doc)
-	getEditorialTypes(doc)
-	getAssociatedWith(doc)
-	getTimeRestrictions(doc)
-
-	if len(pm.RefersTo) > 0 {
-		doc.RefersTo = json.NewStringProperty("refersto", pm.RefersTo[0])
-	}
-
-	return nil
-}
-
-func getPubStatus(doc *document) error {
-	status := doc.Xml.PublicationManagement.Status
-	if strings.EqualFold(status, "Usable") || strings.EqualFold(status, "Embargoed") || strings.EqualFold(status, "Unknown") {
-		doc.PubStatus = PUBSTATUS_USABLE
-	} else if strings.EqualFold(status, "Withheld") {
-		doc.PubStatus = PUBSTATUS_WITHHELD
-	} else if strings.EqualFold(status, "Canceled") {
-		doc.PubStatus = PUBSTATUS_CANCELED
-	} else {
-		e := fmt.Sprintf("Invalid pub status [%s]", status)
-		return errors.New(e)
-	}
-
-	return nil
-}
-
-func getFirstCreatedDate(doc *document) error {
-	fc := doc.Xml.PublicationManagement.FirstCreated
-
-	if fc.Year <= 0 {
-		e := fmt.Sprintf("Invalid year [%d]", fc.Year)
-		return errors.New(e)
-	}
-
-	doc.FirstCreatedYear = fc.Year
 
 	var (
-		date  string
-		month string
-		day   string
+		embargo, ref bool
+		rdt          string
+		types, outs  uniqueArray
+		ass          []Node
 	)
 
-	if fc.Month == 0 {
-		date = fmt.Sprintf("%d", fc.Year)
-	} else {
-		zero := ""
-		if fc.Month < 10 {
-			zero = "0"
-		}
-		month = fmt.Sprintf("%s%d", zero, fc.Month)
-
-		if fc.Day == 0 {
-			date = fmt.Sprintf("%d-%s", fc.Year, month)
-		} else {
-			zero := ""
-			if fc.Day < 10 {
-				zero = "0"
+	for _, nd := range doc.PublicationManagement.Nodes {
+		switch nd.Name {
+		case "RecordType":
+			jo.AddString("recordtype", nd.Text)
+		case "FilingType":
+			jo.AddString("filingtype", nd.Text)
+		case "ChangeEvent":
+			if nd.Text != "" {
+				jo.AddString("changeevent", nd.Text)
 			}
-			day = fmt.Sprintf("%s%d", zero, fc.Day)
-
-			if fc.Time == "" {
-				date = fmt.Sprintf("%d-%s-%s", fc.Year, month, day)
+		case "ArrivalDateTime":
+			if nd.Text != "" {
+				jo.AddString("arrivaldatetime", nd.Text+"Z")
+			}
+		case "FirstCreated":
+			date, year, err := getFirstCreatedDate(nd)
+			if err == nil {
+				doc.FirstCreatedYear = year
+				jo.SetString("firstcreated", date)
 			} else {
-				date = fmt.Sprintf("%d-%s-%sT%sZ", fc.Year, month, day, fc.Time)
+				return err
 			}
+		case "LastModifiedDateTime":
+			if nd.Text != "" {
+				jo.AddString("lastmodifieddatetime", nd.Text+"Z")
+			}
+		case "Status":
+			ps, err := getPubStatus(nd.Text)
+			if err == nil {
+				doc.PubStatus = ps
+				jo.SetString("pubstatus", string(ps))
+			} else {
+				return err
+			}
+		case "Instruction":
+			if nd.Text != "" {
+				if outs == nil {
+					outs = uniqueArray{}
+				}
+				outs.AddString(nd.Text)
+			}
+		case "Editorial":
+			n := nd.GetNode("Type")
+			s := n.Text
+			if s != "" {
+				if types == nil {
+					types = uniqueArray{}
+				}
+				types.AddString(s)
 
-			doc.FirstCreated = json.NewStringProperty("firstcreated", date)
-		}
-	}
-
-	return nil
-}
-
-func getManagementSignals(doc *document) {
-	pm := doc.Xml.PublicationManagement
-
-	if pm.ExplicitWarning == "1" {
-		doc.Signals.AddString("explicitcontent")
-	} else if strings.EqualFold(pm.ExplicitWarning, "NUDITY") {
-		doc.Signals.AddString("NUDITY")
-	} else if strings.EqualFold(pm.ExplicitWarning, "OBSCENITY") {
-		doc.Signals.AddString("OBSCENITY")
-	} else if strings.EqualFold(pm.ExplicitWarning, "GRAPHIC CONTENT") {
-		doc.Signals.AddString("GRAPHICCONTENT")
-	}
-
-	if strings.EqualFold(pm.IsDigitized, "false") {
-		doc.Signals.AddString("isnotdigitized")
-	}
-}
-
-func getOutingInstructions(doc *document) {
-	pm := doc.Xml.PublicationManagement
-
-	if pm.Instruction != nil {
-		outinginstructions := uniqueArray{}
-		for _, instruction := range pm.Instruction {
-			outinginstructions.AddString(instruction)
-		}
-		doc.OutingInstructions = outinginstructions.ToJsonProperty("outinginstructions")
-	}
-}
-
-func getEditorialTypes(doc *document) {
-	pm := doc.Xml.PublicationManagement
-
-	if pm.Editorial != nil {
-		embargoed := pm.ReleaseDateTime != ""
-
-		editorialtypes := uniqueArray{}
-		for _, editorialtype := range pm.Editorial {
-			editorialtypes.AddString(editorialtype.Type)
-
-			if embargoed {
-				if strings.EqualFold(editorialtype.Type, "Advance") || strings.EqualFold(editorialtype.Type, "HoldForRelease") {
-					embargoed = false
-					doc.Embargoed = json.NewStringProperty("embargoed", pm.ReleaseDateTime+"Z")
+				if !embargo {
+					if strings.EqualFold(s, "Advance") || strings.EqualFold(s, "HoldForRelease") {
+						embargo = true
+					}
 				}
 			}
+		case "AssociatedWith":
+			if ass == nil {
+				ass = []Node{nd}
+			} else {
+				ass = append(ass, nd)
+			}
+		case "ReleaseDateTime":
+			if nd.Text != "" {
+				rdct = nd.Text + "Z"
+				jo.AddString("releasedatetime", rdt)
+			}
+		case "SpecialInstructions":
+			if nd.Test != "" {
+				jo.AddString("specialinstructions", nd.Text)
+			}
+		case "ItemStartDateTime":
+			if nd.Test != "" {
+				jo.AddString("editorialid", nd.Text)
+			}
+		case "LastModifiedDateTime":
+			if nd.Test != "" {
+				jo.AddString("itemstartdatetime", nd.Text+"Z")
+			}
+		case "ItemStartDateTimeActual":
+			if nd.Test != "" {
+				jo.AddString("itemstartdatetimeactual", nd.Text+"Z")
+			}
+		case "ItemExpireDateTime":
+			if nd.Test != "" {
+				jo.AddString("itemexpiredatetime", nd.Text+"Z")
+			}
+		case "SearchDateTime":
+			if nd.Test != "" {
+				jo.AddString("searchdatetime", nd.Text+"Z")
+			}
+		case "ItemEndDateTime":
+			if nd.Test != "" {
+				jo.AddString("itemenddatetime", nd.Text+"Z")
+			}
+		case "Function":
+			if nd.Test != "" {
+				doc.Function = nd.Text
+				jo.AddString("function", nd.Text)
+			}
+		case "TimeRestrictions":
+			if nd.Nodes != nil {
+				for _, n := range nd.Nodes {
+					f, v := getTimeRestriction(n)
+					if f != "" {
+						jo.AddBool(f, v)
+					}
+				}
+			}
+		case "RefersTo":
+			if !refersto && nd.Text != "" {
+				jo.AddString("refersto", nd.Text)
+				refersto = true
+			}
+		case "ExplicitWarning":
+			if nd.Text == "1" {
+				if doc.Signals == nil {
+					doc.Signals = uniqueArray{}
+				}
+				doc.Signals.AddString("explicitcontent")
+			} else if strings.EqualFold(nd.Text, "NUDITY") {
+				if doc.Signals == nil {
+					doc.Signals = uniqueArray{}
+				}
+				doc.Signals.AddString("NUDITY")
+			} else if strings.EqualFold(nd.Text, "OBSCENITY") {
+				if doc.Signals == nil {
+					doc.Signals = uniqueArray{}
+				}
+				doc.Signals.AddString("OBSCENITY")
+			} else if strings.EqualFold(nd.Text, "GRAPHIC CONTENT") {
+				if doc.Signals == nil {
+					doc.Signals = uniqueArray{}
+				}
+				doc.Signals.AddString("GRAPHICCONTENT")
+			}
+		case "IsDigitized":
+			if strings.EqualFold(nd.Text, "false") {
+				if doc.Signals == nil {
+					doc.Signals = uniqueArray{}
+				}
+				doc.Signals.AddString("isnotdigitized")
+			}
 		}
+	}
 
-		doc.EditorialTypes = editorialtypes.ToJsonProperty("editorialtypes")
+	if embargo && rdt != "" {
+		jo.AddString("embargoed", rdt)
+	}
+
+	if outs != nil {
+		jo.AddProperty(outs.ToJsonProperty("outinginstructions"))
+	}
+
+	if types != nil {
+		jo.AddProperty(types.ToJsonProperty("editorialtypes"))
+	}
+
+	jo.AddProperty(doc.Signals.ToJsonProperty("signals"))
+
+	getAssociatedWith(ass, &jo)
+}
+
+func getPubStatus(s string) (PubStatus, error) {
+	if strings.EqualFold(s, "Usable") || strings.EqualFold(s, "Embargoed") || strings.EqualFold(s, "Unknown") {
+		return PUBSTATUS_USABLE, nil
+	} else if strings.EqualFold(s, "Withheld") {
+		return PUBSTATUS_WITHHELD, nil
+	} else if strings.EqualFold(s, "Canceled") {
+		return PUBSTATUS_CANCELED, nil
+	} else {
+		e := fmt.Sprintf("Invalid pub status [%s]", status)
+		return PUBSTATUS_UNKNOWN, errors.New(e)
 	}
 }
 
-func getTimeRestrictions(doc *document) {
-	pm := doc.Xml.PublicationManagement
-	if pm.TimeRestrictions.TimeRestriction == nil || len(pm.TimeRestrictions.TimeRestriction) == 0 {
-		return
+func getFirstCreatedDate(nd Node) (string, int, error) {
+	if nd.Attributes == nil {
+		return errors.New("FirstCreated year is missing")
 	}
 
-	timeRestrictions := make(map[string]bool)
-	for _, tr := range pm.TimeRestrictions.TimeRestriction {
-		if tr.System != "" && tr.Zone != "" {
-			name := fmt.Sprintf("%s%s", tr.System, tr.Zone)
-			timeRestrictions[name] = tr.Include
+	var (
+		year                   int
+		date, month, day, time string
+	)
+
+	for _, a := range nd.Attributes {
+		switch a.Name {
+		case "Year":
+			i, err := strconv.Atoi(a.Value)
+			if err == nil && i > 0 {
+				year = i
+			}
+		case "Month":
+			i, err := strconv.Atoi(a.Value)
+			if err == nil {
+				zero := ""
+				if i < 10 {
+					zero = "0"
+				}
+				month = fmt.Sprintf("%s%d", zero, i)
+			}
+		case "Day":
+			i, err := strconv.Atoi(a.Value)
+			if err == nil {
+				zero := ""
+				if i < 10 {
+					zero = "0"
+				}
+				day = fmt.Sprintf("%s%d", zero, i)
+			}
+		case "Time":
+			time = nd.Text
 		}
 	}
 
-	doc.TimeRestrictions = timeRestrictions
+	if year <= 0 {
+		e := fmt.Sprintf("Invalid FirstCreated year [%d]", doc.FirstCreatedYear)
+		return errors.New(e)
+	}
+
+	if month == "" {
+		date = fmt.Sprintf("%d", year)
+	} else {
+		if day == "" {
+			date = fmt.Sprintf("%d-%s", year, month)
+		} else {
+			if time == "" {
+				date = fmt.Sprintf("%d-%s-%s", year, month, day)
+			} else {
+				date = fmt.Sprintf("%d-%s-%sT%sZ", year, month, day, fc.Time)
+			}
+		}
+	}
+
+	return date, year, nil
 }
 
-func getAssociatedWith(doc *document) {
+func getTimeRestriction(nd Node) (string, bool) {
+	if nd.Attributes != nil {
+		var (
+			system, zone, include string
+		)
+		for _, a := range nd.Attributes {
+			switch a.Name {
+			case "System":
+				system = a.Value
+			case "Zone":
+				zone = a.Value
+			case "Include":
+				include = a.Value
+			}
+
+			if sys != "" && zone != "" {
+				s := fmt.Sprintf("%s%s", system, zone)
+				return strings.ToLower(s), include == "true"
+			}
+		}
+
+		return "", false
+	}
+}
+
+func getAssociatedWith(ass []Node, parent *json.Object) {
 	/*
 	   -test the value of //AssociatedWith, if its all zeros, do not convert; otherwise, each //AssociatedWith is converted to an object $.associations[i];
 	   -each object $.associations[i] has five name/value pairs, $.associations[i].type, $.associations[i].itemid, $.associations[i].representationtype, $.associations[i].associationrank and $associations[i].typerank;
@@ -185,14 +298,13 @@ func getAssociatedWith(doc *document) {
 	   --load the sequence number of the AssociatedWith node (a number starting at 1) to $.associations[i].associationrank as a number;
 	   --load the sequence number of the AssociatedWith node by @CompositionType (a number starting at 1) to $.associations[i].typerank as a number; note that CompositionType may be absent OR ‘StandardIngestedContent’ (which does not output a type) and any such AssociatedWith nodes should be ranked on their own.
 	*/
-	pm := doc.Xml.PublicationManagement
-	associations := json.Array{}
+	ja := json.Array{}
 
 	rank := 0
 	types := make(map[string]int)
 
-	for _, aw := range pm.AssociatedWith {
-		runes := []rune(aw.Value)
+	for _, aw := range ass {
+		runes := []rune(aw.Text)
 		empty := true
 		for _, r := range runes {
 			if r != DIGIT_ZERO {
@@ -201,57 +313,54 @@ func getAssociatedWith(doc *document) {
 			}
 		}
 
-		if empty {
+		if empty || aw.Attributes == nil {
 			continue
 		}
 
-		association := json.Object{}
-
-		t := ""
-
-		if strings.EqualFold(aw.CompositionType, "StandardText") {
-			t = "text"
-		} else if strings.EqualFold(aw.CompositionType, "StandardPrintPhoto") {
-			t = "photo"
-		} else if strings.EqualFold(aw.CompositionType, "StandardOnlinePhoto") {
-			t = "photo"
-		} else if strings.EqualFold(aw.CompositionType, "StandardPrintGraphic") {
-			t = "graphic"
-		} else if strings.EqualFold(aw.CompositionType, "StandardOnlineGraphic") {
-			t = "graphic"
-		} else if strings.EqualFold(aw.CompositionType, "StandardBroadcastVideo") {
-			t = "video"
-		} else if strings.EqualFold(aw.CompositionType, "StandardOnlineVideo") {
-			t = "video"
-		} else if strings.EqualFold(aw.CompositionType, "StandardBroadcastAudio") {
-			t = "audio"
-		} else if strings.EqualFold(aw.CompositionType, "StandardOnlineAudio") {
-			t = "audio"
-		} else if strings.EqualFold(aw.CompositionType, "StandardLibraryVideo") {
-			t = "video"
-		} else if strings.EqualFold(aw.CompositionType, "StandardInteractive") {
-			t = "complexdata"
-		} else if strings.EqualFold(aw.CompositionType, "StandardBroadcastGraphic") {
-			t = "graphic"
-		} else if strings.EqualFold(aw.CompositionType, "StandardBroadcastPhoto") {
-			t = "photo"
-		} else if strings.EqualFold(aw.CompositionType, "StandardIngestedContent") {
-			t = "notype"
-		}
-
-		if t == "" {
+		ct := aw.GetAttribute("CompositionType")
+		if strings.EqualFold(ct, "StandardText") {
+			ct = "text"
+		} else if strings.EqualFold(ct, "StandardPrintPhoto") {
+			ct = "photo"
+		} else if strings.EqualFold(ct, "StandardOnlinePhoto") {
+			ct = "photo"
+		} else if strings.EqualFold(ct, "StandardPrintGraphic") {
+			ct = "graphic"
+		} else if strings.EqualFold(ct, "StandardOnlineGraphic") {
+			ct = "graphic"
+		} else if strings.EqualFold(ct, "StandardBroadcastVideo") {
+			ct = "video"
+		} else if strings.EqualFold(ct, "StandardOnlineVideo") {
+			ct = "video"
+		} else if strings.EqualFold(ct, "StandardBroadcastAudio") {
+			ct = "audio"
+		} else if strings.EqualFold(ct, "StandardOnlineAudio") {
+			ct = "audio"
+		} else if strings.EqualFold(ct, "StandardLibraryVideo") {
+			ct = "video"
+		} else if strings.EqualFold(ct, "StandardInteractive") {
+			ct = "complexdata"
+		} else if strings.EqualFold(ct, "StandardBroadcastGraphic") {
+			ct = "graphic"
+		} else if strings.EqualFold(ct, "StandardBroadcastPhoto") {
+			ct = "photo"
+		} else if strings.EqualFold(ct, "StandardIngestedContent") {
+			ct = "notype"
+		} else {
 			continue
 		}
 
-		if t != "notype" {
-			association.AddString("type", t)
+		jo := json.Object{}
+
+		if ct != "notype" {
+			jo.AddString("type", t)
 		}
 
-		association.AddString("itemid", aw.Value)
-		association.AddString("representationtype", "partial")
+		jo.AddString("itemid", aw.Text)
+		jo.AddString("representationtype", "partial")
 
 		rank++
-		association.AddInt("associationrank", rank)
+		jo.AddInt("associationrank", rank)
 
 		typerank, ok := types[t]
 		if ok {
@@ -260,12 +369,12 @@ func getAssociatedWith(doc *document) {
 			typerank = 1
 		}
 		types[t] = typerank
-		association.AddInt("typerank", typerank)
+		jo.AddInt("typerank", typerank)
 
-		associations.AddObject(&association)
+		ja.AddObject(jo)
 	}
 
-	if associations.Length() > 0 {
-		doc.Associations = json.NewArrayProperty("associations", &associations)
+	if ja.Length() > 0 {
+		parent.AddArray("associations", ja)
 	}
 }

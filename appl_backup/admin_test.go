@@ -3,8 +3,6 @@ package appl
 import (
 	"fmt"
 	"testing"
-
-	"github.com/ymetelkin/go/json"
 )
 
 func TestAdmin(t *testing.T) {
@@ -61,63 +59,67 @@ func TestAdmin(t *testing.T) {
 		<Property Name="EAI:ELVIS_WORKFLOW_ID"></Property>
 	</AdministrativeMetadata>
 </Publication>`
-	doc, _ := parseXml(s)
-	jo := json.Object{}
+	pub, _ := NewXml(s)
+	doc := document{Xml: pub}
 
-	err = doc.ParseIdentification(&jo)
+	err := pub.PublicationManagement.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	err = doc.ParseAdministrativeMetadata(&jo)
+	err = pub.AdministrativeMetadata.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	if _, err := jo.GetObject("provider"); err != nil {
+	if doc.Provider.IsEmtpy() {
 		t.Error("[provider] is expected")
 	}
 
-	if _, err := jo.GetArray("sources"); err != nil {
+	if doc.Sources.IsEmtpy() {
 		t.Error("[sources] is expected")
 	}
 
-	if _, err := jo.GetString("canonicallink"); err != nil {
+	if doc.CanonicalLink.IsEmtpy() {
 		t.Error("[canonicallink] is expected")
 	}
 
-	if _, err := jo.AddArray("sourcematerials"); err != nil {
+	if doc.SourceMaterials.IsEmtpy() {
 		t.Error("[sourcematerials] is expected")
 	}
 
-	if _, err := jo.GetArray("transmissionsources"); err != nil {
+	if doc.TransmissionSources.IsEmtpy() {
 		t.Error("[transmissionsources] is expected")
 	}
 
-	if _, err := jo.GetArray("productsources"); err != nil {
+	if doc.ProductSources.IsEmtpy() {
 		t.Error("[productsources] is expected")
 	}
 
-	if _, err := jo.GetObject("itemcontenttype"); err != nil {
+	if doc.ItemContentType.IsEmtpy() {
 		t.Error("[itemcontenttype] is expected")
 	}
 
-	if _, err := jo.GetArray("distributionchannels"); err != nil {
+	if doc.DistributionChannels.IsEmtpy() {
 		t.Error("[distributionchannels] is expected")
 	}
 
-	if _, err := jo.GetObject("fixture"); err != nil {
+	if doc.Fixture.IsEmtpy() {
 		t.Error("[fixture] is expected")
 	}
 
-	if _, err := jo.GetArray("signals"); err != nil {
+	if doc.Signals.IsEmpty() {
 		t.Error("[signals] is expected")
 	}
 
-	if _, err := jo.GetArray("inpackages"); err != nil {
+	if doc.InPackages.IsEmtpy() {
 		t.Error("[inpackages] is expected")
 	}
 
-	fmt.Printf("%s\n", jo.ToString())
+	jo, err := doc.ToJson()
+	if err != nil {
+		t.Error(err.Error())
+	}
 
+	fmt.Printf("%s\n", jo.ToString())
 }

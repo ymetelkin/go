@@ -148,9 +148,10 @@ type FilingMetadata struct {
 }
 
 type PublicationComponent struct {
-	Role            string `xml:"Role,attr"`
-	MediaType       string `xml:"MediaType,attr"`
-	TextContentItem TextContentItem
+	Role      string `xml:"Role,attr"`
+	MediaType string `xml:"MediaType,attr"`
+	Xml       string `xml:",innerxml"`
+	//TextContentItem  TextContentItem
 }
 
 type FirstCreated struct {

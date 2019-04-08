@@ -1,36 +1,6 @@
 package appl
 
-import (
-	"errors"
-	"fmt"
-
-	"github.com/ymetelkin/go/json"
-)
-
-func (doc *document) ParseRightsMetadata(jo *json.Object) error {
-	if doc.RightsMetadata == nil {
-		return errors.New("RightsMetadata is missing")
-	}
-
-	var (
-		summary     bool
-		overs, keys uniqueArray
-	)
-
-	for _, nd := range doc.NewsLines.Nodes {
-		switch nd.Name {
-		case "Copyright":
-			if doc.CopyrightNotice == "" && doc.FirstCreatedYear > 0 && nd.Attributes != nil {
-				for _, a := range nd.Attributes {
-					if a.Name == "Holder" && a.Value != "" {
-						doc.CopyrightNotice = fmt.Sprintf("Copyright %d %s. All rights reserved. This material may not be published, broadcast, rewritten or redistributed.", doc.FirstCreatedYear, a.Value)
-						jo.AddString("copyrightnotice", doc.CopyrightNotice)
-					}
-				}
-			}
-		}
-	}
-}
+import "github.com/ymetelkin/go/json"
 
 func (rights *RightsMetadata) parse(doc *document) error {
 	getUsageRights(doc)

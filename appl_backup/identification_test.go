@@ -3,12 +3,23 @@ package appl
 import (
 	"fmt"
 	"testing"
-
-	"github.com/ymetelkin/go/json"
 )
 
 func TestIdentification(t *testing.T) {
 	s := `
+<Publication>
+	<Identification>
+  	</Identification> 
+</Publication>
+`
+	_, err := XmlToJson(s)
+	if err == nil {
+		t.Error("Must throw")
+	} else {
+		fmt.Printf("%s\n", err.Error())
+	}
+
+	s = `
 <Publication>
 	<Identification>
 		<ItemId>00000000000000000000000000000001</ItemId>
@@ -23,10 +34,10 @@ func TestIdentification(t *testing.T) {
 		<FriendlyKey>18212677756771</FriendlyKey>
 	</Identification>
 </Publication>`
-	doc, _ := parseXml(s)
-	jo := json.Object{}
+	pub, _ := NewXml(s)
+	doc := document{Xml: pub}
 
-	err = doc.ParseIdentification(&jo)
+	err = pub.Identification.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -34,14 +45,33 @@ func TestIdentification(t *testing.T) {
 	if string(doc.MediaType) != "photo" {
 		t.Error("[type:photo] is expected")
 	}
-	if v, _ := jo.GetString("itemid"); v != "00000000000000000000000000000001" {
-		t.Error("[itemid:00000000000000000000000000000001] is expected")
-	}
-	if v, _ := jo.GetString("language"); v != "en" {
+	if doc.Language.Field == "" {
 		t.Error("[language:en] is expected")
 	}
+	if doc.ReferenceId.Field == "" {
+		t.Error("[referenceid] is expected")
+	}
 
+	jo, err := doc.ToJson()
+	if err != nil {
+		t.Error(err.Error())
+	}
 	fmt.Printf("%s\n", jo.ToString())
+}
+
+func TestIdentificationValidation(t *testing.T) {
+	s := `
+<Publication>
+	<Identification>
+  	</Identification> 
+</Publication>
+`
+	_, err := XmlToJson(s)
+	if err == nil {
+		t.Error("Must throw")
+	} else {
+		fmt.Printf("%s\n", err.Error())
+	}
 }
 
 func TestIdentificationReferenceId(t *testing.T) {
@@ -56,13 +86,18 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<FriendlyKey>xyz</FriendlyKey>
 	</Identification>
 </Publication>`
-	jo, err := XmlToJson(s)
+	pub, _ := NewXml(s)
+	doc := document{Xml: pub}
+
+	err := pub.Identification.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	if v, _ := jo.GetString("referenceid"); v != "xyz" {
+	if s, _ := doc.ReferenceId.Value.GetString(); s != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
+	} else {
+		fmt.Println(doc.ReferenceId)
 	}
 
 	s = `
@@ -75,12 +110,14 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<MediaType>Photo</MediaType>
 	</Identification>
 </Publication>`
-	jo, err = XmlToJson(s)
+	pub, _ = NewXml(s)
+	doc = document{Xml: pub}
+
+	err = pub.Identification.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
-
-	if v, _ := jo.GetString("referenceid"); v != "00000000000000000000000000000001" {
+	if s, _ := doc.ReferenceId.Value.GetString(); s != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")
 	} else {
 		fmt.Println(doc.ReferenceId)
@@ -99,12 +136,14 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<Title>xyz</Title>
 	</NewsLines> 
 </Publication>`
-	jo, err = XmlToJson(s)
+	pub, _ = NewXml(s)
+	doc = document{Xml: pub}
+
+	err = pub.Identification.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
-
-	if v, _ := jo.GetString("referenceid"); v != "xyz" {
+	if s, _ := doc.ReferenceId.Value.GetString(); s != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
 	} else {
 		fmt.Println(doc.ReferenceId)
@@ -120,12 +159,14 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<MediaType>ComplexData</MediaType>
 	</Identification>
 </Publication>`
-	jo, err = XmlToJson(s)
+	pub, _ = NewXml(s)
+	doc = document{Xml: pub}
+
+	err = pub.Identification.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
-
-	if v, _ := jo.GetString("referenceid"); v != "00000000000000000000000000000001" {
+	if s, _ := doc.ReferenceId.Value.GetString(); s != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")
 	} else {
 		fmt.Println(doc.ReferenceId)
@@ -144,12 +185,14 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<Title>xyz</Title>
 	</NewsLines> 
 </Publication>`
-	jo, err = XmlToJson(s)
+	pub, _ = NewXml(s)
+	doc = document{Xml: pub}
+
+	err = pub.Identification.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
-
-	if v, _ := jo.GetString("referenceid"); v != "xyz" {
+	if s, _ := doc.ReferenceId.Value.GetString(); s != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
 	} else {
 		fmt.Println(doc.ReferenceId)
@@ -165,12 +208,14 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<MediaType>Text</MediaType>
 	</Identification>
 </Publication>`
-	jo, err = XmlToJson(s)
+	pub, _ = NewXml(s)
+	doc = document{Xml: pub}
+
+	err = pub.Identification.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
-
-	if v, _ := jo.GetString("referenceid"); v != "00000000000000000000000000000001" {
+	if s, _ := doc.ReferenceId.Value.GetString(); s != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")
 	} else {
 		fmt.Println(doc.ReferenceId)
@@ -189,12 +234,14 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<EditorialId>xyz</EditorialId>
 	</PublicationManagement> 
 </Publication>`
-	jo, err = XmlToJson(s)
+	pub, _ = NewXml(s)
+	doc = document{Xml: pub}
+
+	err = pub.Identification.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
-
-	if v, _ := jo.GetString("referenceid"); v != "xyz" {
+	if s, _ := doc.ReferenceId.Value.GetString(); s != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
 	} else {
 		fmt.Println(doc.ReferenceId)
@@ -210,12 +257,14 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<MediaType>Video</MediaType>
 	</Identification>
 </Publication>`
-	jo, err = XmlToJson(s)
+	pub, _ = NewXml(s)
+	doc = document{Xml: pub}
+
+	err = pub.Identification.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
-
-	if v, _ := jo.GetString("referenceid"); v != "00000000000000000000000000000001" {
+	if s, _ := doc.ReferenceId.Value.GetString(); s != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")
 	} else {
 		fmt.Println(doc.ReferenceId)

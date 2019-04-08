@@ -3,8 +3,6 @@ package appl
 import (
 	"fmt"
 	"testing"
-
-	"github.com/ymetelkin/go/json"
 )
 
 func TestNewslines(t *testing.T) {
@@ -29,14 +27,15 @@ func TestNewslines(t *testing.T) {
 		<ByLineOriginal>By DAVE CAMPBELL</ByLineOriginal>
 	</NewsLines>  
 </Publication>`
-	doc, _ := parseXml(s)
-	jo := json.Object{}
+	pub, _ := NewXml(s)
+	doc := document{Xml: pub}
 
-	err = doc.ParseIdentification(&jo)
+	err := pub.Identification.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	err = doc.ParseNewsLines(&jo)
+
+	err = pub.NewsLines.parse(&doc)
 	if err != nil {
 		t.Error(err.Error())
 	}

@@ -1,4 +1,4 @@
-package xml
+package appl
 
 import (
 	"encoding/xml"
@@ -22,7 +22,7 @@ type Attribute struct {
 }
 
 //New creates a new node from a string
-func New(s string) (Node, error) {
+func NewNode(s string) (Node, error) {
 	decoder := xml.NewDecoder(strings.NewReader(s))
 
 	var parent *Node
@@ -71,30 +71,6 @@ func New(s string) (Node, error) {
 	}
 
 	return *root, nil
-}
-
-//GetNode method finds child node and returns it if found
-func (nd *Node) GetNode(name string) Node {
-	if nd.Nodes != nil {
-		for _, n := range nd.Nodes {
-			if n.Name == name {
-				return n
-			}
-		}
-	}
-	return Node{}
-}
-
-//GetAttribute method finds attribute and returns its value if found
-func (nd *Node) GetAttribute(name string) string {
-	if nd.Attributes != nil {
-		for _, a := range nd.Attributes {
-			if a.Name == name {
-				return a.Value
-			}
-		}
-	}
-	return ""
 }
 
 //ToString method serializes Node into XML string

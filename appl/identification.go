@@ -3,43 +3,105 @@ package appl
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/ymetelkin/go/json"
 )
 
-func (id *Identification) parse(doc *document) error {
-	if id.ItemId == "" {
-		return errors.New("[Identification.ItemId] is missing")
-	}
-	if id.RecordId == "" {
-		return errors.New("[Identification.RecordId] is missing")
-	}
-	if id.CompositeId == "" {
-		return errors.New("[Identification.CompositeId] is missing")
-	}
-	if id.CompositionType == "" {
-		return errors.New("[Identification.CompositionType] is missing")
+func (doc *document) ParseIdentification(jo *json.Object) error {
+	if doc.Identification == nil {
+		return errors.New("Identification is missing")
 	}
 
-	err := getMediaType(doc)
-	if err != nil {
-		return err
+	for _, nd := range doc.Identification.Nodes {
+		switch nd.Name {
+		case "ItemId":
+			doc.ItemID = nd.Text
+			jo.SetString("itemid", nd.Text)
+		case "RecordId":
+			jo.SetString("recordid", nd.Text)
+		case "CompositeId":
+			jo.SetString("compositeid", nd.Text)
+		case "CompositionType":
+			doc.CompositionType = nd.Text
+			jo.SetString("compositiontype", nd.Text)
+		case "MediaType":
+			mt, err := getMediaType(nd.Text)
+			if err == nil {
+				doc.MediaType = mt
+				jo.SetString("type", string(mt))
+			} else {
+				return err
+			}
+		case "Priority":
+			if nd.Text != "" {
+				i, err := strconv.Atoi(nd.Text)
+				if err == nil {
+					jo.AddInt("priority", i)
+				}
+			}
+		case "EditorialPriority":
+			if nd.Text != "" {
+				jo.AddString("editorialpriority", nd.Text)
+			}
+		case "DefaultLanguage":
+			if len(nd.Text) >= 2 {
+				language := string([]rune(nd.Text)[0:2])
+				jo.AddString("language", language)
+			}
+			if nd.Text != "" {
+				jo.AddString("editorialpriority", nd.Text)
+			}
+		case "RecordSequenceNumber":
+			if nd.Text != "" {
+				i, err := strconv.Atoi(nd.Text)
+				if err == nil {
+					jo.AddInt("recordsequencenumber", i)
+				}
+			}
+		case "FriendlyKey":
+			if nd.Text != "" {
+				doc.FriendlyKey = nd.Text
+				jo.AddString("friendlykey", nd.Text)
+			}
+		}
 	}
 
-	if len(id.DefaultLanguage) >= 2 {
-		language := string([]rune(id.DefaultLanguage)[0:2])
-		doc.Language = json.NewStringProperty("language", language)
-	}
-
-	getReferenceId(doc)
-
-	return nil
+	jo.AddString("referenceid", doc.ItemID)
 }
 
-func getMediaType(doc *document) error {
-	s := doc.Xml.Identification.MediaType
+func (doc *document) SetReferenceId(jo *json.Object) {
+	var ref string
 
+	if (doc.MediaType == MEDIATYPE_PHOTO || doc.MediaType == MEDIATYPE_GRAPHIC) && doc.FriendlyKey != "" {
+		ref = doc.FriendlyKey
+	} else if doc.MediaType == MEDIATYPE_AUDIO && doc.EditorialId != "" {
+		ref = doc.EditorialId
+	} else if doc.MediaType == MEDIATYPE_COMPLEXT_DATA && doc.Title != "" {
+		ref = doc.Title
+	} else if doc.MediaType == MEDIATYPE_TEXT {
+		if doc.Title != "" {
+			ref = doc.Title
+		} else if doc.SlugLine != "" {
+			ref = doc.SlugLine
+		}
+	} else if doc.MediaType == MEDIATYPE_VIDEO {
+		if doc.CompositionType == "StandardBroadcastVideo" {
+			if doc.EditorialId != "" {
+				ref = doc.EditorialId
+			}
+		} else if doc.ForeignKey != "" {
+			ref = doc.ForeignKey
+		}
+	}
+
+	if ref != "" {
+		jo.SetString("referenceid", ref)
+	}
+}
+
+func getMediaType(s string) (MediaType, error) {
 	if strings.EqualFold(s, "text") {
 		doc.MediaType = MEDIATYPE_TEXT
 	} else if strings.EqualFold(s, "photo") {
@@ -58,59 +120,4 @@ func getMediaType(doc *document) error {
 	}
 
 	return nil
-}
-
-func getReferenceId(doc *document) {
-	ref := doc.Xml.Identification.ItemId
-
-	if (doc.MediaType == MEDIATYPE_PHOTO || doc.MediaType == MEDIATYPE_GRAPHIC) && doc.Xml.Identification.FriendlyKey != "" {
-		ref = doc.Xml.Identification.FriendlyKey
-	} else if doc.MediaType == MEDIATYPE_AUDIO && doc.Xml.PublicationManagement.EditorialId != "" {
-		ref = doc.Xml.PublicationManagement.EditorialId
-	} else if doc.MediaType == MEDIATYPE_COMPLEXT_DATA && doc.Xml.NewsLines.Title != "" {
-		ref = doc.Xml.NewsLines.Title
-	} else if doc.MediaType == MEDIATYPE_TEXT {
-		if doc.Xml.NewsLines.Title != "" {
-			ref = doc.Xml.NewsLines.Title
-		} else if doc.Xml.FilingMetadata != nil {
-			for _, f := range doc.Xml.FilingMetadata {
-				if f.SlugLine != "" {
-					ref = f.SlugLine
-					break
-				}
-			}
-		}
-	} else if doc.MediaType == MEDIATYPE_VIDEO {
-		if strings.EqualFold(doc.Xml.Identification.CompositionType, "StandardBroadcastVideo") {
-			if doc.Xml.PublicationManagement.EditorialId != "" {
-				ref = doc.Xml.PublicationManagement.EditorialId
-			}
-		} else {
-			id := ""
-			if doc.Xml.FilingMetadata != nil {
-				for _, f := range doc.Xml.FilingMetadata {
-					if f.ForeignKeys != nil {
-						for _, fk := range f.ForeignKeys {
-							for _, k := range fk.Keys {
-								if k.Id != "" && k.Field != "" {
-									id = k.Id
-									break
-								}
-							}
-							if id != "" {
-								break
-							}
-						}
-						break
-					}
-				}
-			}
-
-			if id != "" {
-				ref = id
-			}
-		}
-	}
-
-	doc.ReferenceId = json.NewStringProperty("referenceid", ref)
 }

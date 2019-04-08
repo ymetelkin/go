@@ -79,11 +79,7 @@ func (ua *uniqueArray) ToJsonProperty(field string) json.Property {
 	if ua.values.Length() == 0 {
 		return json.Property{}
 	}
-	return json.NewArrayProperty(field, ua.values)
-}
-
-func (ua *uniqueArray) ToJsonArray() json.Array {
-	return ua.values
+	return json.NewArrayProperty(field, &ua.values)
 }
 
 func setRels(c Classification, o Occurrence, rels *uniqueArray) {
