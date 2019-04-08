@@ -45,7 +45,7 @@ func TestObjectAdd(t *testing.T) {
 
 	child := Object{}
 	child.AddString("a", "b")
-	err = jo.AddObject("child", &child)
+	err = jo.AddObject("child", child)
 	if err != nil {
 		t.Error(err.Error())
 	} else {
@@ -60,7 +60,7 @@ func TestObjectAdd(t *testing.T) {
 	ja := Array{}
 	ja.AddInt(1)
 	ja.AddInt(2)
-	err = jo.AddArray("products", &ja)
+	err = jo.AddArray("products", ja)
 	if err != nil {
 		t.Error(err.Error())
 	} else {

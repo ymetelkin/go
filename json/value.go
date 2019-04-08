@@ -261,12 +261,12 @@ func (jv *value) ToString(pretty bool, level int) string {
 			return strconv.FormatBool(b)
 		}
 	case OBJECT:
-		jo, ok := jv.Value.(*Object)
+		jo, ok := jv.Value.(Object)
 		if ok {
 			return jo.toString(pretty, level)
 		}
 	case ARRAY:
-		ja, ok := jv.Value.(*Array)
+		ja, ok := jv.Value.(Array)
 		if ok {
 			return ja.toString(pretty, level)
 		}

@@ -37,8 +37,8 @@ func TestArrayAdd(t *testing.T) {
 	products := Array{}
 	products.AddInt(1)
 	products.AddInt(2)
-	jo.AddArray("products", &products)
-	i = ja.AddObject(&jo)
+	jo.AddArray("products", products)
+	i = ja.AddObject(jo)
 	o, err := ja.GetObject(i)
 	if err != nil {
 		t.Error(err.Error())
@@ -62,8 +62,8 @@ func TestObjectArray(t *testing.T) {
 		jo := Object{}
 		rels := Array{}
 		rels.AddString(name)
-		jo.AddArray("rels", &rels)
-		ja.AddObject(&jo)
+		jo.AddArray("rels", rels)
+		ja.AddObject(jo)
 	}
 
 	fmt.Println(ja.ToString())

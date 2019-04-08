@@ -138,22 +138,22 @@ func (jo *Object) Remove(name string) error {
 	return nil
 }
 
-func (jo *Object) getValue(name string) (*value, error) {
+func (jo *Object) getValue(name string) (value, error) {
 	name = strings.Trim(name, " ")
 	if name == "" {
-		return nil, errors.New("Missing field name")
+		return value{}, errors.New("Missing field name")
 	}
 
 	if jo.Properties == nil {
-		return nil, nil
+		return value{}, nil
 	}
 
-	value, ok := jo.Properties[name]
+	jv, ok := jo.Properties[name]
 	if ok {
-		return &value, nil
+		return jv, nil
 	} else {
 		err := fmt.Sprintf("Field [%s] does not exist", name)
-		return nil, errors.New(err)
+		return value{}, errors.New(err)
 	}
 }
 
