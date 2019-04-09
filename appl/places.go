@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/ymetelkin/go/json"
+	"github.com/ymetelkin/go/xml"
 )
 
 type place struct {
@@ -24,16 +25,40 @@ type places struct {
 	Places []place
 }
 
-func (ps *places) Parse(c Classification) {
-	if c.Occurrence == nil {
+func (ps *places) Parse(nd xml.Node) {
+	if nd.Nodes == nil {
 		return
 	}
 
-	for _, o := range c.Occurrence {
-		if o.Id != "" && o.Value != "" {
-			var p place
+	system := nd.GetAttribute("System")
 
-			key := fmt.Sprintf("%s_%s", o.Id, o.Value)
+	for _, n := range nd.Nodes {
+		var (
+			code, name, match, pid string
+			tp                     bool
+		)
+
+		if n.Name == "Occurrence" && n.Attributes != nil {
+			for _, a := range nd.Attributes {
+				switch a.Value {
+				case "Id":
+					code = a.Value
+				case "Value":
+					name = a.Value
+				case "ActualMatch":
+					match = a.Value
+				case "ParentId":
+					pid = a.Value
+				case "TopParent":
+					tp = a.Value == "true"
+				}
+			}
+		}
+
+		if code != "" && name != "" {
+			var plc place
+
+			key := fmt.Sprintf("%s_%s", code, name)
 
 			if ps.Keys == nil {
 				ps.Keys = make(map[string]int)
@@ -42,53 +67,69 @@ func (ps *places) Parse(c Classification) {
 
 			i, ok := ps.Keys[key]
 			if ok {
-				p = ps.Places[i]
+				plc = ps.Places[i]
 			} else {
-				p = place{Name: o.Value, Code: o.Id, Creator: c.System}
-				ps.Places = append(ps.Places, p)
+				plc = place{Name: name, Code: code, Creator: system}
+				ps.Places = append(ps.Places, plc)
 				i = len(ps.Places) - 1
 				ps.Keys[key] = i
 			}
 
-			if p.Creator == "" || strings.EqualFold(c.System, "Editorial") {
-				p.Creator = c.System
+			if plc.Creator == "" || strings.EqualFold(system, "Editorial") {
+				plc.Creator = system
 			}
 
-			setRels(c, o, &p.Rels)
+			setRels(system, match, &plc.Rels)
 
-			p.ParentIds.AddString(o.ParentId)
-			p.TopParent = o.TopParent
+			plc.ParentIds.AddString(pid)
+			plc.TopParent = tp
 
 			var (
 				lat  float64
 				long float64
 			)
 
-			for _, prop := range o.Property {
-				if prop.Name != "" && prop.Value != "" {
-					name := strings.ToLower(prop.Name)
-					if name == "locationtype" && prop.Id != "" && p.LocationType.IsEmtpy() {
-						jo := json.Object{}
-						jo.AddString("code", prop.Id)
-						jo.AddString("name", prop.Value)
-						p.LocationType = json.NewObjectProperty("locationtype", &jo)
-					} else if name == "centroidlatitude" && lat == 0 {
-						f, err := strconv.ParseFloat(prop.Value, 64)
-						if err == nil {
-							lat = f
+			if n.Nodes != nil {
+				for _, p := range n.Nodes {
+					if p.Attributes != nil {
+						var id, pid, n, v string
+						for _, a := range p.Attributes {
+							switch a.Name {
+							case "Id":
+								id = a.Value
+							case "Name":
+								n = a.Value
+							case "Value":
+								v = a.Value
+							}
 						}
-					} else if name == "centroidlongitude" && long == 0 {
-						f, err := strconv.ParseFloat(prop.Value, 64)
-						if err == nil {
-							long = f
+
+						if n != "" && v != "" {
+							key := strings.ToLower(n)
+							if key == "locationtype" && id != "" && plc.LocationType.IsEmtpy() {
+								jo := json.Object{}
+								jo.AddString("code", id)
+								jo.AddString("name", v)
+								plc.LocationType = json.NewObjectProperty("locationtype", jo)
+							} else if key == "centroidlatitude" && lat == 0 {
+								f, err := strconv.ParseFloat(v, 64)
+								if err == nil {
+									lat = f
+								}
+							} else if key == "centroidlongitude" && long == 0 {
+								f, err := strconv.ParseFloat(v, 64)
+								if err == nil {
+									long = f
+								}
+							}
 						}
 					}
 				}
 			}
 
-			p.Geo = getGeoProperty(lat, long)
+			plc.Geo = getGeoProperty(lat, long)
 
-			ps.Places[i] = p
+			ps.Places[i] = plc
 		}
 	}
 }
@@ -116,9 +157,9 @@ func (ps *places) ToJsonProperty() json.Property {
 			}
 			place.AddProperty(p.LocationType)
 			place.AddProperty(p.Geo)
-			ja.AddObject(&place)
+			ja.AddObject(place)
 		}
-		return json.NewArrayProperty("places", &ja)
+		return json.NewArrayProperty("places", ja)
 	}
 
 	return json.Property{}

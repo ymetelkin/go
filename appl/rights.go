@@ -2,106 +2,102 @@ package appl
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/ymetelkin/go/json"
 )
 
-func (doc *document) ParseRightsMetadata(jo *json.Object) error {
-	if doc.RightsMetadata == nil {
+func (doc *document) ParseRightsMetadata(parent *json.Object) error {
+
+	if doc.RightsMetadata.Nodes == nil {
 		return errors.New("RightsMetadata is missing")
 	}
 
-	var (
-		summary     bool
-		overs, keys uniqueArray
-	)
+	ja := json.Array{}
 
-	for _, nd := range doc.NewsLines.Nodes {
+	for _, nd := range doc.RightsMetadata.Nodes {
 		switch nd.Name {
-		case "Copyright":
-			if doc.CopyrightNotice == "" && doc.FirstCreatedYear > 0 && nd.Attributes != nil {
-				for _, a := range nd.Attributes {
-					if a.Name == "Holder" && a.Value != "" {
-						doc.CopyrightNotice = fmt.Sprintf("Copyright %d %s. All rights reserved. This material may not be published, broadcast, rewritten or redistributed.", doc.FirstCreatedYear, a.Value)
-						jo.AddString("copyrightnotice", doc.CopyrightNotice)
+		case "UsageRights":
+			if nd.Nodes != nil {
+				var (
+					ut, rh, sd, ed string
+					geo, lim       uniqueArray
+					gps            json.Array
+				)
+				jo := json.Object{}
+
+				for _, n := range nd.Nodes {
+					switch n.Name {
+					case "UsageType":
+						ut = nd.Text
+					case "Geography":
+						geo.AddString(nd.Text)
+					case "RightsHolder":
+						rh = nd.Text
+					case "Limitations":
+						lim.AddString(nd.Text)
+					case "StartDate":
+						sd = nd.Text
+					case "EndDate":
+						ed = nd.Text
+					case "Group":
+						g := json.Object{}
+						if nd.Attributes != nil {
+							for _, a := range nd.Attributes {
+								switch a.Name {
+								case "Type":
+									if a.Value != "" {
+										g.AddString("type", a.Value)
+									}
+								case "Id":
+									if a.Value != "" {
+										g.AddString("code", a.Value)
+									}
+								}
+							}
+						}
+						if n.Text != "" {
+							g.AddString("name", n.Text)
+						}
+						if !g.IsEmpty() {
+							gps.AddObject(g)
+						}
 					}
 				}
+
+				if ut != "" {
+					jo.AddString("usagetype", ut)
+				}
+
+				jo.AddProperty(geo.ToJsonProperty("geography"))
+
+				if rh != "" {
+					jo.AddString("rightsholder", rh)
+				}
+
+				jo.AddProperty(lim.ToJsonProperty("limitations"))
+
+				if sd != "" {
+					jo.AddString("startdate", sd)
+				}
+
+				if ed != "" {
+					jo.AddString("enddate", ed)
+				}
+
+				if !gps.IsEmpty() {
+					jo.AddArray("groups", gps)
+				}
+
+				if !jo.IsEmpty() {
+					ja.AddObject(jo)
+				}
 			}
 		}
 	}
-}
 
-func (rights *RightsMetadata) parse(doc *document) error {
-	getUsageRights(doc)
+	if !ja.IsEmpty() {
+		parent.AddArray("usagerights", ja)
+	}
 
 	return nil
-}
-
-func getUsageRights(doc *document) {
-	urs := doc.Xml.RightsMetadata.UsageRights
-	if urs == nil || len(urs) == 0 {
-		return
-	}
-
-	usagerights := json.Array{}
-
-	for _, ur := range urs {
-		usageright := json.Object{}
-		if ur.UsageType != "" {
-			usageright.AddString("usagetype", ur.UsageType)
-		}
-		if ur.Geography != nil {
-			geography := uniqueArray{}
-			for _, g := range ur.Geography {
-				geography.AddString(g)
-			}
-			usageright.AddProperty(geography.ToJsonProperty("geography"))
-		}
-		if ur.RightsHolder != "" {
-			usageright.AddString("rightsholder", ur.RightsHolder)
-		}
-		if ur.Limitations != nil {
-			limitations := uniqueArray{}
-			for _, lim := range ur.Limitations {
-				limitations.AddString(lim)
-			}
-			usageright.AddProperty(limitations.ToJsonProperty("limitations"))
-		}
-		if ur.StartDate != "" {
-			usageright.AddString("startdate", ur.StartDate)
-		}
-		if ur.EndDate != "" {
-			usageright.AddString("enddate", ur.EndDate)
-		}
-		if ur.Group != nil {
-			groups := json.Array{}
-			for _, g := range ur.Group {
-				group := json.Object{}
-				if g.Type != "" {
-					group.AddString("type", g.Type)
-				}
-				if g.Id != "" {
-					group.AddString("code", g.Id)
-				}
-				if g.Value != "" {
-					group.AddString("name", g.Value)
-				}
-				if !group.IsEmpty() {
-					groups.AddObject(&group)
-				}
-			}
-			if !groups.IsEmpty() {
-				usageright.AddArray("groups", &groups)
-			}
-		}
-
-		if !usageright.IsEmpty() {
-			usagerights.AddObject(&usageright)
-		}
-	}
-
-	if !usagerights.IsEmpty() {
-		doc.UsageRights = json.NewArrayProperty("usagerights", &usagerights)
-	}
 }

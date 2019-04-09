@@ -50,10 +50,10 @@ func (ua *uniqueArray) AddKeyValue(kn string, kv string, vn string, vv string) {
 	jo := json.Object{}
 	jo.AddString(kn, kv)
 	jo.AddString(vn, vv)
-	ua.values.AddObject(&jo)
+	ua.values.AddObject(jo)
 }
 
-func (ua *uniqueArray) AddObject(key string, jo *json.Object) {
+func (ua *uniqueArray) AddObject(key string, jo json.Object) {
 	if jo.IsEmpty() {
 		return
 	}
@@ -86,12 +86,12 @@ func (ua *uniqueArray) ToJsonArray() json.Array {
 	return ua.values
 }
 
-func setRels(c Classification, o Occurrence, rels *uniqueArray) {
-	if strings.EqualFold(c.System, "RTE") {
+func setRels(system string, match string, rels *uniqueArray) {
+	if strings.EqualFold(system, "RTE") {
 		rels.AddString("inferred")
-	} else if strings.EqualFold(o.ActualMatch, "true") {
+	} else if strings.EqualFold(match, "true") {
 		rels.AddString("direct")
-	} else if strings.EqualFold(o.ActualMatch, "false") {
+	} else if strings.EqualFold(match, "false") {
 		rels.AddString("ancestor")
 	}
 }
@@ -106,8 +106,8 @@ func getGeoProperty(lat float64, long float64) json.Property {
 	coordinates.AddFloat(lat)
 	geometry := json.Object{}
 	geometry.AddString("type", "Point")
-	geometry.AddArray("coordinates", &coordinates)
-	return json.NewObjectProperty("geometry_geojson", &geometry)
+	geometry.AddArray("coordinates", coordinates)
+	return json.NewObjectProperty("geometry_geojson", geometry)
 }
 
 func makePrettyString(s string) string {

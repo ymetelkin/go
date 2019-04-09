@@ -1,9 +1,6 @@
 package appl
 
-func (pub *Publication) parsePubComponents(doc *document) error {
-	if pub.PublicationComponent == nil {
-		return nil
-	}
+func parsePubComponents(doc *document) error {
 
 	/*
 		for _, pc := range pub.PublicationComponent {

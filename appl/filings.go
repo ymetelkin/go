@@ -1,208 +1,268 @@
 package appl
 
 import (
-	"errors"
 	"fmt"
 	"html"
+	"strconv"
 	"strings"
 
 	"github.com/ymetelkin/go/json"
+	"github.com/ymetelkin/go/xml"
 )
 
-func (pub *Publication) parseFilings(doc *document) error {
-	if pub.FilingMetadata == nil {
-		return nil
+type filing struct {
+	Source      string
+	Category    string
+	Slugline    string
+	ForeignKeys []foreignkey
+	JSON        json.Object
+}
+
+type foreignkey struct {
+	Field string
+	Value string
+}
+
+func parseFiling(nd xml.Node) filing {
+	if nd.Nodes == nil {
+		return filing{}
 	}
 
-	ja := json.Array{}
+	var (
+		f                  filing
+		jo, rts            json.Object
+		ids                json.Array
+		fcs, frs, fss, fts uniqueArray
+	)
 
-	for _, fm := range pub.FilingMetadata {
-		tmp := fm
-		jo := json.Object{}
+	for _, n := range nd.Nodes {
+		switch n.Name {
+		case "Id":
+			if n.Text != "" {
+				jo.AddString("filingid", n.Text)
+			}
+		case "ArrivalDateTime":
+			if n.Text != "" {
+				jo.AddString("filingarrivaldatetime", n.Text)
+			}
+		case "Cycle":
+			if n.Text != "" {
+				jo.AddString("cycle", n.Text)
+			}
+		case "TransmissionReference":
+			if n.Text != "" {
+				jo.AddString("transmissionreference", n.Text)
+			}
+		case "TransmissionFilename":
+			if n.Text != "" {
+				jo.AddString("transmissionfilename", n.Text)
+			}
+		case "TransmissionContent":
+			if n.Text != "" {
+				jo.AddString("transmissioncontent", n.Text)
+			}
+		case "ServiceLevelDesignator":
+			if n.Text != "" {
+				jo.AddString("serviceleveldesignator", n.Text)
+			}
+		case "Selector":
+			if n.Text != "" {
+				jo.AddString("selector", n.Text)
+			}
+		case "Source":
+			if n.Text != "" {
+				f.Source = nd.Text
+				jo.AddString("filingsource", n.Text)
+			}
+		case "Category":
+			if n.Text != "" {
+				f.Category = nd.Text
+				jo.AddString("filingcategory", n.Text)
+			}
+		case "Routing":
+			if n.Attributes != nil {
+				var t, e, o string
 
-		if tmp.Id == "" {
-			return errors.New("[FilingMetadata.Id] is missing")
-		} else {
-			jo.AddString("filingid", tmp.Id)
-		}
-		if tmp.ArrivalDateTime == "" {
-			return errors.New("[FilingMetadata.ArrivalDateTime] is missing")
-		} else {
-			jo.AddString("filingarrivaldatetime", tmp.ArrivalDateTime+"Z")
-		}
-		if tmp.Cycle != "" {
-			jo.AddString("cycle", tmp.Cycle)
-		}
-		if tmp.TransmissionReference != "" {
-			jo.AddString("transmissionreference", tmp.TransmissionReference)
-		}
-		if tmp.TransmissionFilename != "" {
-			jo.AddString("transmissionfilename", tmp.TransmissionFilename)
-		}
-		if tmp.TransmissionContent != "" {
-			jo.AddString("transmissioncontent", tmp.TransmissionContent)
-		}
-		if tmp.ServiceLevelDesignator != "" {
-			jo.AddString("serviceleveldesignator", tmp.ServiceLevelDesignator)
-		}
-		if tmp.Selector != "" {
-			jo.AddString("selector", tmp.Selector)
-		}
-		if tmp.Format != "" {
-			jo.AddString("format", tmp.Format)
-		}
-		if tmp.Source != "" {
-			jo.AddString("filingsource", tmp.Source)
-		}
-		if tmp.Category != "" {
-			jo.AddString("filingcategory", tmp.Category)
-		}
-		if tmp.Routing != nil {
-			routings := json.Object{}
-
-			for _, r := range tmp.Routing {
-				if r.Value != "" && r.Type != "" {
-					values := uniqueArray{}
-					tokens := strings.Split(r.Value, " ")
+				for _, a := range n.Attributes {
+					switch a.Name {
+					case "Type":
+						t = a.Value
+					case "Expanded":
+						if a.Value == "true" {
+							e = "expanded"
+						}
+					case "Outed":
+						if a.Value == "true" {
+							o = "out"
+						} else {
+							o = "add"
+						}
+					}
+				}
+				if nd.Text != "" && t != "" {
+					ua := uniqueArray{}
+					tokens := strings.Split(nd.Text, " ")
 					for _, s := range tokens {
-						values.AddString(s)
+						ua.AddString(s)
 					}
 
-					expanded := ""
-					if r.Expanded {
-						expanded = "expanded"
-					}
-
-					out := "add"
-					if r.Outed {
-						out = "out"
-					}
-
-					field := fmt.Sprintf("%s%s%ss", expanded, strings.ToLower(r.Type), out)
-					routings.AddProperty(values.ToJsonProperty(field))
+					field := fmt.Sprintf("%s%s%ss", e, strings.ToLower(t), o)
+					rts.AddProperty(ua.ToJsonProperty(field))
 				}
 			}
-
-			if !routings.IsEmpty() {
-				jo.AddObject("routings", &routings)
+		case "SlugLine":
+			if n.Text != "" {
+				f.Slugline = nd.Text
+				jo.AddString("slugline", n.Text)
 			}
-		}
-		if tmp.SlugLine != "" {
-			jo.AddString("slugline", tmp.SlugLine)
-		}
-		if tmp.OriginalMediaId != "" {
-			jo.AddString("originalmediaid", tmp.OriginalMediaId)
-		}
-		if tmp.ImportFolder != "" {
-			jo.AddString("importfolder", tmp.ImportFolder)
-		}
-		if tmp.ImportWarnings != "" {
-			jo.AddString("importwarnings", tmp.ImportWarnings)
-		}
-		if tmp.LibraryTwinCheck != "" {
-			jo.AddString("librarytwincheck", tmp.LibraryTwinCheck)
-		}
-		if tmp.LibraryRequestId != "" {
-			jo.AddString("libraryrequestid", tmp.LibraryRequestId)
-		}
-		if tmp.SpecialFieldAttn != "" {
-			jo.AddString("specialfieldattn", tmp.SpecialFieldAttn)
-		}
-		if tmp.FeedLine != "" {
-			jo.AddString("feedline", tmp.FeedLine)
-		}
-		if tmp.LibraryRequestLogin != "" {
-			jo.AddString("libraryrequestlogin", tmp.LibraryRequestLogin)
-		}
-		if tmp.Products.Product != nil {
-			products := json.Array{}
-			for _, p := range tmp.Products.Product {
-				products.AddInt(p)
+		case "OriginalMediaId":
+			if n.Text != "" {
+				jo.AddString("originalmediaid", n.Text)
 			}
-			jo.AddArray("products", &products)
-		}
-		if tmp.PriorityLine != "" {
-			jo.AddString("priorityline", tmp.PriorityLine)
-		}
-		if tmp.ForeignKeys != nil {
-			foreignkeys := json.Array{}
-			for _, fk := range tmp.ForeignKeys {
-				if fk.System != "" && fk.Keys != nil {
-					for _, k := range fk.Keys {
-						if k.Id != "" && k.Field != "" {
-							field := fk.System + k.Field
+		case "ImportFolder":
+			if n.Text != "" {
+				jo.AddString("importfolder", n.Text)
+			}
+		case "ImportWarnings":
+			if n.Text != "" {
+				jo.AddString("importwarnings", n.Text)
+			}
+		case "LibraryTwinCheck":
+			if n.Text != "" {
+				jo.AddString("librarytwincheck", n.Text)
+			}
+		case "LibraryRequestId":
+			if n.Text != "" {
+				jo.AddString("libraryrequestid", n.Text)
+			}
+		case "SpecialFieldAttn":
+			if n.Text != "" {
+				jo.AddString("specialfieldattn", n.Text)
+			}
+		case "FeedLine":
+			if n.Text != "" {
+				jo.AddString("feedline", n.Text)
+			}
+		case "LibraryRequestLogin":
+			if n.Text != "" {
+				jo.AddString("libraryrequestlogin", n.Text)
+			}
+		case "Products":
+			if nd.Nodes != nil {
+				for _, n := range nd.Nodes {
+					i, err := strconv.Atoi(nd.Text)
+					if err == nil {
+						ids.AddInt(i)
+					}
+				}
+			}
+		case "PriorityLine":
+			if n.Text != "" {
+				jo.AddString("priorityline", n.Text)
+			}
+		case "ForeignKeys":
+			system := nd.GetAttribute("System")
+			if system != "" && nd.Nodes != nil {
+				for _, n := range nd.Nodes {
+					if n.Attributes != nil {
+						var id, fld string
+						for _, a := range n.Attributes {
+							switch a.Name {
+							case "Id":
+								id = a.Value
+							case "Field":
+								fld = a.Value
+							}
+						}
+						if id != "" && fld != "" {
+							field := system + fld
 							field = strings.ReplaceAll(field, " ", "")
 							field = strings.ToLower(field)
 							field = html.EscapeString(field)
-							foreignkey := json.Object{}
-							foreignkey.AddString(field, k.Id)
-							foreignkeys.AddObject(&foreignkey)
+							fk := foreignkey{Field: field, Value: id}
+							if f.ForeignKeys == nil {
+								f.ForeignKeys = []foreignkey{fk}
+							} else {
+								f.ForeignKeys = append(f.ForeignKeys, fk)
+							}
 						}
 					}
 				}
 			}
-
-			if !foreignkeys.IsEmpty() {
-				jo.AddArray("foreignkeys", &foreignkeys)
+		case "FilingCountry":
+			if nd.Text != "" {
+				fcs.AddString(nd.Text)
+			}
+		case "FilingRegion":
+			if nd.Text != "" {
+				frs.AddString(nd.Text)
+			}
+		case "FilingSubject", "FilingSubSubject":
+			if nd.Text != "" {
+				fss.AddString(nd.Text)
+			}
+		case "FilingTopic":
+			if nd.Text != "" {
+				fts.AddString(nd.Text)
+			}
+		case "FilingOnlineCode":
+			if n.Text != "" {
+				jo.AddString("filingonlinecode", n.Text)
+			}
+		case "DistributionScope":
+			if n.Text != "" {
+				jo.AddString("distributionscope", n.Text)
+			}
+		case "BreakingNews":
+			if n.Text != "" {
+				jo.AddString("breakingnews", n.Text)
+			}
+		case "FilingStyle":
+			if n.Text != "" {
+				jo.AddString("filingstyle", n.Text)
+			}
+		case "JunkLine":
+			if n.Text != "" {
+				jo.AddString("junkline", n.Text)
 			}
 		}
-		if tmp.FilingCountry != nil && len(tmp.FilingCountry) > 0 {
-			ua := uniqueArray{}
-			for _, s := range tmp.FilingCountry {
-				ua.AddString(s)
-			}
-			jo.AddProperty(ua.ToJsonProperty("filingcountries"))
-		}
-		if tmp.FilingRegion != nil && len(tmp.FilingRegion) > 0 {
-			ua := uniqueArray{}
-			for _, s := range tmp.FilingRegion {
-				ua.AddString(s)
-			}
-			jo.AddProperty(ua.ToJsonProperty("filingregions"))
-		}
-
-		filingsubjects := uniqueArray{}
-		if tmp.FilingSubject != nil {
-			for _, s := range tmp.FilingSubject {
-				filingsubjects.AddString(s)
-			}
-		}
-		if tmp.FilingSubSubject != nil {
-			for _, s := range tmp.FilingSubSubject {
-				filingsubjects.AddString(s)
-			}
-		}
-		jo.AddProperty(filingsubjects.ToJsonProperty("filingsubjects"))
-
-		if tmp.FilingTopic != nil && len(tmp.FilingTopic) > 0 {
-			ua := uniqueArray{}
-			for _, s := range tmp.FilingTopic {
-				ua.AddString(s)
-			}
-			jo.AddProperty(ua.ToJsonProperty("filingtopics"))
-		}
-		if tmp.FilingOnlineCode != "" {
-			jo.AddString("filingonlinecode", tmp.FilingOnlineCode)
-		}
-		if tmp.DistributionScope != "" {
-			jo.AddString("distributionscope", tmp.DistributionScope)
-		}
-		if tmp.BreakingNews != "" {
-			jo.AddString("breakingnews", tmp.BreakingNews)
-		}
-		if tmp.FilingStyle != "" {
-			jo.AddString("filingstyle", tmp.FilingStyle)
-		}
-		if tmp.JunkLine != "" {
-			jo.AddString("junkline", tmp.JunkLine)
-		}
-
-		ja.AddObject(&jo)
 	}
 
-	if !ja.IsEmpty() {
-		doc.Filings = json.NewArrayProperty("filings", &ja)
+	if !ids.IsEmpty() {
+		jo.AddArray("products", ids)
 	}
 
-	return nil
+	if f.ForeignKeys != nil {
+		ja := json.Array{}
+		for _, fk := range f.ForeignKeys {
+			k := json.Object{}
+			k.AddString(fk.Field, fk.Value)
+			ja.AddObject(k)
+		}
+		jo.AddArray("foreignkeys", ja)
+	}
+
+	if !rts.IsEmpty() {
+		jo.AddObject("routings", rts)
+	}
+
+	if !fcs.IsEmpty() {
+		jo.AddProperty(fcs.ToJsonProperty("filingcountries"))
+	}
+
+	if !frs.IsEmpty() {
+		jo.AddProperty(fcs.ToJsonProperty("filingregions"))
+	}
+
+	if !fss.IsEmpty() {
+		jo.AddProperty(fss.ToJsonProperty("filingsubjects"))
+	}
+
+	if !fts.IsEmpty() {
+		jo.AddProperty(fts.ToJsonProperty("filingtopics"))
+	}
+
+	f.JSON = jo
+
+	return f
 }

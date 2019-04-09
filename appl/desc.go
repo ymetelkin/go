@@ -1,243 +1,329 @@
 package appl
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 
 	"github.com/ymetelkin/go/json"
+	"github.com/ymetelkin/go/xml"
 )
 
-func (desc *DescriptiveMetadata) parse(doc *document) error {
-	getDescriptions(doc)
-	getDatelineLocation(doc)
-	getClassification(doc)
-	getThirdParty(doc)
+func (doc *document) ParseDescriptiveMetadata(jo *json.Object) error {
+	if doc.NewsLines.Nodes == nil {
+		return errors.New("DescriptiveMetadata is missing")
+	}
+
+	var (
+		desc, auds, gens, cats uniqueArray
+		sups, alts, svcs       uniqueArray
+		sbjs, orgs             subjects
+		prns                   persons
+		cmps                   companies
+		plcs                   places
+		evts                   events
+		dll, fix               json.Object
+		tpm                    json.Array
+	)
+
+	for _, nd := range doc.DescriptiveMetadata.Nodes {
+		switch nd.Name {
+		case "Description":
+			desc.AddString(nd.Text)
+		case "DateLineLocation":
+			dll = getDatelineLocation(nd)
+		case "SubjectClassification":
+			fix = doc.ParseSubjectClassification(nd, &gens, &sbjs, &cats, &sups, &alts)
+		case "EntityClassification":
+			parseEntityClassification(nd, &gens, &orgs, &prns, &cmps, &plcs, &evts)
+		case "AudienceClassification":
+			auds = getAudences(nd, doc.Filings)
+		case "SalesClassification":
+			parseSalesClassification(nd, &svcs)
+		case "Comment":
+			if nd.Text != "" {
+				svc := json.Object{}
+				svc.AddString("apservice", nd.Text)
+				svcs.AddObject(nd.Text, svc)
+			}
+		case "ThirdPartyMeta":
+			tpm = getThirdParty(nd)
+		}
+	}
+
+	if !fix.IsEmpty() {
+		jo.AddObject("fixture", fix)
+	}
+
+	jo.AddProperty(desc.ToJsonProperty("descriptions"))
+
+	if !dll.IsEmpty() {
+		jo.AddObject("datelinelocation", dll)
+	}
+
+	jo.AddProperty(gens.ToJsonProperty("generators"))
+	jo.AddProperty(cats.ToJsonProperty("categories"))
+	jo.AddProperty(sups.ToJsonProperty("suppcategories"))
+	jo.AddProperty(alts.ToJsonProperty("alertcategories"))
+	jo.AddProperty(prns.ToJsonProperty())
+	jo.AddProperty(orgs.ToJsonProperty("organizations"))
+	jo.AddProperty(cmps.ToJsonProperty())
+	jo.AddProperty(plcs.ToJsonProperty())
+	jo.AddProperty(evts.ToJsonProperty())
+	jo.AddProperty(auds.ToJsonProperty("audiences"))
+
+	jo.AddProperty(svcs.ToJsonProperty("services"))
+
+	if !tpm.IsEmpty() {
+		jo.AddArray("thirdpartymeta", tpm)
+	}
 
 	return nil
 }
 
-func getDescriptions(doc *document) {
-	descs := doc.Xml.DescriptiveMetadata.Description
-	if descs != nil {
-		descriptions := uniqueArray{}
-		for _, desc := range descs {
-			descriptions.AddString(desc)
-		}
-		doc.Descriptions = descriptions.ToJsonProperty("descriptions")
-	}
-}
+func (doc *document) ParseSubjectClassification(nd xml.Node, gens *uniqueArray, sbjs *subjects, cats *uniqueArray, sups *uniqueArray, alts *uniqueArray) json.Object {
+	var fix json.Object
 
-func getDatelineLocation(doc *document) {
-	dll := doc.Xml.DescriptiveMetadata.DateLineLocation
+	if nd.Attributes != nil {
+		auth, av := getAuthorities(nd)
 
-	datelinelocation := json.Object{}
-	if dll.City != "" {
-		datelinelocation.AddString("city", dll.City)
-	}
-	if dll.CountryArea != "" {
-		datelinelocation.AddString("countryareacode", dll.CountryArea)
-	}
-	if dll.CountryAreaName != "" {
-		datelinelocation.AddString("countryareaname", dll.CountryAreaName)
-	}
-	if dll.Country != "" {
-		datelinelocation.AddString("countrycode", dll.Country)
-	}
-	if dll.CountryName != "" {
-		datelinelocation.AddString("countryname", dll.CountryName)
-	}
+		gens.AddKeyValue("name", auth, "version", av)
 
-	datelinelocation.AddProperty(getGeoProperty(dll.LatitudeDD, dll.LongitudeDD))
+		if nd.Nodes != nil {
+			key := strings.ToLower(auth)
 
-	if !datelinelocation.IsEmpty() {
-		doc.DatelineLocation = json.NewObjectProperty("datelinelocation", &datelinelocation)
-	}
-}
-
-func getClassification(doc *document) {
-	generators := uniqueArray{}
-	categories := uniqueArray{}
-	suppcategories := uniqueArray{}
-	alerts := uniqueArray{}
-	sbjs := subjects{}
-	orgs := subjects{}
-	persons := persons{}
-	companies := companies{}
-	places := places{}
-	events := events{}
-	services := uniqueArray{}
-
-	classification := doc.Xml.DescriptiveMetadata.SubjectClassification
-	if classification != nil && len(classification) > 0 {
-		for _, c := range classification {
-			generators.AddKeyValue("name", c.Authority, "version", c.AuthorityVersion)
-
-			authority := strings.ToLower(c.Authority)
-
-			if c.Occurrence != nil {
-				if authority == "ap subject" {
-					sbjs.Parse(c)
-				} else if authority == "ap category code" {
-					for _, o := range c.Occurrence {
-						categories.AddKeyValue("code", o.Id, "name", o.Value)
-					}
-				} else if authority == "ap supplemental category code" {
-					for _, o := range c.Occurrence {
-						suppcategories.AddKeyValue("code", o.Id, "name", o.Value)
-					}
-				} else if authority == "ap alert category" {
-					for _, o := range c.Occurrence {
-						alerts.AddString(o.Id)
-					}
-				} else if doc.Fixture.IsEmtpy() && authority == "ap audio cut number code" {
-					for _, o := range c.Occurrence {
-						if o.Id != "" && o.Value != "" {
-							i, err := strconv.Atoi(o.Id)
-							if err == nil && i >= 900 {
-								fixture := json.Object{}
-								fixture.AddInt("code", i)
-								fixture.AddString("name", o.Value)
-								doc.Fixture = json.NewObjectProperty("fixture", &fixture)
-								break
-							}
+			if key == "ap subject" {
+				sbjs.Parse(nd)
+			} else if key == "ap category code" {
+				for _, n := range nd.Nodes {
+					code, name := getOccurrenceCodeName(n)
+					cats.AddKeyValue("code", code, "name", name)
+				}
+			} else if key == "ap supplemental category code" {
+				for _, n := range nd.Nodes {
+					code, name := getOccurrenceCodeName(n)
+					sups.AddKeyValue("code", code, "name", name)
+				}
+			} else if key == "ap alert category" {
+				for _, n := range nd.Nodes {
+					code, _ := getOccurrenceCodeName(n)
+					alts.AddString(code)
+				}
+			} else if !doc.Fixture && key == "ap audio cut number code" {
+				for _, n := range nd.Nodes {
+					code, name := getOccurrenceCodeName(n)
+					if code != "" && name != "" {
+						i, err := strconv.Atoi(code)
+						if err == nil && i >= 900 {
+							fix = json.Object{}
+							fix.AddInt("code", i)
+							fix.AddString("name", name)
+							doc.Fixture = true
+							break
 						}
 					}
 				}
 			}
-
 		}
 	}
 
-	classification = doc.Xml.DescriptiveMetadata.EntityClassification
-	if classification != nil && len(classification) > 0 {
-		for _, c := range classification {
-			generators.AddKeyValue("name", c.Authority, "version", c.AuthorityVersion)
+	return fix
+}
 
-			authority := strings.ToLower(c.Authority)
+func parseEntityClassification(nd xml.Node, gens *uniqueArray, orgs *subjects, prns *persons, cmps *companies, plcs *places, evts *events) {
+	if nd.Attributes != nil {
+		auth, av := getAuthorities(nd)
 
-			if c.Occurrence != nil {
-				if authority == "ap party" {
-					persons.Parse(c)
-				} else if authority == "ap organization" {
-					orgs.Parse(c)
-				} else if authority == "ap company" {
-					companies.Parse(c)
-				} else if authority == "ap geography" || authority == "ap country" || authority == "ap region" {
-					places.Parse(c)
-				} else if authority == "ap event" {
-					events.Parse(c)
+		gens.AddKeyValue("name", auth, "version", av)
+
+		if nd.Nodes != nil {
+			key := strings.ToLower(auth)
+
+			if key == "ap party" {
+				prns.Parse(nd)
+			} else if key == "ap organization" {
+				orgs.Parse(nd)
+			} else if key == "ap company" {
+				cmps.Parse(nd)
+			} else if key == "ap geography" || key == "ap country" || key == "ap region" {
+				plcs.Parse(nd)
+			} else if key == "ap event" {
+				evts.Parse(nd)
+			}
+		}
+	}
+}
+
+func parseSalesClassification(nd xml.Node, svcs *uniqueArray) {
+	if nd.Attributes != nil {
+
+		if nd.Nodes != nil {
+			for _, n := range nd.Nodes {
+				code, name := getOccurrenceCodeName(n)
+				if code != "" && name != "" {
+					jo := json.Object{}
+					jo.AddString("code", code)
+					jo.AddString("name", name)
+					svcs.AddObject(code, jo)
 				}
 			}
 		}
 	}
+}
 
-	getAudences(doc)
+func getDatelineLocation(nd xml.Node) json.Object {
+	if nd.Nodes == nil {
+		return json.Object{}
+	}
 
-	classification = doc.Xml.DescriptiveMetadata.SalesClassification
-	if classification != nil && len(classification) > 0 {
-		for _, c := range classification {
-			if c.Occurrence != nil {
-				for _, o := range c.Occurrence {
-					if o.Id != "" && o.Value != "" {
-						service := json.Object{}
-						service.AddString("code", o.Id)
-						service.AddString("name", o.Value)
-						services.AddObject(o.Id, &service)
+	var lat, lng float64
+
+	jo := json.Object{}
+
+	for _, n := range nd.Nodes {
+		switch n.Name {
+		case "City":
+			if n.Text != "" {
+				jo.AddString("city", nd.Text)
+			}
+		case "CountryArea":
+			if n.Text != "" {
+				jo.AddString("countryareacode", nd.Text)
+			}
+		case "CountryAreaName":
+			if n.Text != "" {
+				jo.AddString("countryareaname", nd.Text)
+			}
+		case "Country":
+			if n.Text != "" {
+				jo.AddString("countrycode", nd.Text)
+			}
+		case "CountryName":
+			if n.Text != "" {
+				jo.AddString("countryname", nd.Text)
+			}
+		case "LatitudeDD":
+			f, err := strconv.ParseFloat(nd.Text, 64)
+			if err == nil {
+				lat = f
+			}
+		case "LongitudeDD":
+			f, err := strconv.ParseFloat(nd.Text, 64)
+			if err == nil {
+				lng = f
+			}
+		}
+	}
+
+	jo.AddProperty(getGeoProperty(lat, lng))
+
+	return jo
+}
+
+func getThirdParty(nd xml.Node) json.Array {
+	if nd.Nodes == nil {
+		return json.Array{}
+	}
+
+	ja := json.Array{}
+
+	for _, n := range nd.Nodes {
+		jo := json.Object{}
+
+		if n.Attributes != nil {
+			for _, a := range n.Attributes {
+				switch a.Name {
+				case "System":
+					if a.Value != "" {
+						jo.AddString("creator", a.Value)
+					}
+				case "Vocabulary":
+					if a.Value != "" {
+						jo.AddString("vocabulary", a.Value)
+					}
+				case "VocabularyOwner":
+					if a.Value != "" {
+						jo.AddString("vocabularyowner", a.Value)
 					}
 				}
 			}
 		}
-	}
 
-	comments := doc.Xml.DescriptiveMetadata.Comment
-	if comments != nil && len(comments) > 0 {
-		for _, c := range comments {
-			if c != "" {
-				service := json.Object{}
-				service.AddString("apservice", c)
-				services.AddObject(c, &service)
-			}
-		}
-	}
-
-	doc.Generators = generators.ToJsonProperty("generators")
-	doc.Categories = categories.ToJsonProperty("categories")
-	doc.SuppCategories = suppcategories.ToJsonProperty("suppcategories")
-	doc.AlertCategories = alerts.ToJsonProperty("alertcategories")
-
-	doc.Subjects = sbjs.ToJsonProperty("subjects")
-	doc.Persons = persons.ToJsonProperty()
-	doc.Organizations = orgs.ToJsonProperty("organizations")
-	doc.Companies = companies.ToJsonProperty()
-	doc.Places = places.ToJsonProperty()
-	doc.Events = events.ToJsonProperty()
-	doc.Services = services.ToJsonProperty("services")
-}
-
-func getThirdParty(doc *document) {
-	tpms := doc.Xml.DescriptiveMetadata.ThirdPartyMeta
-	if tpms != nil && len(tpms) > 0 {
-		thirdpartymeta := json.Array{}
-
-		for _, tpm := range tpms {
-			jo := json.Object{}
-			if tpm.System != "" {
-				jo.AddString("creator", tpm.System)
-			}
-			if tpm.Vocabulary != "" {
-				jo.AddString("vocabulary", tpm.Vocabulary)
-			}
-			if tpm.VocabularyOwner != "" {
-				jo.AddString("vocabularyowner", tpm.VocabularyOwner)
-			}
-			if tpm.Occurrence != nil && len(tpm.Occurrence) > 0 {
-				o := tpm.Occurrence[0]
-				if o.Id != "" {
-					jo.AddString("code", o.Id)
-				}
-				if o.Value != "" {
-					jo.AddString("name", o.Value)
+		o := n.GetNode("Occurrence")
+		if o.Attributes != nil {
+			for _, a := range o.Attributes {
+				switch a.Name {
+				case "Id":
+					if a.Value != "" {
+						jo.AddString("code", a.Value)
+					}
+				case "Value":
+					if a.Value != "" {
+						jo.AddString("name", a.Value)
+					}
 				}
 			}
-
-			if !jo.IsEmpty() {
-				thirdpartymeta.AddObject(&jo)
-			}
 		}
 
-		if !thirdpartymeta.IsEmpty() {
-			doc.ThirdPartyMeta = json.NewArrayProperty("thirdpartymeta", &thirdpartymeta)
+		if !jo.IsEmpty() {
+			ja.AddObject(jo)
 		}
 	}
+
+	return ja
 }
 
-func getAudences(doc *document) {
+func getAudences(nd xml.Node, fs []filing) uniqueArray {
+	if nd.Nodes == nil {
+		return uniqueArray{}
+	}
+
 	geo := false
-	audiences := uniqueArray{}
+	ua := uniqueArray{}
 
-	classification := doc.Xml.DescriptiveMetadata.AudienceClassification
-	if classification != nil && len(classification) > 0 {
-		for _, c := range classification {
-			if strings.EqualFold(c.Authority, "AP Audience") && strings.EqualFold(c.System, "Editorial") {
-				if c.Occurrence != nil {
-					for _, o := range c.Occurrence {
-						if o.Id != "" && o.Value != "" {
-							key := o.Id
-							audience := json.Object{}
-							audience.AddString("code", o.Id)
-							audience.AddString("name", o.Value)
+	for _, n := range nd.Nodes {
+		var auth, system string
 
-							if o.Property != nil && len(o.Property) > 0 {
-								prop := o.Property[0]
-								if prop.Value != "" {
-									if strings.EqualFold(prop.Value, "AUDGEOGRAPHY") {
-										geo = true
-									}
-									audience.AddString("type", prop.Value)
+		if n.Attributes != nil {
+			for _, a := range n.Attributes {
+				switch a.Name {
+				case "Authority":
+					auth = a.Value
+				case "System":
+					system = a.Value
+				}
+			}
+
+			if strings.EqualFold(auth, "AP Audience") && strings.EqualFold(system, "Editorial") && n.Nodes != nil {
+				for _, o := range n.Nodes {
+					if o.Name == "Occurrence" {
+						var id, value string
+
+						if o.Attributes != nil {
+							for _, a := range o.Attributes {
+								switch a.Name {
+								case "Id":
+									id = a.Value
+								case "Value":
+									value = a.Value
 								}
 							}
+						}
 
-							audiences.AddObject(key, &audience)
+						if id != "" && value != "" {
+							jo := json.Object{}
+							jo.AddString("code", id)
+							jo.AddString("name", value)
+
+							p := o.GetNode("Property")
+							if p.Text != "" {
+								if strings.EqualFold(p.Text, "AUDGEOGRAPHY") {
+									geo = true
+								}
+								jo.AddString("type", p.Text)
+							}
+
+							ua.AddObject(id, jo)
 						}
 					}
 				}
@@ -245,18 +331,44 @@ func getAudences(doc *document) {
 		}
 	}
 
-	if !geo && doc.Xml.FilingMetadata != nil {
-		for _, f := range doc.Xml.FilingMetadata {
+	if !geo && fs != nil {
+		for _, f := range fs {
 			if strings.EqualFold(f.Category, "n") {
 				state := getState(f.Source)
 				if state != nil {
-					audiences.AddObject(state.Code, state.ToJson())
+					ua.AddObject(state.Code, state.ToJson())
 				}
 			}
 		}
 	}
 
-	if !audiences.IsEmpty() {
-		doc.Audiences = audiences.ToJsonProperty("audiences")
+	return ua
+}
+
+func getAuthorities(nd xml.Node) (string, string) {
+	var auth, av string
+	for _, a := range nd.Attributes {
+		switch a.Name {
+		case "Authority":
+			auth = a.Value
+		case "AuthorityVersion":
+			av = a.Value
+		}
 	}
+	return auth, av
+}
+
+func getOccurrenceCodeName(nd xml.Node) (string, string) {
+	var code, name string
+	if nd.Name == "Occurrence" && nd.Attributes != nil {
+		for _, a := range nd.Attributes {
+			switch a.Value {
+			case "Id":
+				code = a.Value
+			case "Value":
+				name = a.Value
+			}
+		}
+	}
+	return code, name
 }

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/ymetelkin/go/json"
+	"github.com/ymetelkin/go/xml"
 )
 
 type subject struct {
@@ -21,16 +22,40 @@ type subjects struct {
 	Subjects []subject
 }
 
-func (sbjs *subjects) Parse(c Classification) {
-	if c.Occurrence == nil {
+func (sbjs *subjects) Parse(nd xml.Node) {
+	if nd.Nodes == nil {
 		return
 	}
 
-	for _, o := range c.Occurrence {
-		if o.Id != "" && o.Value != "" {
+	system := nd.GetAttribute("System")
+
+	for _, n := range nd.Nodes {
+		var (
+			code, name, match, pid string
+			tp                     bool
+		)
+
+		if n.Name == "Occurrence" && n.Attributes != nil {
+			for _, a := range nd.Attributes {
+				switch a.Value {
+				case "Id":
+					code = a.Value
+				case "Value":
+					name = a.Value
+				case "ActualMatch":
+					match = a.Value
+				case "ParentId":
+					pid = a.Value
+				case "TopParent":
+					tp = a.Value == "true"
+				}
+			}
+		}
+
+		if code != "" && name != "" {
 			var sbj subject
 
-			key := fmt.Sprintf("%s_%s", o.Id, o.Value)
+			key := fmt.Sprintf("%s_%s", code, name)
 
 			if sbjs.Keys == nil {
 				sbjs.Keys = make(map[string]int)
@@ -41,20 +66,20 @@ func (sbjs *subjects) Parse(c Classification) {
 			if ok {
 				sbj = sbjs.Subjects[i]
 			} else {
-				sbj = subject{Name: o.Value, Code: o.Id, Creator: c.System}
+				sbj = subject{Name: name, Code: code, Creator: system}
 				sbjs.Subjects = append(sbjs.Subjects, sbj)
 				i = len(sbjs.Subjects) - 1
 				sbjs.Keys[key] = i
 			}
 
-			if sbj.Creator == "" || strings.EqualFold(c.System, "Editorial") {
-				sbj.Creator = c.System
+			if sbj.Creator == "" || strings.EqualFold(system, "Editorial") {
+				sbj.Creator = system
 			}
 
-			setRels(c, o, &sbj.Rels)
+			setRels(system, match, &sbj.Rels)
 
-			sbj.ParentIds.AddString(o.ParentId)
-			sbj.TopParent = o.TopParent
+			sbj.ParentIds.AddString(pid)
+			sbj.TopParent = tp
 
 			sbjs.Subjects[i] = sbj
 		}
@@ -82,9 +107,9 @@ func (sbjs *subjects) ToJsonProperty(field string) json.Property {
 			if sbj.TopParent {
 				subject.AddBool("topparent", true)
 			}
-			ja.AddObject(&subject)
+			ja.AddObject(subject)
 		}
-		return json.NewArrayProperty(field, &ja)
+		return json.NewArrayProperty(field, ja)
 	}
 
 	return json.Property{}

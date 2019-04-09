@@ -27,13 +27,23 @@ func TestRights(t *testing.T) {
 		</UsageRights>
 	</RightsMetadata>
 </Publication>`
-	pub, _ := NewXml(s)
-	doc := document{Xml: pub}
+doc, _ := parseXml(s)
+jo := json.Object{}
 
-	err := pub.RightsMetadata.parse(&doc)
-	if err != nil {
-		t.Error(err.Error())
-	}
+err = doc.ParseIdentification(&jo)
+if err != nil {
+	t.Error(err.Error())
+}
+
+err = doc.ParseAdministrativeMetadata(&jo)
+if err != nil {
+	t.Error(err.Error())
+}
+
+if _, err := jo.GetObject("provider"); err != nil {
+	t.Error("[provider] is expected")
+}
+
 
 	if doc.UsageRights.IsEmtpy() {
 		t.Error("[usagerights] is expected")

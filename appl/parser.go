@@ -33,7 +33,7 @@ type document struct {
 	AdministrativeMetadata xml.Node
 	RightsMetadata         xml.Node
 	DescriptiveMetadata    xml.Node
-	Filings                []xml.Node
+	Filings                []filing
 	ItemID                 string
 	MediaType              MediaType
 	CompositionType        string
@@ -42,18 +42,16 @@ type document struct {
 	Function               string
 	Title                  string
 	Headline               string
-	CopyrightNotice        string
-	SlugLine               string
-	ForeignKey             string
 	PubStatus              PubStatus
 	FirstCreatedYear       int
 	Signals                uniqueArray
+	Fixture                bool
 }
 
-func XmlToJson(s string) (*json.Object, error) {
+func XmlToJson(s string) (json.Object, error) {
 	doc, err := parseXml(s)
 	if err != nil {
-		return nil, err
+		return json.Object{}, err
 	}
 
 	jo := json.Object{}
@@ -62,27 +60,27 @@ func XmlToJson(s string) (*json.Object, error) {
 
 	err = doc.ParseIdentification(&jo)
 	if err != nil {
-		return nil, err
+		return json.Object{}, err
 	}
 
 	err = doc.ParsePublicationManagement(&jo)
 	if err != nil {
-		return nil, err
+		return json.Object{}, err
 	}
 
 	err = doc.ParseNewsLines(&jo)
 	if err != nil {
-		return nil, err
+		return json.Object{}, err
 	}
 
 	err = doc.ParseAdministrativeMetadata(&jo)
 	if err != nil {
-		return nil, err
+		return json.Object{}, err
 	}
 
 	err = doc.ParseRightsMetadata(&jo)
 	if err != nil {
-		return nil, err
+		return json.Object{}, err
 	}
 
 	doc.SetReferenceId(&jo)
@@ -94,11 +92,13 @@ func XmlToJson(s string) (*json.Object, error) {
 func parseXml(s string) (document, error) {
 	root, err := xml.New(s)
 	if err != nil {
-		return nil, err
+		return document{}, err
 	}
 
-	doc := document{}
-	filings := []xml.Node{}
+	var (
+		fs  []filing
+		doc document
+	)
 
 	for _, nd := range root.Nodes {
 		switch nd.Name {
@@ -115,58 +115,16 @@ func parseXml(s string) (document, error) {
 		case "DescriptiveMetadata":
 			doc.DescriptiveMetadata = nd
 		case "FilingMetadata":
-			filings = append(filings, nd)
+			f := parseFiling(nd)
+			if fs == nil {
+				fs = []filing{f}
+			} else {
+				fs = append(fs, f)
+			}
 		}
 	}
 
-	doc.Filings = filings
+	doc.Filings = fs
 
 	return doc, nil
-}
-
-func (doc *document) ToJson() (*json.Object, error) {
-
-	/*
-
-
-		rm := doc.Xml.RightsMetadata
-
-		if rm.Copyright.Holder != "" {
-			jo.AddString("copyrightholder", rm.Copyright.Holder)
-		}
-
-		if rm.Copyright.Date > 0 {
-			jo.AddInt("copyrightdate", rm.Copyright.Date)
-		}
-
-		jo.AddProperty(doc.UsageRights)
-
-		//desc := doc.Xml.DescriptiveMetadata
-
-		jo.AddProperty(doc.Descriptions)
-		jo.AddProperty(doc.DatelineLocation)
-		jo.AddProperty(doc.Generators)
-		jo.AddProperty(doc.Categories)
-		jo.AddProperty(doc.SuppCategories)
-		jo.AddProperty(doc.AlertCategories)
-		jo.AddProperty(doc.Subjects)
-		jo.AddProperty(doc.Persons)
-		jo.AddProperty(doc.Organizations)
-		jo.AddProperty(doc.Companies)
-		jo.AddProperty(doc.Places)
-		jo.AddProperty(doc.Events)
-		jo.AddProperty(doc.Audiences)
-		jo.AddProperty(doc.Services)
-		jo.AddProperty(doc.ThirdPartyMeta)
-
-		jo.AddProperty(doc.Filings)
-
-		if doc.Texts != nil {
-			for k, v := range doc.Texts {
-				jo.AddObject(k, v)
-			}
-		}
-	*/
-
-	return nil, nil
 }

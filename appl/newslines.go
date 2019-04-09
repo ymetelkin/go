@@ -2,20 +2,23 @@ package appl
 
 import (
 	"errors"
+	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/ymetelkin/go/json"
+	"github.com/ymetelkin/go/xml"
 )
 
 func (doc *document) ParseNewsLines(jo *json.Object) error {
-	if doc.NewsLines == nil {
+	if doc.NewsLines.Nodes == nil {
 		return errors.New("NewsLines is missing")
 	}
 
 	var (
 		summary       bool
 		overs, keys   uniqueArray
-		bys, byos, ns []Node
+		bys, byos, ns []xml.Node
 	)
 
 	for _, nd := range doc.NewsLines.Nodes {
@@ -25,10 +28,10 @@ func (doc *document) ParseNewsLines(jo *json.Object) error {
 				doc.Title = nd.Text
 				jo.AddString("title", nd.Text)
 			}
-		case "HeadLine":
+		case "Headline":
 			jo.AddString("headline", nd.Text)
 			if nd.Text != "" {
-				doc.HeadLine = nd.Text
+				doc.Headline = nd.Text
 			}
 		case "ExtendedHeadLine":
 			if nd.Text != "" {
@@ -48,10 +51,7 @@ func (doc *document) ParseNewsLines(jo *json.Object) error {
 				jo.AddString("rightsline", nd.Text)
 			}
 		case "CopyrightLine":
-			if nd.Text != "" {
-				doc.CopyrightNotice = nd.Text
-				jo.AddString("copyrightnotice", nd.Text)
-			}
+			doc.SetCopyright(nd.Text, jo)
 		case "SeriesLine":
 			if nd.Text != "" {
 				jo.AddString("seriesline", nd.Text)
@@ -65,50 +65,37 @@ func (doc *document) ParseNewsLines(jo *json.Object) error {
 				jo.AddString("locationline", nd.Text)
 			}
 		case "OverLine":
-			if nd.Text != "" {
-				if overs == nil {
-					overs = uniqueArray{}
-				}
-				overs.AddString(nd.Text)
-			}
+			overs.AddString(nd.Text)
 		case "KeywordLine":
-			if nd.Text != "" {
-				if keys == nil {
-					keys = uniqueArray{}
-				}
-				keys.AddString(nd.Text)
-			}
+			keys.AddString(nd.Text)
 		case "ByLineOriginal":
 			if byos == nil {
-				byos = []Node{nd}
+				byos = []xml.Node{nd}
 			} else {
 				byos = append(byos, nd)
 			}
 		case "ByLine":
 			if bys == nil {
-				bys = []Node{nd}
+				bys = []xml.Node{nd}
 			} else {
 				bys = append(byos, nd)
 			}
 		case "NameLine":
 			if ns == nil {
-				ns = []Node{nd}
+				ns = []xml.Node{nd}
 			} else {
 				ns = append(byos, nd)
 			}
 		}
 	}
 
-	if overs != nil {
-		jo.AddProperty(overs.ToJsonProperty("overlines"))
-	}
+	jo.AddProperty(overs.ToJsonProperty("overlines"))
+	jo.AddProperty(keys.ToJsonProperty("keywordlines"))
 
-	if keys != nil {
-		jo.AddProperty(keys.ToJsonProperty("keywordlines"))
-	}
+	getBylines(bys, byos, jo)
+	getPerson(ns, jo)
 
-	getBylines(bys, byos, &jo)
-	getPerson(ns, &jo)
+	return nil
 }
 
 func (doc *document) SetHeadline(jo *json.Object) {
@@ -117,13 +104,13 @@ func (doc *document) SetHeadline(jo *json.Object) {
 	t := doc.MediaType
 
 	if t == MEDIATYPE_TEXT || t == MEDIATYPE_AUDIO {
-		if doc.HeadLine != "" {
+		if doc.Headline != "" {
 			return
 		} else if doc.Title != "" {
 			headline = doc.Title
 		}
 	} else if t == MEDIATYPE_VIDEO && (doc.Function == "" || !strings.EqualFold(doc.Function, "APTNLibrary")) {
-		if doc.HeadLine != "" {
+		if doc.Headline != "" {
 			return
 		} else if doc.Title != "" {
 			headline = doc.Title
@@ -131,11 +118,11 @@ func (doc *document) SetHeadline(jo *json.Object) {
 	} else if t == MEDIATYPE_PHOTO || t == MEDIATYPE_GRAPHIC || (t == MEDIATYPE_VIDEO && strings.EqualFold(doc.Function, "APTNLibrary")) {
 		if doc.Title != "" {
 			headline = doc.Title
-		} else if doc.HeadLine != "" {
-			headline = doc.HeadLine
+		} else if doc.Headline != "" {
+			headline = doc.Headline
 		}
 	} else if t == MEDIATYPE_AUDIO {
-		if doc.HeadLine != "" {
+		if doc.Headline != "" {
 			return
 		} else if doc.Title != "" {
 			headline = doc.Title
@@ -146,10 +133,48 @@ func (doc *document) SetHeadline(jo *json.Object) {
 		jo.SetString("headline", headline)
 	}
 
-	doc.Headline = json.NewStringProperty("headline", headline)
+	doc.Headline = headline
 }
 
-func getBylines(bys []Node, byos []Node, jo *json.Object) {
+func (doc *document) SetCopyright(s string, jo *json.Object) {
+	var (
+		holder string
+		year   int
+	)
+
+	rmd := doc.RightsMetadata
+	nd := rmd.GetNode("Copyright")
+	if nd.Attributes != nil {
+		for _, a := range nd.Attributes {
+			switch a.Name {
+			case "Holder":
+				holder = a.Value
+			case "Date":
+				i, err := strconv.Atoi(a.Value)
+				if err == nil {
+					year = i
+				}
+			}
+		}
+	}
+
+	if s == "" && holder != "" && doc.FirstCreatedYear > 0 {
+		s = fmt.Sprintf("Copyright %d %s. All rights reserved. This material may not be published, broadcast, rewritten or redistributed.", doc.FirstCreatedYear, holder)
+	}
+
+	if s != "" {
+		jo.AddString("copyrightnotice", s)
+	}
+	if holder != "" {
+		jo.AddString("copyrightholder", holder)
+	}
+
+	if year > 0 {
+		jo.AddInt("copyrightdate", year)
+	}
+}
+
+func getBylines(bys []xml.Node, byos []xml.Node, jo *json.Object) {
 	if bys == nil || len(bys) == 0 {
 		return
 	}
@@ -217,7 +242,7 @@ func getBylines(bys []Node, byos []Node, jo *json.Object) {
 				} else if strings.EqualFold(pm, "EDITEDBY") {
 					edit := json.Object{}
 					edit.AddString("name", bl.Text)
-					edits.AddObject(&edit)
+					edits.AddObject(edit)
 				} else {
 					byline := json.Object{}
 					if id != "" {
@@ -245,7 +270,7 @@ func getBylines(bys []Node, byos []Node, jo *json.Object) {
 	}
 }
 
-func getBylineAttributes(nd Node) (string, string, string) {
+func getBylineAttributes(nd xml.Node) (string, string, string) {
 	var id, title, pm string
 
 	if nd.Attributes != nil {
@@ -263,7 +288,7 @@ func getBylineAttributes(nd Node) (string, string, string) {
 	return id, title, pm
 }
 
-func getPerson(ns []Node, jo *json.Object) {
+func getPerson(ns []xml.Node, jo *json.Object) {
 	if ns == nil || len(ns) == 0 {
 		return
 	}
@@ -286,6 +311,6 @@ func getPerson(ns []Node, jo *json.Object) {
 	}
 
 	if add {
-		jo.AddArray("person", &persons)
+		jo.AddArray("person", persons)
 	}
 }

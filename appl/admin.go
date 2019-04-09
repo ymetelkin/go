@@ -6,65 +6,48 @@ import (
 	"strings"
 
 	"github.com/ymetelkin/go/json"
+	"github.com/ymetelkin/go/xml"
 )
 
 func (doc *document) ParseAdministrativeMetadata(jo *json.Object) error {
-	if doc.AdministrativeMetadata == nil {
+	if doc.AdministrativeMetadata.Nodes == nil {
 		return errors.New("AdministrativeMetadata is missing")
 	}
 
 	var (
 		summary, s1, s2    bool
 		tss, pss, dcs, ins uniqueArray
-		srcs, sms, rts     []Node
+		srcs, sms, rts     []xml.Node
 		ict, fx            json.Object
 		cntr               string
 	)
 
 	s1 = !doc.Signals.IsEmpty()
 
-	for _, nd := range doc.NewsLines.Nodes {
+	for _, nd := range doc.AdministrativeMetadata.Nodes {
 		switch nd.Name {
 		case "Provider":
-			getProvider(nd, &jo)
+			getProvider(nd, jo)
 		case "Source":
 			if srcs == nil {
-				srcs = []Node{nd}
+				srcs = []xml.Node{nd}
 			} else {
 				srcs = append(srcs, nd)
 			}
 		case "SourceMaterial":
 			if sms == nil {
-				sms = []Node{nd}
+				sms = []xml.Node{nd}
 			} else {
 				sms = append(sms, nd)
 			}
 		case "TransmissionSource":
-			if nd.Text != "" {
-				if tss == nil {
-					tss = uniqueArray{}
-				}
-				tss.AddString(nd.Text)
-			}
+			tss.AddString(nd.Text)
 		case "ProductSource":
-			if nd.Text != "" {
-				if pss == nil {
-					pss = uniqueArray{}
-				}
-				pss.AddString(nd.Text)
-			}
+			pss.AddString(nd.Text)
 		case "DistributionChannel":
-			if nd.Text != "" {
-				if dcs == nil {
-					dcs = uniqueArray{}
-				}
-				dcs.AddString(nd.Text)
-			}
+			dcs.AddString(nd.Text)
 		case "InPackage":
 			if nd.Text != "" {
-				if ins == nil {
-					ins = uniqueArray{}
-				}
 				tokens := strings.Split(nd.Text, " ")
 				for _, token := range tokens {
 					ins.AddString(token)
@@ -101,31 +84,22 @@ func (doc *document) ParseAdministrativeMetadata(jo *json.Object) error {
 			}
 		case "Rating":
 			if rts == nil {
-				rts = []Node{nd}
+				rts = []xml.Node{nd}
 			} else {
 				rts = append(rts, nd)
 			}
 		case "Reach":
 			if nd.Text != "" && !strings.EqualFold(nd.Text, "UNKNOWN") {
-				if doc.Signals == nil {
-					doc.Signals = uniqueArray{}
-				}
 				doc.Signals.AddString(nd.Text)
 				s2 = true
 			}
 		case "ConsumerReady":
 			if nd.Text != "" && strings.EqualFold(nd.Text, "TRUE") {
-				if doc.Signals == nil {
-					doc.Signals = uniqueArray{}
-				}
 				doc.Signals.AddString("newscontent")
 				s2 = true
 			}
 		case "Signal":
 			if nd.Text != "" {
-				if doc.Signals == nil {
-					doc.Signals = uniqueArray{}
-				}
 				doc.Signals.AddString("newscontent")
 				s2 = true
 			}
@@ -136,19 +110,20 @@ func (doc *document) ParseAdministrativeMetadata(jo *json.Object) error {
 		}
 	}
 
-	getSources(srcs, &jo)
-	getSourceMaterials(sms, &jo)
+	getSources(srcs, jo)
+	getSourceMaterials(sms, jo)
 
 	jo.AddProperty(tss.ToJsonProperty("transmissionsources"))
 	jo.AddProperty(pss.ToJsonProperty("productsources"))
 
-	if ict != nil && !ict.IsEmpty() {
+	if !ict.IsEmpty() {
 		jo.AddObject("itemcontenttype", ict)
 	}
 
 	jo.AddProperty(dcs.ToJsonProperty("distributionchannels"))
 
-	if fx != nil && !fx.IsEmpty() {
+	if !fx.IsEmpty() {
+		doc.Fixture = true
 		jo.AddObject("fixture", fx)
 	}
 
@@ -158,7 +133,7 @@ func (doc *document) ParseAdministrativeMetadata(jo *json.Object) error {
 		jo.AddString("contributor", cntr)
 	}
 
-	getRatings(rts, &jo)
+	getRatings(rts, jo)
 
 	if s2 {
 		if s1 {
@@ -167,9 +142,11 @@ func (doc *document) ParseAdministrativeMetadata(jo *json.Object) error {
 			jo.AddProperty(doc.Signals.ToJsonProperty("signals"))
 		}
 	}
+
+	return nil
 }
 
-func getProvider(nd Node, jo *json.Object) {
+func getProvider(nd xml.Node, jo *json.Object) {
 	provider := json.Object{}
 
 	if nd.Attributes != nil {
@@ -200,7 +177,7 @@ func getProvider(nd Node, jo *json.Object) {
 	}
 }
 
-func getSources(srcs []Node, jo *json.Object) {
+func getSources(srcs []xml.Node, jo *json.Object) {
 	if srcs == nil || len(srcs) == 0 {
 		return
 	}
@@ -250,12 +227,12 @@ func getSources(srcs []Node, jo *json.Object) {
 		}
 	}
 
-	if len(sources) > 0 {
+	if !sources.IsEmpty() {
 		jo.AddArray("sources", sources)
 	}
 }
 
-func getSourceMaterials(srcs []Node, jo *json.Object) {
+func getSourceMaterials(srcs []xml.Node, jo *json.Object) {
 	if srcs == nil || len(srcs) == 0 {
 		return
 	}
@@ -274,7 +251,7 @@ func getSourceMaterials(srcs []Node, jo *json.Object) {
 				case "Url":
 					url = n.Text
 				case "PermissionGranted":
-					pm = n.Text
+					pg = n.Text
 				}
 			}
 		}
@@ -321,7 +298,7 @@ func getSourceMaterials(srcs []Node, jo *json.Object) {
 	}
 }
 
-func getRatings(rts []Node, jo *json.Object) {
+func getRatings(rts []xml.Node, jo *json.Object) {
 	if rts != nil {
 		ratings := json.Array{}
 
@@ -336,21 +313,21 @@ func getRatings(rts []Node, jo *json.Object) {
 					switch a.Name {
 					case "Value":
 						if a.Value != "" {
-							i, err := strconv.Atoi(nd.Text)
+							i, err := strconv.Atoi(a.Value)
 							if err == nil {
 								rate = i
 							}
 						}
 					case "ScaleMin":
 						if a.Value != "" {
-							i, err := strconv.Atoi(nd.Text)
+							i, err := strconv.Atoi(a.Value)
 							if err == nil {
 								min = i
 							}
 						}
 					case "ScaleMax":
 						if a.Value != "" {
-							i, err := strconv.Atoi(nd.Text)
+							i, err := strconv.Atoi(a.Value)
 							if err == nil {
 								max = i
 							}
@@ -359,7 +336,7 @@ func getRatings(rts []Node, jo *json.Object) {
 						unit = a.Value
 					case "Raters":
 						if a.Value != "" {
-							i, err := strconv.Atoi(nd.Text)
+							i, err := strconv.Atoi(a.Value)
 							if err == nil {
 								raters = i
 							}

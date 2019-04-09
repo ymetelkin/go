@@ -11,12 +11,12 @@ type state struct {
 	Name string
 }
 
-func (st *state) ToJson() *json.Object {
+func (st *state) ToJson() json.Object {
 	jo := json.Object{}
 	jo.AddString("code", st.Code)
 	jo.AddString("name", st.Name)
 	jo.AddString("type", "AUDGEOGRAPHY")
-	return &jo
+	return jo
 }
 
 func getState(s string) *state {

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/ymetelkin/go/json"
+	"github.com/ymetelkin/go/xml"
 )
 
 type person struct {
@@ -24,16 +25,19 @@ type persons struct {
 	Persons []person
 }
 
-func (ps *persons) Parse(c Classification) {
-	if c.Occurrence == nil {
+func (ps *persons) Parse(nd xml.Node) {
+	if nd.Nodes == nil {
 		return
 	}
 
-	for _, o := range c.Occurrence {
-		if o.Id != "" && o.Value != "" {
-			var p person
+	system := nd.GetAttribute("System")
 
-			key := fmt.Sprintf("%s_%s", o.Id, o.Value)
+	for _, n := range nd.Nodes {
+		code, name := getOccurrenceCodeName(n)
+		if code != "" && name != "" {
+			var prs person
+
+			key := fmt.Sprintf("%s_%s", code, name)
 
 			if ps.Keys == nil {
 				ps.Keys = make(map[string]int)
@@ -42,44 +46,62 @@ func (ps *persons) Parse(c Classification) {
 
 			i, ok := ps.Keys[key]
 			if ok {
-				p = ps.Persons[i]
+				prs = ps.Persons[i]
 			} else {
-				p = person{Name: o.Value, Code: o.Id, Creator: c.System}
-				p.Rels.AddString("direct")
-				ps.Persons = append(ps.Persons, p)
+				prs = person{Name: name, Code: code, Creator: system}
+				prs.Rels.AddString("direct")
+				ps.Persons = append(ps.Persons, prs)
 				i = len(ps.Persons) - 1
 				ps.Keys[key] = i
 			}
 
-			for _, prop := range o.Property {
-				if prop.Name != "" && prop.Value != "" {
-					name := strings.ToLower(prop.Name)
-					if name == "partytype" {
-						if strings.EqualFold(prop.Value, "PERSON_FEATURED") {
-							p.Rels.AddString(prop.Value)
-							if p.Creator == "" {
-								p.Creator = "Editorial"
+			if n.Nodes != nil {
+				for _, p := range n.Nodes {
+					if p.Attributes != nil {
+						var id, pid, n, v string
+						for _, a := range p.Attributes {
+							switch a.Name {
+							case "Id":
+								id = a.Value
+							case "Name":
+								n = a.Value
+							case "Value":
+								v = a.Value
+							case "ParentId":
+								pid = a.Value
 							}
-						} else {
-							p.Types.AddString(prop.Value)
 						}
-					} else if name == "team" && prop.Id != "" {
-						p.Teams.AddKeyValue("code", prop.Id, "name", prop.Value)
-					} else if name == "associatedevent" && prop.Id != "" {
-						p.Events.AddKeyValue("code", prop.Id, "name", prop.Value)
-					} else if name == "associatedstate" && prop.Id != "" {
-						p.States.AddKeyValue("code", prop.Id, "name", prop.Value)
-					} else if name == "extid" {
-						p.Ids.AddString(prop.Value)
+
+						if n != "" && v != "" {
+							key := strings.ToLower(n)
+							if key == "partytype" {
+								if strings.EqualFold(v, "PERSON_FEATURED") {
+									prs.Rels.AddString(v)
+									if prs.Creator == "" {
+										prs.Creator = "Editorial"
+									}
+								} else {
+									prs.Types.AddString(v)
+								}
+							} else if key == "team" && id != "" {
+								prs.Teams.AddKeyValue("code", id, "name", v)
+							} else if key == "associatedevent" && id != "" {
+								prs.Events.AddKeyValue("code", id, "name", v)
+							} else if key == "associatedstate" && id != "" {
+								prs.States.AddKeyValue("code", id, "name", v)
+							} else if key == "extid" {
+								prs.Ids.AddString(v)
+							}
+						}
 					}
 				}
 			}
 
-			if p.Creator == "" || strings.EqualFold(c.System, "Editorial") {
-				p.Creator = c.System
+			if prs.Creator == "" || strings.EqualFold(system, "Editorial") {
+				prs.Creator = system
 			}
 
-			ps.Persons[i] = p
+			ps.Persons[i] = prs
 		}
 	}
 }
@@ -115,10 +137,10 @@ func (ps *persons) ToJsonProperty() json.Property {
 				person.AddProperty(p.Ids.ToJsonProperty("extids"))
 			}
 
-			ja.AddObject(&person)
+			ja.AddObject(person)
 		}
 
-		return json.NewArrayProperty("persons", &ja)
+		return json.NewArrayProperty("persons", ja)
 	}
 
 	return json.Property{}

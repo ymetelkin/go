@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/ymetelkin/go/json"
+	"github.com/ymetelkin/go/xml"
 )
 
 type company struct {
@@ -26,16 +27,19 @@ type companies struct {
 	Companies []company
 }
 
-func (cs *companies) Parse(c Classification) {
-	if c.Occurrence == nil {
+func (cs *companies) Parse(nd xml.Node) {
+	if nd.Nodes == nil {
 		return
 	}
 
-	for _, o := range c.Occurrence {
-		if o.Id != "" && o.Value != "" {
+	system := nd.GetAttribute("System")
+
+	for _, n := range nd.Nodes {
+		code, name := getOccurrenceCodeName(n)
+		if code != "" && name != "" {
 			var comp company
 
-			key := fmt.Sprintf("%s_%s", o.Id, o.Value)
+			key := fmt.Sprintf("%s_%s", code, name)
 
 			if cs.Keys == nil {
 				cs.Keys = make(map[string]int)
@@ -46,7 +50,7 @@ func (cs *companies) Parse(c Classification) {
 			if ok {
 				comp = cs.Companies[i]
 			} else {
-				comp = company{Name: o.Value, Code: o.Id, Creator: c.System}
+				comp = company{Name: name, Code: code, Creator: system}
 				comp.Rels.AddString("direct")
 				cs.Companies = append(cs.Companies, comp)
 				i = len(cs.Companies) - 1
@@ -58,33 +62,51 @@ func (cs *companies) Parse(c Classification) {
 				exchanges map[string]string
 			)
 
-			for _, prop := range o.Property {
-				if prop.Name != "" && prop.Value != "" {
-					name := strings.ToLower(prop.Name)
-					if name == "apindustry" && prop.Id != "" {
-						comp.Industries.AddKeyValue("code", prop.Id, "name", prop.Value)
-					} else if name == "instrument" {
-						instrument := strings.ToUpper(prop.Value)
-						tokens := strings.Split(instrument, ":")
-						if len(tokens) == 2 {
-							symbol := json.Object{}
-							symbol.AddString("ticker", tokens[1])
-							symbol.AddString("exchange", tokens[0])
-							symbol.AddString("instrument", instrument)
-							comp.Symbols.AddObject(instrument, &symbol)
+			if n.Nodes != nil {
+				for _, p := range n.Nodes {
+					if p.Attributes != nil {
+						var id, pid, n, v string
+						for _, a := range p.Attributes {
+							switch a.Name {
+							case "Id":
+								id = a.Value
+							case "Name":
+								n = a.Value
+							case "Value":
+								v = a.Value
+							case "ParentId":
+								pid = a.Value
+							}
 						}
-					} else if name == "primaryticker" || name == "ticker" {
-						t := ticker{Value: strings.ToUpper(prop.Value), ParentId: prop.ParentId}
-						if tickers == nil {
-							tickers = []ticker{t}
-						} else {
-							tickers = append(tickers, t)
+
+						if n != "" && v != "" {
+							key := strings.ToLower(n)
+							if key == "apindustry" && id != "" {
+								comp.Industries.AddKeyValue("code", id, "name", v)
+							} else if key == "instrument" {
+								instrument := strings.ToUpper(v)
+								tokens := strings.Split(instrument, ":")
+								if len(tokens) == 2 {
+									symbol := json.Object{}
+									symbol.AddString("ticker", tokens[1])
+									symbol.AddString("exchange", tokens[0])
+									symbol.AddString("instrument", instrument)
+									comp.Symbols.AddObject(instrument, symbol)
+								}
+							} else if key == "primaryticker" || key == "ticker" {
+								t := ticker{Value: strings.ToUpper(v), ParentId: pid}
+								if tickers == nil {
+									tickers = []ticker{t}
+								} else {
+									tickers = append(tickers, t)
+								}
+							} else if key == "exchange" {
+								if exchanges == nil {
+									exchanges = make(map[string]string)
+								}
+								exchanges[id] = strings.ToUpper(v)
+							}
 						}
-					} else if name == "exchange" {
-						if exchanges == nil {
-							exchanges = make(map[string]string)
-						}
-						exchanges[prop.Id] = strings.ToUpper(prop.Value)
 					}
 				}
 			}
@@ -113,13 +135,13 @@ func (cs *companies) Parse(c Classification) {
 						symbol.AddString("ticker", ticker.Value)
 						symbol.AddString("exchange", exchange)
 						symbol.AddString("instrument", instrument)
-						comp.Symbols.AddObject(instrument, &symbol)
+						comp.Symbols.AddObject(instrument, symbol)
 					}
 				}
 			}
 
-			if comp.Creator == "" || strings.EqualFold(c.System, "Editorial") {
-				comp.Creator = c.System
+			if comp.Creator == "" || strings.EqualFold(system, "Editorial") {
+				comp.Creator = system
 			}
 
 			cs.Companies[i] = comp
@@ -149,10 +171,10 @@ func (cs *companies) ToJsonProperty() json.Property {
 				company.AddProperty(comp.Symbols.ToJsonProperty("symbols"))
 			}
 
-			ja.AddObject(&company)
+			ja.AddObject(company)
 		}
 
-		return json.NewArrayProperty("companies", &ja)
+		return json.NewArrayProperty("companies", ja)
 	}
 
 	return json.Property{}

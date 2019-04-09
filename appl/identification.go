@@ -10,7 +10,7 @@ import (
 )
 
 func (doc *document) ParseIdentification(jo *json.Object) error {
-	if doc.Identification == nil {
+	if doc.Identification.Nodes == nil {
 		return errors.New("Identification is missing")
 	}
 
@@ -35,11 +35,9 @@ func (doc *document) ParseIdentification(jo *json.Object) error {
 				return err
 			}
 		case "Priority":
-			if nd.Text != "" {
-				i, err := strconv.Atoi(nd.Text)
-				if err == nil {
-					jo.AddInt("priority", i)
-				}
+			i, err := strconv.Atoi(nd.Text)
+			if err == nil {
+				jo.AddInt("priority", i)
 			}
 		case "EditorialPriority":
 			if nd.Text != "" {
@@ -54,11 +52,9 @@ func (doc *document) ParseIdentification(jo *json.Object) error {
 				jo.AddString("editorialpriority", nd.Text)
 			}
 		case "RecordSequenceNumber":
-			if nd.Text != "" {
-				i, err := strconv.Atoi(nd.Text)
-				if err == nil {
-					jo.AddInt("recordsequencenumber", i)
-				}
+			i, err := strconv.Atoi(nd.Text)
+			if err == nil {
+				jo.AddInt("recordsequencenumber", i)
 			}
 		case "FriendlyKey":
 			if nd.Text != "" {
@@ -69,6 +65,8 @@ func (doc *document) ParseIdentification(jo *json.Object) error {
 	}
 
 	jo.AddString("referenceid", doc.ItemID)
+
+	return nil
 }
 
 func (doc *document) SetReferenceId(jo *json.Object) {
@@ -76,23 +74,42 @@ func (doc *document) SetReferenceId(jo *json.Object) {
 
 	if (doc.MediaType == MEDIATYPE_PHOTO || doc.MediaType == MEDIATYPE_GRAPHIC) && doc.FriendlyKey != "" {
 		ref = doc.FriendlyKey
-	} else if doc.MediaType == MEDIATYPE_AUDIO && doc.EditorialId != "" {
-		ref = doc.EditorialId
+	} else if doc.MediaType == MEDIATYPE_AUDIO && doc.EditorialID != "" {
+		ref = doc.EditorialID
 	} else if doc.MediaType == MEDIATYPE_COMPLEXT_DATA && doc.Title != "" {
 		ref = doc.Title
 	} else if doc.MediaType == MEDIATYPE_TEXT {
 		if doc.Title != "" {
 			ref = doc.Title
-		} else if doc.SlugLine != "" {
-			ref = doc.SlugLine
+		} else if doc.Filings != nil {
+			for _, f := range doc.Filings {
+				if f.Slugline != "" {
+					ref = f.Slugline
+					break
+				}
+			}
 		}
 	} else if doc.MediaType == MEDIATYPE_VIDEO {
 		if doc.CompositionType == "StandardBroadcastVideo" {
-			if doc.EditorialId != "" {
-				ref = doc.EditorialId
+			if doc.EditorialID != "" {
+				ref = doc.EditorialID
 			}
-		} else if doc.ForeignKey != "" {
-			ref = doc.ForeignKey
+		} else if doc.Filings != nil {
+			var exit bool
+			for _, f := range doc.Filings {
+				if f.ForeignKeys != nil {
+					for _, fk := range f.ForeignKeys {
+						if fk.Value != "" {
+							ref = fk.Value
+							exit = true
+							break
+						}
+					}
+				}
+				if exit {
+					break
+				}
+			}
 		}
 	}
 
@@ -102,22 +119,23 @@ func (doc *document) SetReferenceId(jo *json.Object) {
 }
 
 func getMediaType(s string) (MediaType, error) {
+	var mt MediaType
 	if strings.EqualFold(s, "text") {
-		doc.MediaType = MEDIATYPE_TEXT
+		mt = MEDIATYPE_TEXT
 	} else if strings.EqualFold(s, "photo") {
-		doc.MediaType = MEDIATYPE_PHOTO
+		mt = MEDIATYPE_PHOTO
 	} else if strings.EqualFold(s, "video") {
-		doc.MediaType = MEDIATYPE_VIDEO
+		mt = MEDIATYPE_VIDEO
 	} else if strings.EqualFold(s, "audio") {
-		doc.MediaType = MEDIATYPE_AUDIO
+		mt = MEDIATYPE_AUDIO
 	} else if strings.EqualFold(s, "graphic") {
-		doc.MediaType = MEDIATYPE_GRAPHIC
+		mt = MEDIATYPE_GRAPHIC
 	} else if strings.EqualFold(s, "complexdata") {
-		doc.MediaType = MEDIATYPE_COMPLEXT_DATA
+		mt = MEDIATYPE_COMPLEXT_DATA
 	} else {
 		e := fmt.Sprintf("Invalid media type [%s]", s)
-		return errors.New(e)
+		return MEDIATYPE_UNKNOWN, errors.New(e)
 	}
 
-	return nil
+	return mt, nil
 }
