@@ -1,7 +1,6 @@
 package appl
 
 import (
-	"errors"
 	"strconv"
 	"strings"
 
@@ -9,48 +8,7 @@ import (
 	"github.com/ymetelkin/go/xml"
 )
 
-func (doc *document) ParsePhotoComponent(pc pubcomponent, parent *json.Object) error {
-	nd := pc.Node.GetNode("DataContent")
-	nd = nd.GetNode("nitf")
-	if nd.Nodes == nil {
-		return errors.New("[nitf] block is missing")
-	}
-
-	nd = getBodyContent(nd)
-	if nd.Nodes == nil {
-		return errors.New("[body.content] block is missing")
-	}
-
-	var sb strings.Builder
-
-	for _, b := range nd.Nodes {
-		if b.Name == "block" {
-			s := b.ToInlineString()
-			sb.WriteString(s)
-		}
-	}
-
-	nitf := sb.String()
-	if nitf == "" {
-		return errors.New("[block] blocks are missing or empty")
-	}
-
-	jo := json.Object{}
-	jo.AddString("nitf", nitf)
-
-	nd = pc.Node.GetNode("Characteristics")
-	nd = nd.GetNode("Words")
-	i, err := strconv.Atoi(nd.Text)
-	if err == nil {
-		jo.AddInt("words", i)
-	}
-
-	parent.AddObject(pc.Role, jo)
-
-	return nil
-}
-
-func getComponentMeta(title string, role string, mt MediaType, nd xml.Node, chars xml.Node) json.Object {
+func getRenditionMeta(title string, role string, mt MediaType, nd xml.Node, chars xml.Node) json.Object {
 	jo := json.Object{}
 	jo.AddString("title", title)
 	jo.AddString("rel", role)

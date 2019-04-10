@@ -54,7 +54,7 @@ func XmlToJson(s string) (json.Object, error) {
 	if err != nil {
 		return json.Object{}, err
 	}
-	
+
 	jo := json.Object{}
 	jo.AddString("representationversion", "1.0")
 	jo.AddString("representationtype", "full")
@@ -92,19 +92,7 @@ func XmlToJson(s string) (json.Object, error) {
 		jo.AddArray("filings", filings)
 	}
 
-	if doc.PublicationComponents != nil {
-		for _, pc := range doc.PublicationComponents {
-			switch pc.Node.Name {
-			case "TextContentItem":
-				doc.ParseTextComponent(pc, &jo)
-			case "PhotoContentItem":
-			case "GraphicContentItem":
-			case "VideoContentItem":
-			case "AudioContentItem":
-			case "ComplexDataContentItem":
-			}
-		}
-	}
+	doc.ParsePublicationComponents(&jo)
 
 	doc.SetReferenceId(&jo)
 	doc.SetHeadline(&jo)

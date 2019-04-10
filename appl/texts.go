@@ -9,7 +9,11 @@ import (
 	"github.com/ymetelkin/go/xml"
 )
 
-func (doc *document) ParseTextComponent(pc pubcomponent, parent *json.Object) error {
+type texts struct {
+	props []json.Property
+}
+
+func (txts *texts) ParseTextComponent(pc pubcomponent) error {
 	nd := pc.Node.GetNode("DataContent")
 	nd = nd.GetNode("nitf")
 	if nd.Nodes == nil {
@@ -45,9 +49,23 @@ func (doc *document) ParseTextComponent(pc pubcomponent, parent *json.Object) er
 		jo.AddInt("words", i)
 	}
 
-	parent.AddObject(strings.ToLower(pc.Role), jo)
+	jp := json.NewObjectProperty(strings.ToLower(pc.Role), jo)
+
+	if txts.props == nil {
+		txts.props = []json.Property{jp}
+	} else {
+		txts.props = append(txts.props, jp)
+	}
 
 	return nil
+}
+
+func (txts *texts) AddProperties(jo *json.Object) {
+	if txts.props != nil {
+		for _, jp := range txts.props {
+			jo.AddProperty(jp)
+		}
+	}
 }
 
 func getBodyContent(nd xml.Node) xml.Node {
