@@ -10,7 +10,7 @@ import (
 )
 
 type texts struct {
-	props []json.Property
+	Texts []json.Property
 }
 
 func (txts *texts) ParseTextComponent(pc pubcomponent) error {
@@ -51,18 +51,18 @@ func (txts *texts) ParseTextComponent(pc pubcomponent) error {
 
 	jp := json.NewObjectProperty(strings.ToLower(pc.Role), jo)
 
-	if txts.props == nil {
-		txts.props = []json.Property{jp}
+	if txts.Texts == nil {
+		txts.Texts = []json.Property{jp}
 	} else {
-		txts.props = append(txts.props, jp)
+		txts.Texts = append(txts.Texts, jp)
 	}
 
 	return nil
 }
 
 func (txts *texts) AddProperties(jo *json.Object) {
-	if txts.props != nil {
-		for _, jp := range txts.props {
+	if txts.Texts != nil {
+		for _, jp := range txts.Texts {
 			jo.AddProperty(jp)
 		}
 	}
