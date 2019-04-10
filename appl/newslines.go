@@ -19,6 +19,7 @@ func (doc *document) ParseNewsLines(jo *json.Object) error {
 		summary       bool
 		overs, keys   uniqueArray
 		bys, byos, ns []xml.Node
+		cr            string
 	)
 
 	for _, nd := range doc.NewsLines.Nodes {
@@ -28,7 +29,7 @@ func (doc *document) ParseNewsLines(jo *json.Object) error {
 				doc.Title = nd.Text
 				jo.AddString("title", nd.Text)
 			}
-		case "Headline":
+		case "HeadLine":
 			jo.AddString("headline", nd.Text)
 			if nd.Text != "" {
 				doc.Headline = nd.Text
@@ -51,7 +52,7 @@ func (doc *document) ParseNewsLines(jo *json.Object) error {
 				jo.AddString("rightsline", nd.Text)
 			}
 		case "CopyrightLine":
-			doc.SetCopyright(nd.Text, jo)
+			cr = nd.Text
 		case "SeriesLine":
 			if nd.Text != "" {
 				jo.AddString("seriesline", nd.Text)
@@ -94,6 +95,8 @@ func (doc *document) ParseNewsLines(jo *json.Object) error {
 
 	getBylines(bys, byos, jo)
 	getPerson(ns, jo)
+
+	doc.SetCopyright(cr, jo)
 
 	return nil
 }

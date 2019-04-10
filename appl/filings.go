@@ -69,6 +69,10 @@ func parseFiling(nd xml.Node) filing {
 			if n.Text != "" {
 				jo.AddString("selector", n.Text)
 			}
+		case "Format":
+			if n.Text != "" {
+				jo.AddString("format", n.Text)
+			}
 		case "Source":
 			if n.Text != "" {
 				f.Source = nd.Text
@@ -99,9 +103,9 @@ func parseFiling(nd xml.Node) filing {
 						}
 					}
 				}
-				if nd.Text != "" && t != "" {
+				if n.Text != "" && t != "" {
 					ua := uniqueArray{}
-					tokens := strings.Split(nd.Text, " ")
+					tokens := strings.Split(n.Text, " ")
 					for _, s := range tokens {
 						ua.AddString(s)
 					}
@@ -148,9 +152,9 @@ func parseFiling(nd xml.Node) filing {
 				jo.AddString("libraryrequestlogin", n.Text)
 			}
 		case "Products":
-			if nd.Nodes != nil {
-				for _, n := range nd.Nodes {
-					i, err := strconv.Atoi(nd.Text)
+			if n.Nodes != nil {
+				for _, p := range n.Nodes {
+					i, err := strconv.Atoi(p.Text)
 					if err == nil {
 						ids.AddInt(i)
 					}
@@ -161,12 +165,12 @@ func parseFiling(nd xml.Node) filing {
 				jo.AddString("priorityline", n.Text)
 			}
 		case "ForeignKeys":
-			system := nd.GetAttribute("System")
-			if system != "" && nd.Nodes != nil {
-				for _, n := range nd.Nodes {
-					if n.Attributes != nil {
+			system := n.GetAttribute("System")
+			if system != "" && n.Nodes != nil {
+				for _, k := range n.Nodes {
+					if k.Attributes != nil {
 						var id, fld string
-						for _, a := range n.Attributes {
+						for _, a := range k.Attributes {
 							switch a.Name {
 							case "Id":
 								id = a.Value
@@ -190,20 +194,20 @@ func parseFiling(nd xml.Node) filing {
 				}
 			}
 		case "FilingCountry":
-			if nd.Text != "" {
-				fcs.AddString(nd.Text)
+			if n.Text != "" {
+				fcs.AddString(n.Text)
 			}
 		case "FilingRegion":
-			if nd.Text != "" {
-				frs.AddString(nd.Text)
+			if n.Text != "" {
+				frs.AddString(n.Text)
 			}
 		case "FilingSubject", "FilingSubSubject":
-			if nd.Text != "" {
-				fss.AddString(nd.Text)
+			if n.Text != "" {
+				fss.AddString(n.Text)
 			}
 		case "FilingTopic":
-			if nd.Text != "" {
-				fts.AddString(nd.Text)
+			if n.Text != "" {
+				fts.AddString(n.Text)
 			}
 		case "FilingOnlineCode":
 			if n.Text != "" {

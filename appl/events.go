@@ -45,17 +45,13 @@ func (es *events) Parse(nd xml.Node) {
 			if n.Nodes != nil {
 				for _, p := range n.Nodes {
 					if p.Attributes != nil {
-						var id, pid, n, v string
+						var n, v string
 						for _, a := range p.Attributes {
 							switch a.Name {
-							case "Id":
-								id = a.Value
 							case "Name":
 								n = a.Value
 							case "Value":
 								v = a.Value
-							case "ParentId":
-								pid = a.Value
 							}
 						}
 

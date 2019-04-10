@@ -34,6 +34,7 @@ type document struct {
 	RightsMetadata         xml.Node
 	DescriptiveMetadata    xml.Node
 	Filings                []filing
+	PublicationComponents  []pubcomponent
 	ItemID                 string
 	MediaType              MediaType
 	CompositionType        string
@@ -53,7 +54,7 @@ func XmlToJson(s string) (json.Object, error) {
 	if err != nil {
 		return json.Object{}, err
 	}
-
+	
 	jo := json.Object{}
 	jo.AddString("representationversion", "1.0")
 	jo.AddString("representationtype", "full")
@@ -83,6 +84,28 @@ func XmlToJson(s string) (json.Object, error) {
 		return json.Object{}, err
 	}
 
+	if doc.Filings != nil {
+		filings := json.Array{}
+		for _, f := range doc.Filings {
+			filings.AddObject(f.JSON)
+		}
+		jo.AddArray("filings", filings)
+	}
+
+	if doc.PublicationComponents != nil {
+		for _, pc := range doc.PublicationComponents {
+			switch pc.Node.Name {
+			case "TextContentItem":
+				doc.ParseTextComponent(pc, &jo)
+			case "PhotoContentItem":
+			case "GraphicContentItem":
+			case "VideoContentItem":
+			case "AudioContentItem":
+			case "ComplexDataContentItem":
+			}
+		}
+	}
+
 	doc.SetReferenceId(&jo)
 	doc.SetHeadline(&jo)
 
@@ -97,6 +120,7 @@ func parseXml(s string) (document, error) {
 
 	var (
 		fs  []filing
+		pcs []pubcomponent
 		doc document
 	)
 
@@ -121,10 +145,18 @@ func parseXml(s string) (document, error) {
 			} else {
 				fs = append(fs, f)
 			}
+		case "PublicationComponent":
+			pc := parsePublicationComponent(nd)
+			if pcs == nil {
+				pcs = []pubcomponent{pc}
+			} else {
+				pcs = append(pcs, pc)
+			}
 		}
 	}
 
 	doc.Filings = fs
+	doc.PublicationComponents = pcs
 
 	return doc, nil
 }

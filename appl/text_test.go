@@ -3,6 +3,8 @@ package appl
 import (
 	"fmt"
 	"testing"
+
+	"github.com/ymetelkin/go/json"
 )
 
 func TestTexts(t *testing.T) {
@@ -114,21 +116,28 @@ func TestTexts(t *testing.T) {
 		</TextContentItem>
 	</PublicationComponent>
 </Publication>`
-	pub, _ := NewXml(s)
-	doc := document{Xml: pub}
+	doc, _ := parseXml(s)
+	jo := json.Object{}
 
-	err := pub.parsePubComponents(&doc)
-	if err != nil {
-		t.Error(err.Error())
+	for _, pc := range doc.PublicationComponents {
+		switch pc.Node.Name {
+		case "TextContentItem":
+			doc.ParseTextComponent(pc, &jo)
+		}
 	}
 
-	if doc.Texts == nil {
-		t.Error("[texts] is expected")
+	if _, err := jo.GetObject("caption"); err != nil {
+		t.Error("[caption] is expected")
+	}
+	if _, err := jo.GetObject("script"); err != nil {
+		t.Error("[script] is expected")
+	}
+	if _, err := jo.GetObject("shotlist"); err != nil {
+		t.Error("[shotlist] is expected")
+	}
+	if _, err := jo.GetObject("main"); err != nil {
+		t.Error("[main] is expected")
 	}
 
-	jo, err := doc.ToJson()
-	if err != nil {
-		t.Error(err.Error())
-	}
 	fmt.Printf("%s\n", jo.ToString())
 }

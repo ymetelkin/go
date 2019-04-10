@@ -26,7 +26,7 @@ func TestIdentification(t *testing.T) {
 	doc, _ := parseXml(s)
 	jo := json.Object{}
 
-	err = doc.ParseIdentification(&jo)
+	err := doc.ParseIdentification(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -56,10 +56,14 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<FriendlyKey>xyz</FriendlyKey>
 	</Identification>
 </Publication>`
-	jo, err := XmlToJson(s)
+	doc, _ := parseXml(s)
+	jo := json.Object{}
+
+	err := doc.ParseIdentification(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
+	doc.SetReferenceId(&jo)
 
 	if v, _ := jo.GetString("referenceid"); v != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
@@ -75,15 +79,17 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<MediaType>Photo</MediaType>
 	</Identification>
 </Publication>`
-	jo, err = XmlToJson(s)
+	doc, _ = parseXml(s)
+	jo = json.Object{}
+
+	err = doc.ParseIdentification(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
+	doc.SetReferenceId(&jo)
 
 	if v, _ := jo.GetString("referenceid"); v != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")
-	} else {
-		fmt.Println(doc.ReferenceId)
 	}
 
 	s = `
@@ -99,15 +105,21 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<Title>xyz</Title>
 	</NewsLines> 
 </Publication>`
-	jo, err = XmlToJson(s)
+	doc, _ = parseXml(s)
+	jo = json.Object{}
+
+	err = doc.ParseIdentification(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
+	err = doc.ParseNewsLines(&jo)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	doc.SetReferenceId(&jo)
 
 	if v, _ := jo.GetString("referenceid"); v != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
-	} else {
-		fmt.Println(doc.ReferenceId)
 	}
 
 	s = `
@@ -120,15 +132,17 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<MediaType>ComplexData</MediaType>
 	</Identification>
 </Publication>`
-	jo, err = XmlToJson(s)
+	doc, _ = parseXml(s)
+	jo = json.Object{}
+
+	err = doc.ParseIdentification(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
+	doc.SetReferenceId(&jo)
 
 	if v, _ := jo.GetString("referenceid"); v != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")
-	} else {
-		fmt.Println(doc.ReferenceId)
 	}
 
 	s = `
@@ -144,15 +158,21 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<Title>xyz</Title>
 	</NewsLines> 
 </Publication>`
-	jo, err = XmlToJson(s)
+	doc, _ = parseXml(s)
+	jo = json.Object{}
+
+	err = doc.ParseIdentification(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
+	err = doc.ParseNewsLines(&jo)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	doc.SetReferenceId(&jo)
 
 	if v, _ := jo.GetString("referenceid"); v != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
-	} else {
-		fmt.Println(doc.ReferenceId)
 	}
 
 	s = `
@@ -165,15 +185,17 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<MediaType>Text</MediaType>
 	</Identification>
 </Publication>`
-	jo, err = XmlToJson(s)
+	doc, _ = parseXml(s)
+	jo = json.Object{}
+
+	err = doc.ParseIdentification(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
+	doc.SetReferenceId(&jo)
 
 	if v, _ := jo.GetString("referenceid"); v != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")
-	} else {
-		fmt.Println(doc.ReferenceId)
 	}
 
 	s = `
@@ -189,15 +211,21 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<EditorialId>xyz</EditorialId>
 	</PublicationManagement> 
 </Publication>`
-	jo, err = XmlToJson(s)
+	doc, _ = parseXml(s)
+	jo = json.Object{}
+
+	err = doc.ParseIdentification(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
+	err = doc.ParsePublicationManagement(&jo)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	doc.SetReferenceId(&jo)
 
 	if v, _ := jo.GetString("referenceid"); v != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
-	} else {
-		fmt.Println(doc.ReferenceId)
 	}
 
 	s = `
@@ -210,14 +238,16 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<MediaType>Video</MediaType>
 	</Identification>
 </Publication>`
-	jo, err = XmlToJson(s)
+	doc, _ = parseXml(s)
+	jo = json.Object{}
+
+	err = doc.ParseIdentification(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
+	doc.SetReferenceId(&jo)
 
 	if v, _ := jo.GetString("referenceid"); v != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")
-	} else {
-		fmt.Println(doc.ReferenceId)
 	}
 }

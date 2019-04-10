@@ -3,6 +3,7 @@ package appl
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/ymetelkin/go/json"
 )
@@ -139,4 +140,15 @@ func makePrettyString(s string) string {
 	}
 
 	return string(t[0:w])
+}
+
+func parseIsoDate(s string) string {
+	t, err := time.Parse(time.RFC3339, s)
+	if err != nil {
+		t, err = time.Parse("01/02/06", s)
+		if err != nil {
+			return s
+		}
+	}
+	return t.Format("2006-01-02T15:04:05Z")
 }

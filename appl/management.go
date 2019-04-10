@@ -44,7 +44,7 @@ func (doc *document) ParsePublicationManagement(jo *json.Object) error {
 			date, year, err := getFirstCreatedDate(nd)
 			if err == nil {
 				doc.FirstCreatedYear = year
-				jo.SetString("firstcreated", date)
+				jo.AddString("firstcreated", date)
 			} else {
 				return err
 			}
@@ -89,9 +89,14 @@ func (doc *document) ParsePublicationManagement(jo *json.Object) error {
 			if nd.Text != "" {
 				jo.AddString("specialinstructions", nd.Text)
 			}
+		case "EditorialId":
+			if nd.Text != "" {
+				doc.EditorialID = nd.Text
+				jo.AddString("editorialid", nd.Text)
+			}
 		case "ItemStartDateTime":
 			if nd.Text != "" {
-				jo.AddString("editorialid", nd.Text)
+				jo.AddString("itemstartdatetime", nd.Text)
 			}
 		case "ItemStartDateTimeActual":
 			if nd.Text != "" {
@@ -247,11 +252,11 @@ func getTimeRestriction(nd xml.Node) (string, bool) {
 			case "Include":
 				include = a.Value
 			}
+		}
 
-			if system != "" && zone != "" {
-				s := fmt.Sprintf("%s%s", system, zone)
-				return strings.ToLower(s), include == "true"
-			}
+		if system != "" && zone != "" {
+			s := fmt.Sprintf("%s%s", system, zone)
+			return strings.ToLower(s), include == "true"
 		}
 	}
 

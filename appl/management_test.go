@@ -64,10 +64,12 @@ func TestManagement(t *testing.T) {
 	doc, _ := parseXml(s)
 	jo := json.Object{}
 
-	err = doc.ParsePublicationManagement(&jo)
+	err := doc.ParsePublicationManagement(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
+
+	fmt.Printf("%s\n", jo.ToString())
 
 	if string(doc.PubStatus) != "usable" {
 		t.Error("[pubstatus:usable] is expected")
@@ -93,12 +95,10 @@ func TestManagement(t *testing.T) {
 	if _, err := jo.GetArray("editorialtypes"); err != nil {
 		t.Error("[editorialtypes] is expected")
 	}
-	if _, err := jo.GetArray("timerestrictions"); err != nil {
-		t.Error("[timerestrictions] is expected")
+	if v, _ := jo.GetBool("newspowerdrivetimeatlantic"); !v {
+		t.Error("[newspowerdrivetimeatlantic] is expected")
 	}
 	if _, err := jo.GetArray("associations"); err != nil {
 		t.Error("[associations] is expected")
 	}
-
-	fmt.Printf("%s\n", jo.ToString())
 }

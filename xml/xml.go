@@ -102,6 +102,35 @@ func (nd *Node) ToString() string {
 	return nd.toString(0)
 }
 
+func (nd *Node) ToInlineString() string {
+	var sb strings.Builder
+	sb.WriteString("<")
+	sb.WriteString(nd.Name)
+	if nd.Attributes != nil {
+		for _, a := range nd.Attributes {
+			sb.WriteString(" ")
+			sb.WriteString(a.Name)
+			sb.WriteString("=\"")
+			sb.WriteString(a.Value)
+			sb.WriteString("\"")
+		}
+	}
+	sb.WriteString(">")
+	if nd.Text != "" {
+		sb.WriteString(nd.Text)
+	}
+	if nd.Nodes != nil {
+		for _, n := range nd.Nodes {
+			sb.WriteString(n.ToInlineString())
+		}
+	}
+	sb.WriteString("</")
+	sb.WriteString(nd.Name)
+	sb.WriteString(">")
+
+	return sb.String()
+}
+
 func (nd *Node) toString(level int) string {
 	var sb strings.Builder
 	if level > 0 {

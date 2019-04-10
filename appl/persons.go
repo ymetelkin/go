@@ -58,7 +58,7 @@ func (ps *persons) Parse(nd xml.Node) {
 			if n.Nodes != nil {
 				for _, p := range n.Nodes {
 					if p.Attributes != nil {
-						var id, pid, n, v string
+						var id, n, v string
 						for _, a := range p.Attributes {
 							switch a.Name {
 							case "Id":
@@ -67,8 +67,6 @@ func (ps *persons) Parse(nd xml.Node) {
 								n = a.Value
 							case "Value":
 								v = a.Value
-							case "ParentId":
-								pid = a.Value
 							}
 						}
 

@@ -64,7 +64,7 @@ func TestAdmin(t *testing.T) {
 	doc, _ := parseXml(s)
 	jo := json.Object{}
 
-	err = doc.ParseIdentification(&jo)
+	err := doc.ParsePublicationManagement(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -86,7 +86,7 @@ func TestAdmin(t *testing.T) {
 		t.Error("[canonicallink] is expected")
 	}
 
-	if _, err := jo.AddArray("sourcematerials"); err != nil {
+	if _, err := jo.GetArray("sourcematerials"); err != nil {
 		t.Error("[sourcematerials] is expected")
 	}
 

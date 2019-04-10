@@ -28,17 +28,17 @@ func (doc *document) ParseRightsMetadata(parent *json.Object) error {
 				for _, n := range nd.Nodes {
 					switch n.Name {
 					case "UsageType":
-						ut = nd.Text
+						ut = n.Text
 					case "Geography":
 						geo.AddString(nd.Text)
 					case "RightsHolder":
-						rh = nd.Text
+						rh = n.Text
 					case "Limitations":
 						lim.AddString(nd.Text)
 					case "StartDate":
-						sd = nd.Text
+						sd = n.Text
 					case "EndDate":
-						ed = nd.Text
+						ed = n.Text
 					case "Group":
 						g := json.Object{}
 						if nd.Attributes != nil {
@@ -77,11 +77,11 @@ func (doc *document) ParseRightsMetadata(parent *json.Object) error {
 				jo.AddProperty(lim.ToJsonProperty("limitations"))
 
 				if sd != "" {
-					jo.AddString("startdate", sd)
+					jo.AddString("startdate", parseIsoDate(sd))
 				}
 
 				if ed != "" {
-					jo.AddString("enddate", ed)
+					jo.AddString("enddate", parseIsoDate(ed))
 				}
 
 				if !gps.IsEmpty() {

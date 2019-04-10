@@ -3,6 +3,8 @@ package appl
 import (
 	"fmt"
 	"testing"
+
+	"github.com/ymetelkin/go/json"
 )
 
 func TestSubjects(t *testing.T) {
@@ -59,49 +61,45 @@ func TestSubjects(t *testing.T) {
 		</EntityClassification>
 	</DescriptiveMetadata>
 </Publication>`
-	pub, _ := NewXml(s)
-	doc := document{Xml: pub}
+	doc, _ := parseXml(s)
+	jo := json.Object{}
 
-	err := pub.DescriptiveMetadata.parse(&doc)
+	err := doc.ParseDescriptiveMetadata(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	if doc.Descriptions.IsEmtpy() {
+	if _, err := jo.GetArray("descriptions"); err != nil {
 		t.Error("[descriptions] is expected")
 	}
 
-	if pub.DescriptiveMetadata.DateLineLocation.City == "" {
+	if _, err := jo.GetObject("datelinelocation"); err != nil {
 		t.Error("[datelinelocation] is expected")
 	}
 
-	if doc.Generators.IsEmtpy() {
+	if _, err := jo.GetArray("generators"); err != nil {
 		t.Error("[generators] is expected")
 	}
 
-	if doc.Categories.IsEmtpy() {
+	if _, err := jo.GetArray("categories"); err != nil {
 		t.Error("[categories] is expected")
 	}
 
-	if doc.SuppCategories.IsEmtpy() {
+	if _, err := jo.GetArray("suppcategories"); err != nil {
 		t.Error("[suppcategories] is expected")
 	}
 
-	if doc.AlertCategories.IsEmtpy() {
+	if _, err := jo.GetArray("alertcategories"); err != nil {
 		t.Error("[alertcategories] is expected")
 	}
 
-	if doc.Subjects.IsEmtpy() {
+	if _, err := jo.GetArray("subjects"); err != nil {
 		t.Error("[subjects] is expected")
 	}
 
-	if doc.Organizations.IsEmtpy() {
+	if _, err := jo.GetArray("organizations"); err != nil {
 		t.Error("[organizations] is expected")
 	}
 
-	jo, err := doc.ToJson()
-	if err != nil {
-		t.Error(err.Error())
-	}
 	fmt.Printf("%s\n", jo.ToString())
 }

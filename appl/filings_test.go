@@ -3,6 +3,8 @@ package appl
 import (
 	"fmt"
 	"testing"
+
+	"github.com/ymetelkin/go/json"
 )
 
 func TestFilings(t *testing.T) {
@@ -69,21 +71,18 @@ func TestFilings(t *testing.T) {
 		<BreakingNews>Breaking</BreakingNews>
 	</FilingMetadata>
 </Publication>`
-	pub, _ := NewXml(s)
-	doc := document{Xml: pub}
+	doc, _ := parseXml(s)
+	jo := json.Object{}
 
-	err := pub.parseFilings(&doc)
-	if err != nil {
-		t.Error(err.Error())
+	filings := json.Array{}
+	for _, f := range doc.Filings {
+		filings.AddObject(f.JSON)
 	}
+	jo.AddArray("filings", filings)
 
-	if doc.Filings.IsEmtpy() {
+	if _, err := jo.GetArray("filings"); err != nil {
 		t.Error("[filings] is expected")
 	}
 
-	jo, err := doc.ToJson()
-	if err != nil {
-		t.Error(err.Error())
-	}
 	fmt.Printf("%s\n", jo.ToString())
 }

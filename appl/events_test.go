@@ -3,6 +3,8 @@ package appl
 import (
 	"fmt"
 	"testing"
+
+	"github.com/ymetelkin/go/json"
 )
 
 func TestEvents(t *testing.T) {
@@ -58,21 +60,17 @@ func TestEvents(t *testing.T) {
 		</EntityClassification>
 	</DescriptiveMetadata>
 </Publication>`
-	pub, _ := NewXml(s)
-	doc := document{Xml: pub}
+	doc, _ := parseXml(s)
+	jo := json.Object{}
 
-	err := pub.DescriptiveMetadata.parse(&doc)
+	err := doc.ParseDescriptiveMetadata(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	if doc.Events.IsEmtpy() {
+	if _, err := jo.GetArray("events"); err != nil {
 		t.Error("[events] is expected")
 	}
 
-	jo, err := doc.ToJson()
-	if err != nil {
-		t.Error(err.Error())
-	}
 	fmt.Printf("%s\n", jo.ToString())
 }

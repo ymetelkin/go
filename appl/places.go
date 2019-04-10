@@ -39,8 +39,8 @@ func (ps *places) Parse(nd xml.Node) {
 		)
 
 		if n.Name == "Occurrence" && n.Attributes != nil {
-			for _, a := range nd.Attributes {
-				switch a.Value {
+			for _, a := range n.Attributes {
+				switch a.Name {
 				case "Id":
 					code = a.Value
 				case "Value":
@@ -92,7 +92,7 @@ func (ps *places) Parse(nd xml.Node) {
 			if n.Nodes != nil {
 				for _, p := range n.Nodes {
 					if p.Attributes != nil {
-						var id, pid, n, v string
+						var id, n, v string
 						for _, a := range p.Attributes {
 							switch a.Name {
 							case "Id":

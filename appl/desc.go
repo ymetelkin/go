@@ -10,7 +10,7 @@ import (
 )
 
 func (doc *document) ParseDescriptiveMetadata(jo *json.Object) error {
-	if doc.NewsLines.Nodes == nil {
+	if doc.DescriptiveMetadata.Nodes == nil {
 		return errors.New("DescriptiveMetadata is missing")
 	}
 
@@ -65,6 +65,7 @@ func (doc *document) ParseDescriptiveMetadata(jo *json.Object) error {
 	jo.AddProperty(cats.ToJsonProperty("categories"))
 	jo.AddProperty(sups.ToJsonProperty("suppcategories"))
 	jo.AddProperty(alts.ToJsonProperty("alertcategories"))
+	jo.AddProperty(sbjs.ToJsonProperty("subjects"))
 	jo.AddProperty(prns.ToJsonProperty())
 	jo.AddProperty(orgs.ToJsonProperty("organizations"))
 	jo.AddProperty(cmps.ToJsonProperty())
@@ -184,31 +185,31 @@ func getDatelineLocation(nd xml.Node) json.Object {
 		switch n.Name {
 		case "City":
 			if n.Text != "" {
-				jo.AddString("city", nd.Text)
+				jo.AddString("city", n.Text)
 			}
 		case "CountryArea":
 			if n.Text != "" {
-				jo.AddString("countryareacode", nd.Text)
+				jo.AddString("countryareacode", n.Text)
 			}
 		case "CountryAreaName":
 			if n.Text != "" {
-				jo.AddString("countryareaname", nd.Text)
+				jo.AddString("countryareaname", n.Text)
 			}
 		case "Country":
 			if n.Text != "" {
-				jo.AddString("countrycode", nd.Text)
+				jo.AddString("countrycode", n.Text)
 			}
 		case "CountryName":
 			if n.Text != "" {
-				jo.AddString("countryname", nd.Text)
+				jo.AddString("countryname", n.Text)
 			}
 		case "LatitudeDD":
-			f, err := strconv.ParseFloat(nd.Text, 64)
+			f, err := strconv.ParseFloat(n.Text, 64)
 			if err == nil {
 				lat = f
 			}
 		case "LongitudeDD":
-			f, err := strconv.ParseFloat(nd.Text, 64)
+			f, err := strconv.ParseFloat(n.Text, 64)
 			if err == nil {
 				lng = f
 			}
@@ -362,7 +363,7 @@ func getOccurrenceCodeName(nd xml.Node) (string, string) {
 	var code, name string
 	if nd.Name == "Occurrence" && nd.Attributes != nil {
 		for _, a := range nd.Attributes {
-			switch a.Value {
+			switch a.Name {
 			case "Id":
 				code = a.Value
 			case "Value":

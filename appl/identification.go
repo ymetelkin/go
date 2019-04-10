@@ -18,19 +18,19 @@ func (doc *document) ParseIdentification(jo *json.Object) error {
 		switch nd.Name {
 		case "ItemId":
 			doc.ItemID = nd.Text
-			jo.SetString("itemid", nd.Text)
+			jo.AddString("itemid", nd.Text)
 		case "RecordId":
-			jo.SetString("recordid", nd.Text)
+			jo.AddString("recordid", nd.Text)
 		case "CompositeId":
-			jo.SetString("compositeid", nd.Text)
+			jo.AddString("compositeid", nd.Text)
 		case "CompositionType":
 			doc.CompositionType = nd.Text
-			jo.SetString("compositiontype", nd.Text)
+			jo.AddString("compositiontype", nd.Text)
 		case "MediaType":
 			mt, err := getMediaType(nd.Text)
 			if err == nil {
 				doc.MediaType = mt
-				jo.SetString("type", string(mt))
+				jo.AddString("type", string(mt))
 			} else {
 				return err
 			}

@@ -1,57 +1,67 @@
 package appl
 
 import (
-	"encoding/xml"
+	"errors"
+	"strconv"
 	"strings"
 
 	"github.com/ymetelkin/go/json"
+	"github.com/ymetelkin/go/xml"
 )
 
-type body struct {
-	Blocks []block `xml:"block"`
-}
+func (doc *document) ParseTextComponent(pc pubcomponent, parent *json.Object) error {
+	nd := pc.Node.GetNode("DataContent")
+	nd = nd.GetNode("nitf")
+	if nd.Nodes == nil {
+		return errors.New("[nitf] block is missing")
+	}
 
-type block struct {
-	Html string `xml:",innerxml"`
-}
+	nd = getBodyContent(nd)
+	if nd.Nodes == nil {
+		return errors.New("[body.content] block is missing")
+	}
 
-func (tci *TextContentItem) parse(role string, doc *document) {
-	ss := []string{}
-	decoder := xml.NewDecoder(strings.NewReader(tci.Body.Xml))
-	for {
-		t, _ := decoder.Token()
-		if t == nil {
-			break
+	var sb strings.Builder
+
+	for _, b := range nd.Nodes {
+		if b.Name == "block" {
+			s := b.ToInlineString()
+			sb.WriteString(s)
 		}
+	}
 
-		switch se := t.(type) {
-		case xml.StartElement:
-			if se.Name.Local == "body.content" {
-				var b body
-				decoder.DecodeElement(&b, &se)
-				if b.Blocks != nil {
-					for _, b := range b.Blocks {
-						ss = append(ss, b.Html)
-					}
-				}
-				break
+	nitf := sb.String()
+	if nitf == "" {
+		return errors.New("[block] blocks are missing or empty")
+	}
+
+	jo := json.Object{}
+	jo.AddString("nitf", nitf)
+
+	nd = pc.Node.GetNode("Characteristics")
+	nd = nd.GetNode("Words")
+	i, err := strconv.Atoi(nd.Text)
+	if err == nil {
+		jo.AddInt("words", i)
+	}
+
+	parent.AddObject(strings.ToLower(pc.Role), jo)
+
+	return nil
+}
+
+func getBodyContent(nd xml.Node) xml.Node {
+	if nd.Nodes != nil {
+		for _, n := range nd.Nodes {
+			if n.Name == "body.content" {
+				return n
+			}
+
+			test := getBodyContent(n)
+			if test.Nodes != nil {
+				return test
 			}
 		}
 	}
-
-	if len(ss) > 0 {
-		nitf := strings.Join(ss, "")
-		nitf = makePrettyString(nitf)
-		jo := json.Object{}
-		jo.AddString("nitf", nitf)
-		if tci.Words > 0 {
-			jo.AddInt("words", tci.Words)
-		}
-
-		if doc.Texts == nil {
-			doc.Texts = make(map[string]*json.Object)
-		}
-
-		doc.Texts[role] = &jo
-	}
+	return xml.Node{}
 }

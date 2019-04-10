@@ -3,6 +3,8 @@ package appl
 import (
 	"fmt"
 	"testing"
+
+	"github.com/ymetelkin/go/json"
 )
 
 func TestDescriptions(t *testing.T) {
@@ -22,8 +24,8 @@ func TestDescriptions(t *testing.T) {
 			<LongitudeDD>-87.4139100000</LongitudeDD>	
 		</DateLineLocation>
 		<SubjectClassification SystemVersion="1" AuthorityVersion="3163" System="Teragram" Authority="AP Subject"></SubjectClassification>
-		 <SubjectClassification SystemVersion="1" AuthorityVersion="3164" System="Teragram"  Authority="AP Subject"></SubjectClassification>
-		 <SubjectClassification System="Editorial" Authority="AP Supplemental Category Code">
+		<SubjectClassification SystemVersion="1" AuthorityVersion="3164" System="Teragram"  Authority="AP Subject"></SubjectClassification>
+		<SubjectClassification System="Editorial" Authority="AP Supplemental Category Code">
 			<Occurrence Id="SOC" Value="Soccer" />
 		</SubjectClassification> 
 		<SubjectClassification System="Edgil" Authority="AP Alert Category">
@@ -119,50 +121,46 @@ func TestDescriptions(t *testing.T) {
 		</AudienceClassification>
 	</DescriptiveMetadata>
 </Publication>`
-	pub, _ := NewXml(s)
-	doc := document{Xml: pub}
+	doc, _ := parseXml(s)
+	jo := json.Object{}
 
-	err := pub.DescriptiveMetadata.parse(&doc)
+	err := doc.ParseDescriptiveMetadata(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	if doc.Descriptions.IsEmtpy() {
+	if _, err := jo.GetArray("descriptions"); err != nil {
 		t.Error("[descriptions] is expected")
 	}
 
-	if pub.DescriptiveMetadata.DateLineLocation.City == "" {
+	if _, err := jo.GetObject("datelinelocation"); err != nil {
 		t.Error("[datelinelocation] is expected")
 	}
 
-	if doc.Generators.IsEmtpy() {
+	if _, err := jo.GetArray("generators"); err != nil {
 		t.Error("[generators] is expected")
 	}
 
-	if doc.Categories.IsEmtpy() {
+	if _, err := jo.GetArray("categories"); err != nil {
 		t.Error("[categories] is expected")
 	}
 
-	if doc.SuppCategories.IsEmtpy() {
+	if _, err := jo.GetArray("suppcategories"); err != nil {
 		t.Error("[suppcategories] is expected")
 	}
 
-	if doc.AlertCategories.IsEmtpy() {
+	if _, err := jo.GetArray("alertcategories"); err != nil {
 		t.Error("[alertcategories] is expected")
 	}
 
-	if doc.Subjects.IsEmtpy() {
+	if _, err := jo.GetArray("subjects"); err != nil {
 		t.Error("[subjects] is expected")
 	}
 
-	if doc.Organizations.IsEmtpy() {
+	if _, err := jo.GetArray("organizations"); err != nil {
 		t.Error("[organizations] is expected")
 	}
 
-	jo, err := doc.ToJson()
-	if err != nil {
-		t.Error(err.Error())
-	}
 	fmt.Printf("%s\n", jo.ToString())
 }
 
@@ -190,22 +188,18 @@ func TestServices(t *testing.T) {
 		<Comment>Strange</Comment>
 	</DescriptiveMetadata>
 </Publication>`
-	pub, _ := NewXml(s)
-	doc := document{Xml: pub}
+	doc, _ := parseXml(s)
+	jo := json.Object{}
 
-	err := pub.DescriptiveMetadata.parse(&doc)
+	err := doc.ParseDescriptiveMetadata(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	if doc.Services.IsEmtpy() {
+	if _, err := jo.GetArray("services"); err != nil {
 		t.Error("[services] is expected")
 	}
 
-	jo, err := doc.ToJson()
-	if err != nil {
-		t.Error(err.Error())
-	}
 	fmt.Printf("%s\n", jo.ToString())
 }
 
@@ -233,22 +227,18 @@ func TestThirdParties(t *testing.T) {
 		</ThirdPartyMeta>
 	</DescriptiveMetadata>
 </Publication>`
-	pub, _ := NewXml(s)
-	doc := document{Xml: pub}
+	doc, _ := parseXml(s)
+	jo := json.Object{}
 
-	err := pub.DescriptiveMetadata.parse(&doc)
+	err := doc.ParseDescriptiveMetadata(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	if doc.ThirdPartyMeta.IsEmtpy() {
+	if _, err := jo.GetArray("thirdpartymeta"); err != nil {
 		t.Error("[thirdpartymeta] is expected")
 	}
 
-	jo, err := doc.ToJson()
-	if err != nil {
-		t.Error(err.Error())
-	}
 	fmt.Printf("%s\n", jo.ToString())
 }
 
@@ -299,22 +289,18 @@ func TestAudences(t *testing.T) {
 		<Category>n</Category>
     </FilingMetadata>
 </Publication>`
-	pub, _ := NewXml(s)
-	doc := document{Xml: pub}
+	doc, _ := parseXml(s)
+	jo := json.Object{}
 
-	err := pub.DescriptiveMetadata.parse(&doc)
+	err := doc.ParseDescriptiveMetadata(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	if doc.Audiences.IsEmtpy() {
+	if _, err := jo.GetArray("audences"); err != nil {
 		t.Error("[audences] is expected")
 	}
 
-	jo, err := doc.ToJson()
-	if err != nil {
-		t.Error(err.Error())
-	}
 	fmt.Printf("%s\n", jo.ToString())
 
 	s = `
@@ -343,21 +329,17 @@ func TestAudences(t *testing.T) {
 		<Category>n</Category>
     </FilingMetadata>
 </Publication>`
-	pub, _ = NewXml(s)
-	doc = document{Xml: pub}
+	doc, _ = parseXml(s)
+	jo = json.Object{}
 
-	err = pub.DescriptiveMetadata.parse(&doc)
+	err = doc.ParseDescriptiveMetadata(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	if doc.Audiences.IsEmtpy() {
+	if _, err := jo.GetArray("audences"); err != nil {
 		t.Error("[audences] is expected")
 	}
 
-	jo, err = doc.ToJson()
-	if err != nil {
-		t.Error(err.Error())
-	}
 	fmt.Printf("%s\n", jo.ToString())
 }

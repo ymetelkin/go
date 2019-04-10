@@ -15,7 +15,7 @@ func (doc *document) ParseAdministrativeMetadata(jo *json.Object) error {
 	}
 
 	var (
-		summary, s1, s2    bool
+		s1, s2             bool
 		tss, pss, dcs, ins uniqueArray
 		srcs, sms, rts     []xml.Node
 		ict, fx            json.Object
@@ -54,7 +54,7 @@ func (doc *document) ParseAdministrativeMetadata(jo *json.Object) error {
 				}
 			}
 		case "ItemContentType":
-			ict := json.Object{}
+			ict = json.Object{}
 			if nd.Attributes != nil {
 				for _, a := range nd.Attributes {
 					switch a.Name {
@@ -74,7 +74,7 @@ func (doc *document) ParseAdministrativeMetadata(jo *json.Object) error {
 				ict.AddString("name", nd.Text)
 			}
 		case "Fixture":
-			fx := json.Object{}
+			fx = json.Object{}
 			id := nd.GetAttribute("Id")
 			if id != "" {
 				fx.AddString("code", id)

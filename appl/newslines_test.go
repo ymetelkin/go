@@ -32,7 +32,7 @@ func TestNewslines(t *testing.T) {
 	doc, _ := parseXml(s)
 	jo := json.Object{}
 
-	err = doc.ParseIdentification(&jo)
+	err := doc.ParseIdentification(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -41,13 +41,9 @@ func TestNewslines(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if doc.Headline.IsEmtpy() {
+	if doc.Headline == "" {
 		t.Error("[headline] is expected")
 	}
 
-	jo, err := doc.ToJson()
-	if err != nil {
-		t.Error(err.Error())
-	}
 	fmt.Printf("%s\n", jo.ToString())
 }
