@@ -90,8 +90,8 @@ func (doc *document) ParseNewsLines(jo *json.Object) error {
 		}
 	}
 
-	jo.AddProperty(overs.ToJsonProperty("overlines"))
-	jo.AddProperty(keys.ToJsonProperty("keywordlines"))
+	jo.AddProperty(overs.ToJSONProperty("overlines"))
+	jo.AddProperty(keys.ToJSONProperty("keywordlines"))
 
 	getBylines(bys, byos, jo)
 	getPerson(ns, jo)
@@ -106,25 +106,25 @@ func (doc *document) SetHeadline(jo *json.Object) {
 
 	t := doc.MediaType
 
-	if t == MEDIATYPE_TEXT || t == MEDIATYPE_AUDIO {
+	if t == mediaTypeText || t == mediaTypeAudio {
 		if doc.Headline != "" {
 			return
 		} else if doc.Title != "" {
 			headline = doc.Title
 		}
-	} else if t == MEDIATYPE_VIDEO && (doc.Function == "" || !strings.EqualFold(doc.Function, "APTNLibrary")) {
+	} else if t == mediaTypeVideo && (doc.Function == "" || !strings.EqualFold(doc.Function, "APTNLibrary")) {
 		if doc.Headline != "" {
 			return
 		} else if doc.Title != "" {
 			headline = doc.Title
 		}
-	} else if t == MEDIATYPE_PHOTO || t == MEDIATYPE_GRAPHIC || (t == MEDIATYPE_VIDEO && strings.EqualFold(doc.Function, "APTNLibrary")) {
+	} else if t == mediaTypePhoto || t == mediaTypeGraphic || (t == mediaTypeVideo && strings.EqualFold(doc.Function, "APTNLibrary")) {
 		if doc.Title != "" {
 			headline = doc.Title
 		} else if doc.Headline != "" {
 			headline = doc.Headline
 		}
-	} else if t == MEDIATYPE_AUDIO {
+	} else if t == mediaTypeAudio {
 		if doc.Headline != "" {
 			return
 		} else if doc.Title != "" {

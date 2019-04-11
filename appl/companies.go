@@ -19,7 +19,7 @@ type company struct {
 
 type ticker struct {
 	Value    string
-	ParentId string
+	ParentID string
 }
 
 type companies struct {
@@ -74,7 +74,7 @@ func (cs *companies) Parse(nd xml.Node) {
 								n = a.Value
 							case "Value":
 								v = a.Value
-							case "ParentId":
+							case "ParentID":
 								pid = a.Value
 							}
 						}
@@ -94,7 +94,7 @@ func (cs *companies) Parse(nd xml.Node) {
 									comp.Symbols.AddObject(instrument, symbol)
 								}
 							} else if key == "primaryticker" || key == "ticker" {
-								t := ticker{Value: strings.ToUpper(v), ParentId: pid}
+								t := ticker{Value: strings.ToUpper(v), ParentID: pid}
 								if tickers == nil {
 									tickers = []ticker{t}
 								} else {
@@ -116,7 +116,7 @@ func (cs *companies) Parse(nd xml.Node) {
 				for _, ticker := range tickers {
 					var exchange string
 
-					ex, ok := exchanges[ticker.ParentId]
+					ex, ok := exchanges[ticker.ParentID]
 					if ok {
 						exchange = ex
 					} else {
@@ -149,7 +149,7 @@ func (cs *companies) Parse(nd xml.Node) {
 	}
 }
 
-func (cs *companies) ToJsonProperty() json.Property {
+func (cs *companies) ToJSONProperty() json.Property {
 	if cs.Keys != nil {
 		ja := json.Array{}
 		for _, item := range cs.Companies {
@@ -162,13 +162,13 @@ func (cs *companies) ToJsonProperty() json.Property {
 				company.AddString("creator", comp.Creator)
 			}
 			if !comp.Rels.IsEmpty() {
-				company.AddProperty(comp.Rels.ToJsonProperty("rels"))
+				company.AddProperty(comp.Rels.ToJSONProperty("rels"))
 			}
 			if !comp.Industries.IsEmpty() {
-				company.AddProperty(comp.Industries.ToJsonProperty("industries"))
+				company.AddProperty(comp.Industries.ToJSONProperty("industries"))
 			}
 			if !comp.Symbols.IsEmpty() {
-				company.AddProperty(comp.Symbols.ToJsonProperty("symbols"))
+				company.AddProperty(comp.Symbols.ToJSONProperty("symbols"))
 			}
 
 			ja.AddObject(company)

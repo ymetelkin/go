@@ -47,7 +47,7 @@ func (ps *places) Parse(nd xml.Node) {
 					name = a.Value
 				case "ActualMatch":
 					match = a.Value
-				case "ParentId":
+				case "ParentID":
 					pid = a.Value
 				case "TopParent":
 					tp = a.Value == "true"
@@ -134,7 +134,7 @@ func (ps *places) Parse(nd xml.Node) {
 	}
 }
 
-func (ps *places) ToJsonProperty() json.Property {
+func (ps *places) ToJSONProperty() json.Property {
 	if ps.Keys != nil {
 		ja := json.Array{}
 		for _, item := range ps.Places {
@@ -147,10 +147,10 @@ func (ps *places) ToJsonProperty() json.Property {
 				place.AddString("creator", p.Creator)
 			}
 			if !p.Rels.IsEmpty() {
-				place.AddProperty(p.Rels.ToJsonProperty("rels"))
+				place.AddProperty(p.Rels.ToJSONProperty("rels"))
 			}
 			if !p.ParentIds.IsEmpty() {
-				place.AddProperty(p.ParentIds.ToJsonProperty("parentids"))
+				place.AddProperty(p.ParentIds.ToJSONProperty("parentids"))
 			}
 			if p.TopParent {
 				place.AddBool("topparent", true)

@@ -56,6 +56,96 @@ func newNull() value {
 	return value{Value: nil, Type: NULL}
 }
 
+func newInts(vs []int) []value {
+	if vs == nil {
+		return nil
+	}
+	size := len(vs)
+	if size == 0 {
+		return nil
+	}
+	values := make([]value, len(vs))
+	for i, v := range vs {
+		values[i] = value{Value: v, Type: INT}
+	}
+	return values
+}
+
+func newFloats(vs []float64) []value {
+	if vs == nil {
+		return nil
+	}
+	size := len(vs)
+	if size == 0 {
+		return nil
+	}
+	values := make([]value, len(vs))
+	for i, v := range vs {
+		values[i] = value{Value: v, Type: FLOAT}
+	}
+	return values
+}
+
+func newBools(vs []bool) []value {
+	if vs == nil {
+		return nil
+	}
+	size := len(vs)
+	if size == 0 {
+		return nil
+	}
+	values := make([]value, len(vs))
+	for i, v := range vs {
+		values[i] = value{Value: v, Type: BOOL}
+	}
+	return values
+}
+
+func newStrings(vs []string) []value {
+	if vs == nil {
+		return nil
+	}
+	size := len(vs)
+	if size == 0 {
+		return nil
+	}
+	values := make([]value, len(vs))
+	for i, v := range vs {
+		values[i] = value{Value: v, Type: STRING}
+	}
+	return values
+}
+
+func newObjects(vs []Object) []value {
+	if vs == nil {
+		return nil
+	}
+	size := len(vs)
+	if size == 0 {
+		return nil
+	}
+	values := make([]value, len(vs))
+	for i, v := range vs {
+		values[i] = value{Value: v, Type: OBJECT}
+	}
+	return values
+}
+
+func newArrays(vs []Array) []value {
+	if vs == nil {
+		return nil
+	}
+	size := len(vs)
+	if size == 0 {
+		return nil
+	}
+	values := make([]value, len(vs))
+	for i, v := range vs {
+		values[i] = value{Value: v, Type: ARRAY}
+	}
+	return values
+}
+
 func newParameterizedString(ps ParameterizedString) value {
 	return value{Value: ps, Type: PARAMETERIZED}
 }
@@ -271,6 +361,6 @@ func (jv *value) ToString(pretty bool, level int) string {
 			return ja.toString(pretty, level)
 		}
 	}
-	
+
 	return "null"
 }

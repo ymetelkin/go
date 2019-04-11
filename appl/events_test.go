@@ -60,7 +60,7 @@ func TestEvents(t *testing.T) {
 		</EntityClassification>
 	</DescriptiveMetadata>
 </Publication>`
-	doc, _ := parseXml(s)
+	doc, _ := parseXML(s)
 	jo := json.Object{}
 
 	err := doc.ParseDescriptiveMetadata(&jo)

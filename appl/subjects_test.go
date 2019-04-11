@@ -57,11 +57,11 @@ func TestSubjects(t *testing.T) {
 		<EntityClassification SystemVersion="1" AuthorityVersion="3183" System="Teragram" Authority="AP Party">
 		</EntityClassification> 
 		<EntityClassification SystemVersion="1" AuthorityVersion="2119" System="Teragram" Authority="AP Organization">
-			<Occurrence Count="8" Id="d4b82a78857310048a38ff2260dd383e" Confidence="1.000000" Value="United States Senate" ParentId="86b5cdb87dac10048932ba7fa5283c3e" ActualMatch="true" />
+			<Occurrence Count="8" Id="d4b82a78857310048a38ff2260dd383e" Confidence="1.000000" Value="United States Senate" ParentID="86b5cdb87dac10048932ba7fa5283c3e" ActualMatch="true" />
 		</EntityClassification>
 	</DescriptiveMetadata>
 </Publication>`
-	doc, _ := parseXml(s)
+	doc, _ := parseXML(s)
 	jo := json.Object{}
 
 	err := doc.ParseDescriptiveMetadata(&jo)

@@ -44,7 +44,7 @@ func TestRights(t *testing.T) {
 		</UsageRights>
 	</RightsMetadata>
 </Publication>`
-	doc, _ := parseXml(s)
+	doc, _ := parseXML(s)
 	jo := json.Object{}
 
 	err := doc.ParsePublicationManagement(&jo)

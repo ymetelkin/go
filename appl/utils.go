@@ -2,10 +2,12 @@ package appl
 
 import (
 	"fmt"
+	"html"
 	"strings"
 	"time"
 
 	"github.com/ymetelkin/go/json"
+	"github.com/ymetelkin/go/xml"
 )
 
 type uniqueArray struct {
@@ -76,14 +78,14 @@ func (ua *uniqueArray) IsEmpty() bool {
 	return ua.values.Length() == 0
 }
 
-func (ua *uniqueArray) ToJsonProperty(field string) json.Property {
+func (ua *uniqueArray) ToJSONProperty(field string) json.Property {
 	if ua.values.Length() == 0 {
 		return json.Property{}
 	}
 	return json.NewArrayProperty(field, ua.values)
 }
 
-func (ua *uniqueArray) ToJsonArray() json.Array {
+func (ua *uniqueArray) ToJSONArray() json.Array {
 	return ua.values
 }
 
@@ -151,4 +153,44 @@ func parseIsoDate(s string) string {
 		}
 	}
 	return t.Format("2006-01-02T15:04:05Z")
+}
+
+func formatTime(ms int64) string {
+	t := time.Unix(0, ms*int64(time.Millisecond))
+	return t.Format("15:04:05.000")
+}
+
+func getForeignKeys(nd xml.Node) []foreignkey {
+	var fks []foreignkey
+
+	system := nd.GetAttribute("System")
+	if system != "" && nd.Nodes != nil {
+		for _, k := range nd.Nodes {
+			if k.Attributes != nil {
+				var id, fld string
+				for _, a := range k.Attributes {
+					switch a.Name {
+					case "Id":
+						id = a.Value
+					case "Field":
+						fld = a.Value
+					}
+				}
+				if id != "" && fld != "" {
+					field := system + fld
+					field = strings.ReplaceAll(field, " ", "")
+					field = strings.ToLower(field)
+					field = html.EscapeString(field)
+					fk := foreignkey{Field: field, Value: id}
+
+					if fks == nil {
+						fks = []foreignkey{fk}
+					} else {
+						fks = append(fks, fk)
+					}
+				}
+			}
+		}
+	}
+	return fks
 }

@@ -1,6 +1,7 @@
 package appl
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -8,7 +9,13 @@ import (
 	"github.com/ymetelkin/go/xml"
 )
 
-func getRenditionMeta(title string, role string, mt MediaType, nd xml.Node, chars xml.Node) json.Object {
+type renditions struct {
+	Renditions    map[string]json.Object
+	Counts        map[string]int
+	NonRenditions []json.Property
+}
+
+func (rnds *renditions) GetRendition(title string, role string, mt MediaType, nd xml.Node, chars xml.Node) json.Object {
 	jo := json.Object{}
 	jo.AddString("title", title)
 	jo.AddString("rel", role)
@@ -18,10 +25,6 @@ func getRenditionMeta(title string, role string, mt MediaType, nd xml.Node, char
 		for _, a := range nd.Attributes {
 			addAttribute(a, &jo)
 		}
-	}
-
-	if nd.Name == "VideoContentItem" {
-
 	}
 
 	if chars.Nodes != nil {
@@ -36,7 +39,11 @@ func getRenditionMeta(title string, role string, mt MediaType, nd xml.Node, char
 		}
 	}
 
-	exit := 0
+	var (
+		exit int
+		tape bool
+	)
+
 	for _, n := range nd.Nodes {
 		switch n.Name {
 		case "Presentations":
@@ -68,14 +75,41 @@ func getRenditionMeta(title string, role string, mt MediaType, nd xml.Node, char
 				break
 			}
 		case "Property":
-			name := n.GetAttribute("Name")
-			if name != "" && strings.HasPrefix(strings.ToLower(name), "broadcastformat") {
-				runes := []rune(name)
+			v := n.GetAttribute("Name")
+			if v != "" && strings.HasPrefix(strings.ToLower(v), "broadcastformat") {
+				runes := []rune(v)
 				jo.AddString("broadcastformat", string(runes[15:]))
 
 				exit++
 				if exit == 2 {
 					break
+				}
+			}
+		case "ForeignKeys":
+			if nd.Name == "VideoContentItem" && !tape {
+				system := n.GetAttribute("System")
+				if strings.EqualFold(system, "Tape") && n.Nodes != nil {
+					for _, k := range n.Nodes {
+						if k.Name == "Keys" && k.Attributes != nil {
+							var (
+								ok bool
+								id string
+							)
+							for _, a := range k.Attributes {
+								switch a.Name {
+								case "Field":
+									ok = strings.EqualFold(a.Value, "Number")
+								case "Id":
+									id = a.Value
+								}
+							}
+							if ok && id != "" {
+								jo.AddString("tapenumber", id)
+								tape = true
+								break
+							}
+						}
+					}
 				}
 			}
 		}
@@ -94,6 +128,61 @@ func getRenditionMeta(title string, role string, mt MediaType, nd xml.Node, char
 	}
 
 	return jo
+}
+
+func (rnds *renditions) AddRendition(name string, jo json.Object, multiple bool) {
+	if rnds.Renditions == nil {
+		rnds.Renditions = make(map[string]json.Object)
+	}
+
+	if multiple {
+		if rnds.Counts == nil {
+			rnds.Counts = make(map[string]int)
+		}
+
+		i, ok := rnds.Counts[name]
+		if ok {
+			i++
+		} else {
+			i = 1
+		}
+		rnds.Counts[name] = i
+
+		name = fmt.Sprintf("%s%d", name, i)
+	} else {
+		_, ok := rnds.Renditions[name]
+		if ok {
+			return
+		}
+	}
+
+	rnds.Renditions[name] = jo
+}
+
+func (rnds *renditions) AddNonRenditions(jo *json.Object) {
+	if rnds.NonRenditions != nil {
+		for _, jp := range rnds.NonRenditions {
+			jo.AddProperty(jp)
+		}
+	}
+}
+
+func (rnds *renditions) AddRenditions(jo *json.Object) {
+	if rnds.Renditions != nil {
+		var (
+			ja  json.Array
+			add bool
+		)
+
+		for _, r := range rnds.Renditions {
+			ja.AddObject(r)
+			add = true
+		}
+
+		if add {
+			jo.AddArray("renditions", ja)
+		}
+	}
 }
 
 func addAttribute(a xml.Attribute, jo *json.Object) {
@@ -133,4 +222,42 @@ func addNode(nd xml.Node, jo *json.Object) {
 			jo.AddString(name, nd.Text)
 		}
 	}
+}
+
+func getBinaryName(nd xml.Node, ext string, dims bool) (string, string) {
+	var name, key strings.Builder
+
+	if ext == "" {
+		ext = nd.GetAttribute("FileExtension")
+	}
+
+	if ext != "" {
+		name.WriteString(strings.ToUpper(ext))
+		key.WriteString(strings.ToLower(ext))
+	}
+
+	if dims && nd.Nodes != nil {
+		var h, w string
+		for _, n := range nd.Nodes {
+			switch n.Name {
+			case "Width":
+				w = n.Text
+			case "Height":
+				h = n.Text
+			}
+		}
+
+		if h != "" && w != "" {
+			name.WriteString(" ")
+			name.WriteString(w)
+			name.WriteString("x")
+			name.WriteString(h)
+
+			key.WriteString(w)
+			key.WriteString("x")
+			key.WriteString(h)
+		}
+	}
+
+	return name.String(), key.String()
 }

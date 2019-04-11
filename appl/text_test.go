@@ -116,15 +116,18 @@ func TestTexts(t *testing.T) {
 		</TextContentItem>
 	</PublicationComponent>
 </Publication>`
-	doc, _ := parseXml(s)
+	doc, _ := parseXML(s)
 	jo := json.Object{}
+	txts := texts{}
 
 	for _, pc := range doc.PublicationComponents {
 		switch pc.Node.Name {
 		case "TextContentItem":
-			doc.ParseTextComponent(pc, &jo)
+			txts.ParseTextComponent(pc)
 		}
 	}
+
+	txts.AddProperties(&jo)
 
 	if _, err := jo.GetObject("caption"); err != nil {
 		t.Error("[caption] is expected")

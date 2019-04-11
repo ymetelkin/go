@@ -2,7 +2,6 @@ package appl
 
 import (
 	"fmt"
-	"html"
 	"strconv"
 	"strings"
 
@@ -111,7 +110,7 @@ func parseFiling(nd xml.Node) filing {
 					}
 
 					field := fmt.Sprintf("%s%s%ss", e, strings.ToLower(t), o)
-					rts.AddProperty(ua.ToJsonProperty(field))
+					rts.AddProperty(ua.ToJSONProperty(field))
 				}
 			}
 		case "SlugLine":
@@ -165,32 +164,12 @@ func parseFiling(nd xml.Node) filing {
 				jo.AddString("priorityline", n.Text)
 			}
 		case "ForeignKeys":
-			system := n.GetAttribute("System")
-			if system != "" && n.Nodes != nil {
-				for _, k := range n.Nodes {
-					if k.Attributes != nil {
-						var id, fld string
-						for _, a := range k.Attributes {
-							switch a.Name {
-							case "Id":
-								id = a.Value
-							case "Field":
-								fld = a.Value
-							}
-						}
-						if id != "" && fld != "" {
-							field := system + fld
-							field = strings.ReplaceAll(field, " ", "")
-							field = strings.ToLower(field)
-							field = html.EscapeString(field)
-							fk := foreignkey{Field: field, Value: id}
-							if f.ForeignKeys == nil {
-								f.ForeignKeys = []foreignkey{fk}
-							} else {
-								f.ForeignKeys = append(f.ForeignKeys, fk)
-							}
-						}
-					}
+			fks := getForeignKeys(n)
+			if fks != nil {
+				if f.ForeignKeys == nil {
+					f.ForeignKeys = fks
+				} else {
+					f.ForeignKeys = append(f.ForeignKeys, fks...)
 				}
 			}
 		case "FilingCountry":
@@ -251,19 +230,19 @@ func parseFiling(nd xml.Node) filing {
 	}
 
 	if !fcs.IsEmpty() {
-		jo.AddProperty(fcs.ToJsonProperty("filingcountries"))
+		jo.AddProperty(fcs.ToJSONProperty("filingcountries"))
 	}
 
 	if !frs.IsEmpty() {
-		jo.AddProperty(fcs.ToJsonProperty("filingregions"))
+		jo.AddProperty(fcs.ToJSONProperty("filingregions"))
 	}
 
 	if !fss.IsEmpty() {
-		jo.AddProperty(fss.ToJsonProperty("filingsubjects"))
+		jo.AddProperty(fss.ToJSONProperty("filingsubjects"))
 	}
 
 	if !fts.IsEmpty() {
-		jo.AddProperty(fts.ToJsonProperty("filingtopics"))
+		jo.AddProperty(fts.ToJSONProperty("filingtopics"))
 	}
 
 	f.JSON = jo

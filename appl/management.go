@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	DIGIT_ZERO rune = 48
+	digit0 rune = 48
 )
 
 func (doc *document) ParsePublicationManagement(jo *json.Object) error {
@@ -154,9 +154,9 @@ func (doc *document) ParsePublicationManagement(jo *json.Object) error {
 		jo.AddString("embargoed", rdt)
 	}
 
-	jo.AddProperty(outs.ToJsonProperty("outinginstructions"))
-	jo.AddProperty(types.ToJsonProperty("editorialtypes"))
-	jo.AddProperty(doc.Signals.ToJsonProperty("signals"))
+	jo.AddProperty(outs.ToJSONProperty("outinginstructions"))
+	jo.AddProperty(types.ToJSONProperty("editorialtypes"))
+	jo.AddProperty(doc.Signals.ToJSONProperty("signals"))
 
 	getAssociatedWith(ass, jo)
 
@@ -165,14 +165,14 @@ func (doc *document) ParsePublicationManagement(jo *json.Object) error {
 
 func getPubStatus(s string) (PubStatus, error) {
 	if strings.EqualFold(s, "Usable") || strings.EqualFold(s, "Embargoed") || strings.EqualFold(s, "Unknown") {
-		return PUBSTATUS_USABLE, nil
+		return pubStatusUsable, nil
 	} else if strings.EqualFold(s, "Withheld") {
-		return PUBSTATUS_WITHHELD, nil
+		return pubStatusWithheld, nil
 	} else if strings.EqualFold(s, "Canceled") {
-		return PUBSTATUS_CANCELED, nil
+		return pubStatusCanceled, nil
 	} else {
 		e := fmt.Sprintf("Invalid pub status [%s]", s)
-		return PUBSTATUS_UNKNOWN, errors.New(e)
+		return pubStatusUnknown, errors.New(e)
 	}
 }
 
@@ -282,7 +282,7 @@ func getAssociatedWith(ass []xml.Node, parent *json.Object) {
 		runes := []rune(aw.Text)
 		empty := true
 		for _, r := range runes {
-			if r != DIGIT_ZERO {
+			if r != digit0 {
 				empty = false
 				break
 			}

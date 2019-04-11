@@ -14,31 +14,52 @@ type pubcomponent struct {
 func (doc *document) ParsePublicationComponents(jo *json.Object) {
 	var (
 		txts texts
-		phts photos
+		rnds renditions
 	)
 
 	if doc.PublicationComponents != nil {
+		var (
+			duration int64
+			phcol    []pubcomponent
+		)
+
 		for _, pc := range doc.PublicationComponents {
 			switch pc.Node.Name {
 			case "TextContentItem":
 				txts.ParseTextComponent(pc)
 			case "PhotoContentItem":
-				phts.ParsePhotoComponent(pc)
+				rnds.ParsePhotoComponent(pc, doc.MediaType)
+			case "PhotoCollectionContentItem":
+				if phcol == nil {
+					phcol = []pubcomponent{pc}
+				} else {
+					phcol = append(phcol, pc)
+				}
 			case "GraphicContentItem":
+				rnds.ParseGraphicComponent(pc, doc.MediaType)
 			case "VideoContentItem":
+				test := rnds.ParseVideoComponent(pc)
+				if duration == 0 && test > 0 {
+					duration = test
+				}
+			case "WebPartContentItem":
+				rnds.ParseWebPartomponent(pc, doc.MediaType)
 			case "AudioContentItem":
+				rnds.ParseAudioComponent(pc)
 			case "ComplexDataContentItem":
+				rnds.ParseComplexDataComponent(pc)
 			}
 		}
 
-		ja := json.Array{}
+		if phcol != nil {
+			for _, pc := range phcol {
+				rnds.ParsePhotoCollection(pc, duration)
+			}
+		}
 
 		txts.AddProperties(jo)
-		phts.AddRenditions(&ja)
-
-		if !ja.IsEmpty() {
-			jo.AddArray("renditions", ja)
-		}
+		rnds.AddNonRenditions(jo)
+		rnds.AddRenditions(jo)
 	}
 }
 
@@ -61,7 +82,7 @@ func parsePublicationComponent(nd xml.Node) pubcomponent {
 		}
 	}
 
-	if role == "" || mt == MEDIATYPE_UNKNOWN {
+	if role == "" || mt == mediaTypeUnknown {
 		return pubcomponent{}
 	}
 

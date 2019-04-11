@@ -61,7 +61,7 @@ func TestManagement(t *testing.T) {
 	 </PublicationManagement>   
 </Publication>
 `
-	doc, _ := parseXml(s)
+	doc, _ := parseXML(s)
 	jo := json.Object{}
 
 	err := doc.ParsePublicationManagement(&jo)

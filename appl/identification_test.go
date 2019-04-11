@@ -23,7 +23,7 @@ func TestIdentification(t *testing.T) {
 		<FriendlyKey>18212677756771</FriendlyKey>
 	</Identification>
 </Publication>`
-	doc, _ := parseXml(s)
+	doc, _ := parseXML(s)
 	jo := json.Object{}
 
 	err := doc.ParseIdentification(&jo)
@@ -56,14 +56,14 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<FriendlyKey>xyz</FriendlyKey>
 	</Identification>
 </Publication>`
-	doc, _ := parseXml(s)
+	doc, _ := parseXML(s)
 	jo := json.Object{}
 
 	err := doc.ParseIdentification(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	doc.SetReferenceId(&jo)
+	doc.SetReferenceID(&jo)
 
 	if v, _ := jo.GetString("referenceid"); v != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
@@ -79,14 +79,14 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<MediaType>Photo</MediaType>
 	</Identification>
 </Publication>`
-	doc, _ = parseXml(s)
+	doc, _ = parseXML(s)
 	jo = json.Object{}
 
 	err = doc.ParseIdentification(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	doc.SetReferenceId(&jo)
+	doc.SetReferenceID(&jo)
 
 	if v, _ := jo.GetString("referenceid"); v != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")
@@ -105,7 +105,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<Title>xyz</Title>
 	</NewsLines> 
 </Publication>`
-	doc, _ = parseXml(s)
+	doc, _ = parseXML(s)
 	jo = json.Object{}
 
 	err = doc.ParseIdentification(&jo)
@@ -116,7 +116,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
-	doc.SetReferenceId(&jo)
+	doc.SetReferenceID(&jo)
 
 	if v, _ := jo.GetString("referenceid"); v != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
@@ -132,14 +132,14 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<MediaType>ComplexData</MediaType>
 	</Identification>
 </Publication>`
-	doc, _ = parseXml(s)
+	doc, _ = parseXML(s)
 	jo = json.Object{}
 
 	err = doc.ParseIdentification(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	doc.SetReferenceId(&jo)
+	doc.SetReferenceID(&jo)
 
 	if v, _ := jo.GetString("referenceid"); v != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")
@@ -158,7 +158,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<Title>xyz</Title>
 	</NewsLines> 
 </Publication>`
-	doc, _ = parseXml(s)
+	doc, _ = parseXML(s)
 	jo = json.Object{}
 
 	err = doc.ParseIdentification(&jo)
@@ -169,7 +169,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
-	doc.SetReferenceId(&jo)
+	doc.SetReferenceID(&jo)
 
 	if v, _ := jo.GetString("referenceid"); v != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
@@ -185,14 +185,14 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<MediaType>Text</MediaType>
 	</Identification>
 </Publication>`
-	doc, _ = parseXml(s)
+	doc, _ = parseXML(s)
 	jo = json.Object{}
 
 	err = doc.ParseIdentification(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	doc.SetReferenceId(&jo)
+	doc.SetReferenceID(&jo)
 
 	if v, _ := jo.GetString("referenceid"); v != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")
@@ -211,7 +211,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<EditorialId>xyz</EditorialId>
 	</PublicationManagement> 
 </Publication>`
-	doc, _ = parseXml(s)
+	doc, _ = parseXML(s)
 	jo = json.Object{}
 
 	err = doc.ParseIdentification(&jo)
@@ -222,7 +222,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
-	doc.SetReferenceId(&jo)
+	doc.SetReferenceID(&jo)
 
 	if v, _ := jo.GetString("referenceid"); v != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
@@ -238,14 +238,14 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<MediaType>Video</MediaType>
 	</Identification>
 </Publication>`
-	doc, _ = parseXml(s)
+	doc, _ = parseXML(s)
 	jo = json.Object{}
 
 	err = doc.ParseIdentification(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	doc.SetReferenceId(&jo)
+	doc.SetReferenceID(&jo)
 
 	if v, _ := jo.GetString("referenceid"); v != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")

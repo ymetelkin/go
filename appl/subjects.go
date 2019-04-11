@@ -44,7 +44,7 @@ func (sbjs *subjects) Parse(nd xml.Node) {
 					name = a.Value
 				case "ActualMatch":
 					match = a.Value
-				case "ParentId":
+				case "ParentID":
 					pid = a.Value
 				case "TopParent":
 					tp = a.Value == "true"
@@ -86,7 +86,7 @@ func (sbjs *subjects) Parse(nd xml.Node) {
 	}
 }
 
-func (sbjs *subjects) ToJsonProperty(field string) json.Property {
+func (sbjs *subjects) ToJSONProperty(field string) json.Property {
 	if sbjs.Keys != nil {
 		ja := json.Array{}
 		for _, item := range sbjs.Subjects {
@@ -99,10 +99,10 @@ func (sbjs *subjects) ToJsonProperty(field string) json.Property {
 				subject.AddString("creator", sbj.Creator)
 			}
 			if !sbj.Rels.IsEmpty() {
-				subject.AddProperty(sbj.Rels.ToJsonProperty("rels"))
+				subject.AddProperty(sbj.Rels.ToJSONProperty("rels"))
 			}
 			if !sbj.ParentIds.IsEmpty() {
-				subject.AddProperty(sbj.ParentIds.ToJsonProperty("parentids"))
+				subject.AddProperty(sbj.ParentIds.ToJSONProperty("parentids"))
 			}
 			if sbj.TopParent {
 				subject.AddBool("topparent", true)

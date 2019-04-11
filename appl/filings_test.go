@@ -71,7 +71,7 @@ func TestFilings(t *testing.T) {
 		<BreakingNews>Breaking</BreakingNews>
 	</FilingMetadata>
 </Publication>`
-	doc, _ := parseXml(s)
+	doc, _ := parseXML(s)
 	jo := json.Object{}
 
 	filings := json.Array{}

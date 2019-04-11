@@ -61,7 +61,7 @@ func TestAdmin(t *testing.T) {
 		<Property Name="EAI:ELVIS_WORKFLOW_ID"></Property>
 	</AdministrativeMetadata>
 </Publication>`
-	doc, _ := parseXml(s)
+	doc, _ := parseXML(s)
 	jo := json.Object{}
 
 	err := doc.ParsePublicationManagement(&jo)

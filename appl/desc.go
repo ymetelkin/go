@@ -55,25 +55,25 @@ func (doc *document) ParseDescriptiveMetadata(jo *json.Object) error {
 		jo.AddObject("fixture", fix)
 	}
 
-	jo.AddProperty(desc.ToJsonProperty("descriptions"))
+	jo.AddProperty(desc.ToJSONProperty("descriptions"))
 
 	if !dll.IsEmpty() {
 		jo.AddObject("datelinelocation", dll)
 	}
 
-	jo.AddProperty(gens.ToJsonProperty("generators"))
-	jo.AddProperty(cats.ToJsonProperty("categories"))
-	jo.AddProperty(sups.ToJsonProperty("suppcategories"))
-	jo.AddProperty(alts.ToJsonProperty("alertcategories"))
-	jo.AddProperty(sbjs.ToJsonProperty("subjects"))
-	jo.AddProperty(prns.ToJsonProperty())
-	jo.AddProperty(orgs.ToJsonProperty("organizations"))
-	jo.AddProperty(cmps.ToJsonProperty())
-	jo.AddProperty(plcs.ToJsonProperty())
-	jo.AddProperty(evts.ToJsonProperty())
-	jo.AddProperty(auds.ToJsonProperty("audiences"))
+	jo.AddProperty(gens.ToJSONProperty("generators"))
+	jo.AddProperty(cats.ToJSONProperty("categories"))
+	jo.AddProperty(sups.ToJSONProperty("suppcategories"))
+	jo.AddProperty(alts.ToJSONProperty("alertcategories"))
+	jo.AddProperty(sbjs.ToJSONProperty("subjects"))
+	jo.AddProperty(prns.ToJSONProperty())
+	jo.AddProperty(orgs.ToJSONProperty("organizations"))
+	jo.AddProperty(cmps.ToJSONProperty())
+	jo.AddProperty(plcs.ToJSONProperty())
+	jo.AddProperty(evts.ToJSONProperty())
+	jo.AddProperty(auds.ToJSONProperty("audiences"))
 
-	jo.AddProperty(svcs.ToJsonProperty("services"))
+	jo.AddProperty(svcs.ToJSONProperty("services"))
 
 	if !tpm.IsEmpty() {
 		jo.AddArray("thirdpartymeta", tpm)
@@ -337,7 +337,7 @@ func getAudences(nd xml.Node, fs []filing) uniqueArray {
 			if strings.EqualFold(f.Category, "n") {
 				state := getState(f.Source)
 				if state != nil {
-					ua.AddObject(state.Code, state.ToJson())
+					ua.AddObject(state.Code, state.ToJSON())
 				}
 			}
 		}

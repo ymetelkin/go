@@ -29,7 +29,7 @@ func TestNewslines(t *testing.T) {
 		<ByLineOriginal>By DAVE CAMPBELL</ByLineOriginal>
 	</NewsLines>  
 </Publication>`
-	doc, _ := parseXml(s)
+	doc, _ := parseXML(s)
 	jo := json.Object{}
 
 	err := doc.ParseIdentification(&jo)

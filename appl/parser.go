@@ -8,22 +8,22 @@ import (
 type MediaType string
 
 const (
-	MEDIATYPE_TEXT          MediaType = "text"
-	MEDIATYPE_PHOTO         MediaType = "photo"
-	MEDIATYPE_VIDEO         MediaType = "video"
-	MEDIATYPE_AUDIO         MediaType = "audio"
-	MEDIATYPE_GRAPHIC       MediaType = "graphic"
-	MEDIATYPE_COMPLEXT_DATA MediaType = "complexdata"
-	MEDIATYPE_UNKNOWN       MediaType = ""
+	mediaTypeText        MediaType = "text"
+	mediaTypePhoto       MediaType = "photo"
+	mediaTypeVideo       MediaType = "video"
+	mediaTypeAudio       MediaType = "audio"
+	mediaTypeGraphic     MediaType = "graphic"
+	mediaTypeComplexData MediaType = "complexdata"
+	mediaTypeUnknown     MediaType = ""
 )
 
 type PubStatus string
 
 const (
-	PUBSTATUS_USABLE   PubStatus = "usable"
-	PUBSTATUS_WITHHELD PubStatus = "withheld"
-	PUBSTATUS_CANCELED PubStatus = "canceled"
-	PUBSTATUS_UNKNOWN  PubStatus = ""
+	pubStatusUsable   PubStatus = "usable"
+	pubStatusWithheld PubStatus = "withheld"
+	pubStatusCanceled PubStatus = "canceled"
+	pubStatusUnknown  PubStatus = ""
 )
 
 type document struct {
@@ -49,8 +49,9 @@ type document struct {
 	Fixture                bool
 }
 
-func XmlToJson(s string) (json.Object, error) {
-	doc, err := parseXml(s)
+//XMLToJSON converts APPL XML to APPL JSON
+func XMLToJSON(s string) (json.Object, error) {
+	doc, err := parseXML(s)
 	if err != nil {
 		return json.Object{}, err
 	}
@@ -94,13 +95,13 @@ func XmlToJson(s string) (json.Object, error) {
 
 	doc.ParsePublicationComponents(&jo)
 
-	doc.SetReferenceId(&jo)
+	doc.SetReferenceID(&jo)
 	doc.SetHeadline(&jo)
 
 	return jo, nil
 }
 
-func parseXml(s string) (document, error) {
+func parseXML(s string) (document, error) {
 	root, err := xml.New(s)
 	if err != nil {
 		return document{}, err

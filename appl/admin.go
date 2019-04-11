@@ -113,21 +113,21 @@ func (doc *document) ParseAdministrativeMetadata(jo *json.Object) error {
 	getSources(srcs, jo)
 	getSourceMaterials(sms, jo)
 
-	jo.AddProperty(tss.ToJsonProperty("transmissionsources"))
-	jo.AddProperty(pss.ToJsonProperty("productsources"))
+	jo.AddProperty(tss.ToJSONProperty("transmissionsources"))
+	jo.AddProperty(pss.ToJSONProperty("productsources"))
 
 	if !ict.IsEmpty() {
 		jo.AddObject("itemcontenttype", ict)
 	}
 
-	jo.AddProperty(dcs.ToJsonProperty("distributionchannels"))
+	jo.AddProperty(dcs.ToJSONProperty("distributionchannels"))
 
 	if !fx.IsEmpty() {
 		doc.Fixture = true
 		jo.AddObject("fixture", fx)
 	}
 
-	jo.AddProperty(ins.ToJsonProperty("inpackages"))
+	jo.AddProperty(ins.ToJSONProperty("inpackages"))
 
 	if cntr != "" {
 		jo.AddString("contributor", cntr)
@@ -137,9 +137,9 @@ func (doc *document) ParseAdministrativeMetadata(jo *json.Object) error {
 
 	if s2 {
 		if s1 {
-			jo.SetArray("signals", doc.Signals.ToJsonArray())
+			jo.SetArray("signals", doc.Signals.ToJSONArray())
 		} else {
-			jo.AddProperty(doc.Signals.ToJsonProperty("signals"))
+			jo.AddProperty(doc.Signals.ToJSONProperty("signals"))
 		}
 	}
 

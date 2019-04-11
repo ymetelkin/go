@@ -69,16 +69,16 @@ func (doc *document) ParseIdentification(jo *json.Object) error {
 	return nil
 }
 
-func (doc *document) SetReferenceId(jo *json.Object) {
+func (doc *document) SetReferenceID(jo *json.Object) {
 	var ref string
 
-	if (doc.MediaType == MEDIATYPE_PHOTO || doc.MediaType == MEDIATYPE_GRAPHIC) && doc.FriendlyKey != "" {
+	if (doc.MediaType == mediaTypePhoto || doc.MediaType == mediaTypeGraphic) && doc.FriendlyKey != "" {
 		ref = doc.FriendlyKey
-	} else if doc.MediaType == MEDIATYPE_AUDIO && doc.EditorialID != "" {
+	} else if doc.MediaType == mediaTypeAudio && doc.EditorialID != "" {
 		ref = doc.EditorialID
-	} else if doc.MediaType == MEDIATYPE_COMPLEXT_DATA && doc.Title != "" {
+	} else if doc.MediaType == mediaTypeComplexData && doc.Title != "" {
 		ref = doc.Title
-	} else if doc.MediaType == MEDIATYPE_TEXT {
+	} else if doc.MediaType == mediaTypeText {
 		if doc.Title != "" {
 			ref = doc.Title
 		} else if doc.Filings != nil {
@@ -89,7 +89,7 @@ func (doc *document) SetReferenceId(jo *json.Object) {
 				}
 			}
 		}
-	} else if doc.MediaType == MEDIATYPE_VIDEO {
+	} else if doc.MediaType == mediaTypeVideo {
 		if doc.CompositionType == "StandardBroadcastVideo" {
 			if doc.EditorialID != "" {
 				ref = doc.EditorialID
@@ -121,20 +121,20 @@ func (doc *document) SetReferenceId(jo *json.Object) {
 func getMediaType(s string) (MediaType, error) {
 	var mt MediaType
 	if strings.EqualFold(s, "text") {
-		mt = MEDIATYPE_TEXT
+		mt = mediaTypeText
 	} else if strings.EqualFold(s, "photo") {
-		mt = MEDIATYPE_PHOTO
+		mt = mediaTypePhoto
 	} else if strings.EqualFold(s, "video") {
-		mt = MEDIATYPE_VIDEO
+		mt = mediaTypeVideo
 	} else if strings.EqualFold(s, "audio") {
-		mt = MEDIATYPE_AUDIO
+		mt = mediaTypeAudio
 	} else if strings.EqualFold(s, "graphic") {
-		mt = MEDIATYPE_GRAPHIC
+		mt = mediaTypeGraphic
 	} else if strings.EqualFold(s, "complexdata") {
-		mt = MEDIATYPE_COMPLEXT_DATA
+		mt = mediaTypeComplexData
 	} else {
 		e := fmt.Sprintf("Invalid media type [%s]", s)
-		return MEDIATYPE_UNKNOWN, errors.New(e)
+		return mediaTypeUnknown, errors.New(e)
 	}
 
 	return mt, nil
