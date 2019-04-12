@@ -15,8 +15,7 @@ func TestManagement(t *testing.T) {
 		<FilingType>Text</FilingType>
 		<IsDistributionReady>true</IsDistributionReady>
 		<ArrivalDateTime>2012-03-12T20:54:44</ArrivalDateTime>
-		<FirstCreated UserAccount="APGBL" UserAccountSystem="APADS" UserName="APGBL\dcampbell"
-			Year="2012" Month="3" Day="12" Time="20:54:44"/>
+		<FirstCreated Year="2019" Month="4" Day="12" Time="17:13:00"></FirstCreated>
 		<LastModifiedDateTime UserName="APGBL\dzelio" UserAccount="APGBL" UserAccountSystem="APADS"
 			>2012-03-12T20:54:37</LastModifiedDateTime>
 		<ReleaseDateTime>2012-03-12T20:54:44</ReleaseDateTime>

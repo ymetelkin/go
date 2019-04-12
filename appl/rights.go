@@ -1,16 +1,13 @@
 package appl
 
 import (
-	"errors"
-
 	"github.com/ymetelkin/go/json"
 )
 
 func (doc *document) ParseRightsMetadata(parent *json.Object) error {
-
-	if doc.RightsMetadata.Nodes == nil {
-		return errors.New("RightsMetadata is missing")
-	}
+	//if doc.RightsMetadata.Nodes == nil {
+	//	return errors.New("RightsMetadata is missing")
+	//}
 
 	ja := json.Array{}
 

@@ -34,10 +34,10 @@ func (rnds *renditions) ParseVideoComponent(pc pubcomponent) int64 {
 
 			ofn := pc.Node.GetAttribute("OriginalFileName")
 			if ofn != "" {
-				tokens := strings.Split(ofn, "_")
-				tmp := tokens[len(tokens)-1]
-				tokens = strings.Split(tmp, ".")
-				file = tokens[0]
+				toks := strings.Split(ofn, "_")
+				tmp := toks[len(toks)-1]
+				toks = strings.Split(tmp, ".")
+				file = toks[0]
 			}
 
 			n, k := getBinaryName(chars, "", true)

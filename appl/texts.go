@@ -29,8 +29,16 @@ func (txts *texts) ParseTextComponent(pc pubcomponent) error {
 
 	for _, b := range nd.Nodes {
 		if b.Name == "block" {
-			s := b.ToInlineString()
-			sb.WriteString(s)
+			if b.Nodes != nil {
+				for _, p := range b.Nodes {
+					s := p.ToInlineString()
+					sb.WriteString(s)
+				}
+			}
+
+			if b.Text != "" {
+				sb.WriteString(b.Text)
+			}
 		}
 	}
 

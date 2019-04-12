@@ -36,6 +36,10 @@ func (doc *document) ParsePublicationManagement(jo *json.Object) error {
 			if nd.Text != "" {
 				jo.AddString("changeevent", nd.Text)
 			}
+		case "ItemKey":
+			if nd.Text != "" {
+				jo.AddString("itemkey", nd.Text)
+			}
 		case "ArrivalDateTime":
 			if nd.Text != "" {
 				jo.AddString("arrivaldatetime", nd.Text+"Z")
@@ -96,7 +100,7 @@ func (doc *document) ParsePublicationManagement(jo *json.Object) error {
 			}
 		case "ItemStartDateTime":
 			if nd.Text != "" {
-				jo.AddString("itemstartdatetime", nd.Text)
+				jo.AddString("itemstartdatetime", nd.Text+"Z")
 			}
 		case "ItemStartDateTimeActual":
 			if nd.Text != "" {
@@ -212,7 +216,7 @@ func getFirstCreatedDate(nd xml.Node) (string, int, error) {
 				day = fmt.Sprintf("%s%d", zero, i)
 			}
 		case "Time":
-			time = nd.Text
+			time = a.Value
 		}
 	}
 

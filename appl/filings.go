@@ -42,7 +42,7 @@ func parseFiling(nd xml.Node) filing {
 			}
 		case "ArrivalDateTime":
 			if n.Text != "" {
-				jo.AddString("filingarrivaldatetime", n.Text)
+				jo.AddString("filingarrivaldatetime", n.Text+"Z")
 			}
 		case "Cycle":
 			if n.Text != "" {
@@ -104,8 +104,8 @@ func parseFiling(nd xml.Node) filing {
 				}
 				if n.Text != "" && t != "" {
 					ua := uniqueArray{}
-					tokens := strings.Split(n.Text, " ")
-					for _, s := range tokens {
+					toks := strings.Split(n.Text, " ")
+					for _, s := range toks {
 						ua.AddString(s)
 					}
 

@@ -22,6 +22,8 @@ func (doc *document) ParseNewsLines(jo *json.Object) error {
 		cr            string
 	)
 
+	jo.AddString("headline", "")
+
 	for _, nd := range doc.NewsLines.Nodes {
 		switch nd.Name {
 		case "Title":
@@ -30,9 +32,9 @@ func (doc *document) ParseNewsLines(jo *json.Object) error {
 				jo.AddString("title", nd.Text)
 			}
 		case "HeadLine":
-			jo.AddString("headline", nd.Text)
 			if nd.Text != "" {
 				doc.Headline = nd.Text
+				jo.SetString("headline", nd.Text)
 			}
 		case "ExtendedHeadLine":
 			if nd.Text != "" {
@@ -46,6 +48,14 @@ func (doc *document) ParseNewsLines(jo *json.Object) error {
 		case "DateLine":
 			if nd.Text != "" {
 				jo.AddString("dateline", nd.Text)
+			}
+		case "CreditLine":
+			if nd.Text != "" {
+				jo.AddString("creditline", nd.Text)
+			}
+			id := nd.GetAttribute("Id")
+			if id != "" {
+				jo.AddString("creditlineid", id)
 			}
 		case "RightsLine":
 			if nd.Text != "" {
@@ -79,7 +89,7 @@ func (doc *document) ParseNewsLines(jo *json.Object) error {
 			if bys == nil {
 				bys = []xml.Node{nd}
 			} else {
-				bys = append(byos, nd)
+				bys = append(bys, nd)
 			}
 		case "NameLine":
 			if ns == nil {
@@ -358,12 +368,12 @@ func getFirstTenWords(jo *json.Object) string {
 	if err == nil {
 		s, _ := o.GetString("nitf")
 		if s != "" {
-			tokens := strings.Split(s, " ")
-			if len(tokens) > 10 {
-				return strings.Join(tokens[0:10], " ")
-			} else {
-				return s
+			toks := strings.Split(s, " ")
+			if len(toks) > 10 {
+				return strings.Join(toks[0:10], " ")
 			}
+
+			return s
 		}
 	}
 	return ""

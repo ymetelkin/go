@@ -48,9 +48,9 @@ func (doc *document) ParseAdministrativeMetadata(jo *json.Object) error {
 			dcs.AddString(nd.Text)
 		case "InPackage":
 			if nd.Text != "" {
-				tokens := strings.Split(nd.Text, " ")
-				for _, token := range tokens {
-					ins.AddString(token)
+				toks := strings.Split(nd.Text, " ")
+				for _, tok := range toks {
+					ins.AddString(tok)
 				}
 			}
 		case "ItemContentType":
@@ -198,6 +198,10 @@ func getSources(srcs []xml.Node, jo *json.Object) {
 					if a.Value != "" {
 						source.AddString("country", a.Value)
 					}
+				case "CountryArea":
+					if a.Value != "" {
+						source.AddString("countryarea", a.Value)
+					}
 				case "Id":
 					if a.Value != "" {
 						source.AddString("code", a.Value)
@@ -216,10 +220,10 @@ func getSources(srcs []xml.Node, jo *json.Object) {
 					}
 				}
 			}
+		}
 
-			if src.Text != "" {
-				source.AddString("name", src.Text)
-			}
+		if src.Text != "" {
+			source.AddString("name", src.Text)
 		}
 
 		if !source.IsEmpty() {
@@ -306,7 +310,7 @@ func getRatings(rts []xml.Node, jo *json.Object) {
 			if r.Attributes != nil {
 				var (
 					rate, min, max, raters int
-					unit, rt               string
+					unit, rt, cr           string
 				)
 
 				for _, a := range r.Attributes {
@@ -317,6 +321,8 @@ func getRatings(rts []xml.Node, jo *json.Object) {
 							if err == nil {
 								rate = i
 							}
+						} else {
+							rate = -1
 						}
 					case "ScaleMin":
 						if a.Value != "" {
@@ -324,6 +330,8 @@ func getRatings(rts []xml.Node, jo *json.Object) {
 							if err == nil {
 								min = i
 							}
+						} else {
+							min = -1
 						}
 					case "ScaleMax":
 						if a.Value != "" {
@@ -331,6 +339,8 @@ func getRatings(rts []xml.Node, jo *json.Object) {
 							if err == nil {
 								max = i
 							}
+						} else {
+							max = -1
 						}
 					case "ScaleUnit":
 						unit = a.Value
@@ -340,23 +350,30 @@ func getRatings(rts []xml.Node, jo *json.Object) {
 							if err == nil {
 								raters = i
 							}
+						} else {
+							raters = -1
 						}
 					case "RaterType":
 						rt = a.Value
+					case "Creator":
+						cr = a.Value
 					}
 				}
 
-				if rate > 0 && min > 0 && max > 0 && unit != "" {
+				if rate != -1 && min != -1 && max != -1 && unit != "" {
 					rating := json.Object{}
 					rating.AddInt("rating", rate)
 					rating.AddInt("scalemin", min)
 					rating.AddInt("scalemax", max)
 					rating.AddString("scaleunit", unit)
-					if raters > 0 {
+					if raters != -1 {
 						rating.AddInt("raters", raters)
 					}
 					if rt != "" {
 						rating.AddString("ratertype", rt)
+					}
+					if cr != "" {
+						rating.AddString("creator", cr)
 					}
 					ratings.AddObject(rating)
 				}

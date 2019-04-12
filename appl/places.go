@@ -47,7 +47,7 @@ func (ps *places) Parse(nd xml.Node) {
 					name = a.Value
 				case "ActualMatch":
 					match = a.Value
-				case "ParentID":
+				case "ParentId":
 					pid = a.Value
 				case "TopParent":
 					tp = a.Value == "true"

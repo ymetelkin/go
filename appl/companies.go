@@ -74,7 +74,7 @@ func (cs *companies) Parse(nd xml.Node) {
 								n = a.Value
 							case "Value":
 								v = a.Value
-							case "ParentID":
+							case "ParentId":
 								pid = a.Value
 							}
 						}
@@ -85,11 +85,11 @@ func (cs *companies) Parse(nd xml.Node) {
 								comp.Industries.AddKeyValue("code", id, "name", v)
 							} else if key == "instrument" {
 								instrument := strings.ToUpper(v)
-								tokens := strings.Split(instrument, ":")
-								if len(tokens) == 2 {
+								toks := strings.Split(instrument, ":")
+								if len(toks) == 2 {
 									symbol := json.Object{}
-									symbol.AddString("ticker", tokens[1])
-									symbol.AddString("exchange", tokens[0])
+									symbol.AddString("ticker", toks[1])
+									symbol.AddString("exchange", toks[0])
 									symbol.AddString("instrument", instrument)
 									comp.Symbols.AddObject(instrument, symbol)
 								}
