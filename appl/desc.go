@@ -47,7 +47,7 @@ func (doc *document) ParseDescriptiveMetadata(jo *json.Object) error {
 				svcs.AddObject(nd.Text, svc)
 			}
 		case "ThirdPartyMeta":
-			tpm = getThirdParty(nd)
+			getThirdParty(nd, &tpm)
 		}
 	}
 
@@ -221,57 +221,51 @@ func getDatelineLocation(nd xml.Node) json.Object {
 	return jo
 }
 
-func getThirdParty(nd xml.Node) json.Array {
+func getThirdParty(nd xml.Node, ja *json.Array) {
 	if nd.Nodes == nil {
-		return json.Array{}
+		return
 	}
 
-	ja := json.Array{}
+	jo := json.Object{}
 
-	for _, n := range nd.Nodes {
-		jo := json.Object{}
-
-		if n.Attributes != nil {
-			for _, a := range n.Attributes {
-				switch a.Name {
-				case "System":
-					if a.Value != "" {
-						jo.AddString("creator", a.Value)
-					}
-				case "Vocabulary":
-					if a.Value != "" {
-						jo.AddString("vocabulary", a.Value)
-					}
-				case "VocabularyOwner":
-					if a.Value != "" {
-						jo.AddString("vocabularyowner", a.Value)
-					}
+	if nd.Attributes != nil {
+		for _, a := range nd.Attributes {
+			switch a.Name {
+			case "System":
+				if a.Value != "" {
+					jo.AddString("creator", a.Value)
+				}
+			case "Vocabulary":
+				if a.Value != "" {
+					jo.AddString("vocabulary", a.Value)
+				}
+			case "VocabularyOwner":
+				if a.Value != "" {
+					jo.AddString("vocabularyowner", a.Value)
 				}
 			}
 		}
+	}
 
-		o := n.GetNode("Occurrence")
-		if o.Attributes != nil {
-			for _, a := range o.Attributes {
-				switch a.Name {
-				case "Id":
-					if a.Value != "" {
-						jo.AddString("code", a.Value)
-					}
-				case "Value":
-					if a.Value != "" {
-						jo.AddString("name", a.Value)
-					}
+	o := nd.GetNode("Occurrence")
+	if o.Attributes != nil {
+		for _, a := range o.Attributes {
+			switch a.Name {
+			case "Id":
+				if a.Value != "" {
+					jo.AddString("code", a.Value)
+				}
+			case "Value":
+				if a.Value != "" {
+					jo.AddString("name", a.Value)
 				}
 			}
 		}
-
-		if !jo.IsEmpty() {
-			ja.AddObject(jo)
-		}
 	}
 
-	return ja
+	if !jo.IsEmpty() {
+		ja.AddObject(jo)
+	}
 }
 
 func getAudences(nd xml.Node, fs []filing) uniqueArray {

@@ -56,7 +56,7 @@ func (doc *document) ParsePublicationManagement(jo *json.Object) error {
 			ps, err := getPubStatus(nd.Text)
 			if err == nil {
 				doc.PubStatus = ps
-				jo.SetString("pubstatus", string(ps))
+				jo.AddString("pubstatus", string(ps))
 			} else {
 				return err
 			}

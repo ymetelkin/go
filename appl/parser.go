@@ -85,6 +85,11 @@ func XMLToJSON(s string) (json.Object, error) {
 		return json.Object{}, err
 	}
 
+	err = doc.ParseDescriptiveMetadata(&jo)
+	if err != nil {
+		return json.Object{}, err
+	}
+
 	if doc.Filings != nil {
 		filings := json.Array{}
 		for _, f := range doc.Filings {

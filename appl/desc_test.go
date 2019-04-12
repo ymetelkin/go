@@ -129,35 +129,35 @@ func TestDescriptions(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if _, err := jo.GetArray("descriptions"); err != nil {
+	if ja, err := jo.GetArray("descriptions"); err != nil || ja.IsEmpty() {
 		t.Error("[descriptions] is expected")
 	}
 
-	if _, err := jo.GetObject("datelinelocation"); err != nil {
+	if ja, err := jo.GetObject("datelinelocation"); err != nil || ja.IsEmpty() {
 		t.Error("[datelinelocation] is expected")
 	}
 
-	if _, err := jo.GetArray("generators"); err != nil {
+	if ja, err := jo.GetArray("generators"); err != nil || ja.IsEmpty() {
 		t.Error("[generators] is expected")
 	}
 
-	if _, err := jo.GetArray("categories"); err != nil {
+	if ja, err := jo.GetArray("categories"); err != nil || ja.IsEmpty() {
 		t.Error("[categories] is expected")
 	}
 
-	if _, err := jo.GetArray("suppcategories"); err != nil {
+	if ja, err := jo.GetArray("suppcategories"); err != nil || ja.IsEmpty() {
 		t.Error("[suppcategories] is expected")
 	}
 
-	if _, err := jo.GetArray("alertcategories"); err != nil {
+	if ja, err := jo.GetArray("alertcategories"); err != nil || ja.IsEmpty() {
 		t.Error("[alertcategories] is expected")
 	}
 
-	if _, err := jo.GetArray("subjects"); err != nil {
+	if ja, err := jo.GetArray("subjects"); err != nil || ja.IsEmpty() {
 		t.Error("[subjects] is expected")
 	}
 
-	if _, err := jo.GetArray("organizations"); err != nil {
+	if ja, err := jo.GetArray("organizations"); err != nil || ja.IsEmpty() {
 		t.Error("[organizations] is expected")
 	}
 
@@ -196,7 +196,7 @@ func TestServices(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if _, err := jo.GetArray("services"); err != nil {
+	if ja, err := jo.GetArray("services"); err != nil || ja.IsEmpty() {
 		t.Error("[services] is expected")
 	}
 
@@ -235,8 +235,17 @@ func TestThirdParties(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if _, err := jo.GetArray("thirdpartymeta"); err != nil {
+	ja, err := jo.GetArray("thirdpartymeta")
+	if err != nil || ja.Length() == 0 {
 		t.Error("[thirdpartymeta] is expected")
+	}
+
+	tpm, _ := ja.GetObject(0)
+	if s, err := tpm.GetString("code"); err != nil || s == "" {
+		t.Error("[thirdpartymeta.code] is expected")
+	}
+	if s, err := tpm.GetString("name"); err != nil || s == "" {
+		t.Error("[thirdpartymeta.name] is expected")
 	}
 
 	fmt.Printf("%s\n", jo.ToString())
@@ -297,7 +306,7 @@ func TestAudences(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if _, err := jo.GetArray("audences"); err != nil {
+	if ja, err := jo.GetArray("audences"); err != nil || ja.IsEmpty() {
 		t.Error("[audences] is expected")
 	}
 
@@ -337,7 +346,7 @@ func TestAudences(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if _, err := jo.GetArray("audences"); err != nil {
+	if ja, err := jo.GetArray("audences"); err != nil || ja.IsEmpty() {
 		t.Error("[audences] is expected")
 	}
 
