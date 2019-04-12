@@ -163,7 +163,7 @@ func (doc *document) ParsePublicationManagement(jo *json.Object) error {
 	return nil
 }
 
-func getPubStatus(s string) (PubStatus, error) {
+func getPubStatus(s string) (pubStatus, error) {
 	if strings.EqualFold(s, "Usable") || strings.EqualFold(s, "Embargoed") || strings.EqualFold(s, "Unknown") {
 		return pubStatusUsable, nil
 	} else if strings.EqualFold(s, "Withheld") {

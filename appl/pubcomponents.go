@@ -7,7 +7,7 @@ import (
 
 type pubcomponent struct {
 	Role      string
-	MediaType MediaType
+	MediaType mediaType
 	Node      xml.Node
 }
 
@@ -70,7 +70,7 @@ func parsePublicationComponent(nd xml.Node) pubcomponent {
 
 	var (
 		role string
-		mt   MediaType
+		mt   mediaType
 	)
 
 	for _, a := range nd.Attributes {

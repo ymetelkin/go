@@ -8,7 +8,7 @@ import (
 	"github.com/ymetelkin/go/json"
 )
 
-func (rnds *renditions) ParsePhotoComponent(pc pubcomponent, mt MediaType) {
+func (rnds *renditions) ParsePhotoComponent(pc pubcomponent, mt mediaType) {
 	key := strings.ToLower(pc.Role)
 	chars := pc.Node.GetNode("Characteristics")
 

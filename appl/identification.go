@@ -118,8 +118,8 @@ func (doc *document) SetReferenceID(jo *json.Object) {
 	}
 }
 
-func getMediaType(s string) (MediaType, error) {
-	var mt MediaType
+func getMediaType(s string) (mediaType, error) {
+	var mt mediaType
 	if strings.EqualFold(s, "text") {
 		mt = mediaTypeText
 	} else if strings.EqualFold(s, "photo") {

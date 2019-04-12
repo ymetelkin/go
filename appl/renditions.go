@@ -15,7 +15,7 @@ type renditions struct {
 	NonRenditions []json.Property
 }
 
-func (rnds *renditions) GetRendition(title string, role string, mt MediaType, nd xml.Node, chars xml.Node) json.Object {
+func (rnds *renditions) GetRendition(title string, role string, mt mediaType, nd xml.Node, chars xml.Node) json.Object {
 	jo := json.Object{}
 	jo.AddString("title", title)
 	jo.AddString("rel", role)

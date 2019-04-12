@@ -72,7 +72,7 @@ func (rnds *renditions) ParseVideoComponent(pc pubcomponent) int64 {
 	return duration
 }
 
-func (rnds *renditions) ParseWebPartomponent(pc pubcomponent, mt MediaType) {
+func (rnds *renditions) ParseWebPartomponent(pc pubcomponent, mt mediaType) {
 	if mt != mediaTypeVideo || !strings.EqualFold(pc.Role, "main") {
 		return
 	}

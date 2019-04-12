@@ -5,25 +5,25 @@ import (
 	"github.com/ymetelkin/go/xml"
 )
 
-type MediaType string
+type mediaType string
 
 const (
-	mediaTypeText        MediaType = "text"
-	mediaTypePhoto       MediaType = "photo"
-	mediaTypeVideo       MediaType = "video"
-	mediaTypeAudio       MediaType = "audio"
-	mediaTypeGraphic     MediaType = "graphic"
-	mediaTypeComplexData MediaType = "complexdata"
-	mediaTypeUnknown     MediaType = ""
+	mediaTypeText        mediaType = "text"
+	mediaTypePhoto       mediaType = "photo"
+	mediaTypeVideo       mediaType = "video"
+	mediaTypeAudio       mediaType = "audio"
+	mediaTypeGraphic     mediaType = "graphic"
+	mediaTypeComplexData mediaType = "complexdata"
+	mediaTypeUnknown     mediaType = ""
 )
 
-type PubStatus string
+type pubStatus string
 
 const (
-	pubStatusUsable   PubStatus = "usable"
-	pubStatusWithheld PubStatus = "withheld"
-	pubStatusCanceled PubStatus = "canceled"
-	pubStatusUnknown  PubStatus = ""
+	pubStatusUsable   pubStatus = "usable"
+	pubStatusWithheld pubStatus = "withheld"
+	pubStatusCanceled pubStatus = "canceled"
+	pubStatusUnknown  pubStatus = ""
 )
 
 type document struct {
@@ -36,14 +36,14 @@ type document struct {
 	Filings                []filing
 	PublicationComponents  []pubcomponent
 	ItemID                 string
-	MediaType              MediaType
+	MediaType              mediaType
 	CompositionType        string
 	FriendlyKey            string
 	EditorialID            string
 	Function               string
 	Title                  string
 	Headline               string
-	PubStatus              PubStatus
+	PubStatus              pubStatus
 	FirstCreatedYear       int
 	Signals                uniqueArray
 	Fixture                bool
