@@ -306,8 +306,8 @@ func TestAudences(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if ja, err := jo.GetArray("audences"); err != nil || ja.IsEmpty() {
-		t.Error("[audences] is expected")
+	if ja, err := jo.GetArray("audiences"); err != nil || ja.IsEmpty() {
+		t.Error("[audiences] is expected")
 	}
 
 	fmt.Printf("%s\n", jo.ToString())
@@ -346,8 +346,8 @@ func TestAudences(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if ja, err := jo.GetArray("audences"); err != nil || ja.IsEmpty() {
-		t.Error("[audences] is expected")
+	if ja, err := jo.GetArray("audiences"); err != nil || ja.IsEmpty() {
+		t.Error("[audiences] is expected")
 	}
 
 	fmt.Printf("%s\n", jo.ToString())

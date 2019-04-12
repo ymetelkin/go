@@ -37,7 +37,7 @@ func (doc *document) ParseDescriptiveMetadata(jo *json.Object) error {
 		case "EntityClassification":
 			parseEntityClassification(nd, &gens, &orgs, &prns, &cmps, &plcs, &evts)
 		case "AudienceClassification":
-			auds = getAudences(nd, doc.Filings)
+			getAudences(nd, doc.Filings, &auds)
 		case "SalesClassification":
 			parseSalesClassification(nd, &svcs)
 		case "Comment":
@@ -268,59 +268,55 @@ func getThirdParty(nd xml.Node, ja *json.Array) {
 	}
 }
 
-func getAudences(nd xml.Node, fs []filing) uniqueArray {
-	if nd.Nodes == nil {
-		return uniqueArray{}
+func getAudences(nd xml.Node, fs []filing, ua *uniqueArray) {
+	if nd.Nodes == nil || nd.Attributes == nil {
+		return
 	}
 
-	geo := false
-	ua := uniqueArray{}
+	var (
+		auth, system string
+		geo          bool
+	)
 
-	for _, n := range nd.Nodes {
-		var auth, system string
+	for _, a := range nd.Attributes {
+		switch a.Name {
+		case "Authority":
+			auth = a.Value
+		case "System":
+			system = a.Value
+		}
+	}
 
-		if n.Attributes != nil {
-			for _, a := range n.Attributes {
-				switch a.Name {
-				case "Authority":
-					auth = a.Value
-				case "System":
-					system = a.Value
-				}
-			}
+	if strings.EqualFold(auth, "AP Audience") && strings.EqualFold(system, "Editorial") && nd.Nodes != nil {
+		for _, o := range nd.Nodes {
+			if o.Name == "Occurrence" {
+				var id, value string
 
-			if strings.EqualFold(auth, "AP Audience") && strings.EqualFold(system, "Editorial") && n.Nodes != nil {
-				for _, o := range n.Nodes {
-					if o.Name == "Occurrence" {
-						var id, value string
-
-						if o.Attributes != nil {
-							for _, a := range o.Attributes {
-								switch a.Name {
-								case "Id":
-									id = a.Value
-								case "Value":
-									value = a.Value
-								}
-							}
-						}
-
-						if id != "" && value != "" {
-							jo := json.Object{}
-							jo.AddString("code", id)
-							jo.AddString("name", value)
-
-							p := o.GetNode("Property")
-							if p.Text != "" {
-								if strings.EqualFold(p.Text, "AUDGEOGRAPHY") {
-									geo = true
-								}
-								jo.AddString("type", p.Text)
-							}
-
-							ua.AddObject(id, jo)
+				if o.Attributes != nil {
+					for _, a := range o.Attributes {
+						switch a.Name {
+						case "Id":
+							id = a.Value
+						case "Value":
+							value = a.Value
 						}
 					}
+				}
+
+				if id != "" && value != "" {
+					jo := json.Object{}
+					jo.AddString("code", id)
+					jo.AddString("name", value)
+
+					p := o.GetNode("Property")
+					if p.Text != "" {
+						if strings.EqualFold(p.Text, "AUDGEOGRAPHY") {
+							geo = true
+						}
+						jo.AddString("type", p.Text)
+					}
+
+					ua.AddObject(id, jo)
 				}
 			}
 		}
@@ -336,8 +332,6 @@ func getAudences(nd xml.Node, fs []filing) uniqueArray {
 			}
 		}
 	}
-
-	return ua
 }
 
 func getAuthorities(nd xml.Node) (string, string) {

@@ -106,23 +106,59 @@ func (doc *document) SetHeadline(jo *json.Object) {
 
 	t := doc.MediaType
 
-	if t == mediaTypeText || t == mediaTypeAudio {
+	if t == mediaTypeText || t == mediaTypeComplexData {
 		if doc.Headline != "" {
 			return
 		} else if doc.Title != "" {
 			headline = doc.Title
+		} else if doc.Filings != nil {
+			for _, f := range doc.Filings {
+				if (f.Category == "l" || f.Category == "s") && f.Slugline != "" {
+					headline = f.Slugline
+					break
+				}
+			}
+		} else {
+			s := getFirstTenWords(jo)
+			if s != "" {
+				headline = s
+			}
 		}
 	} else if t == mediaTypeVideo && (doc.Function == "" || !strings.EqualFold(doc.Function, "APTNLibrary")) {
 		if doc.Headline != "" {
 			return
 		} else if doc.Title != "" {
 			headline = doc.Title
+		} else if doc.Filings != nil {
+			for _, f := range doc.Filings {
+				if f.Slugline != "" {
+					headline = f.Slugline
+					break
+				}
+			}
+		} else {
+			s := getFirstTenWords(jo)
+			if s != "" {
+				headline = s
+			}
 		}
 	} else if t == mediaTypePhoto || t == mediaTypeGraphic || (t == mediaTypeVideo && strings.EqualFold(doc.Function, "APTNLibrary")) {
 		if doc.Title != "" {
 			headline = doc.Title
+		} else if doc.Filings != nil {
+			for _, f := range doc.Filings {
+				if f.Slugline != "" {
+					headline = f.Slugline
+					break
+				}
+			}
 		} else if doc.Headline != "" {
 			headline = doc.Headline
+		} else {
+			s := getFirstTenWords(jo)
+			if s != "" {
+				headline = s
+			}
 		}
 	} else if t == mediaTypeAudio {
 		if doc.Headline != "" {
@@ -133,10 +169,9 @@ func (doc *document) SetHeadline(jo *json.Object) {
 	}
 
 	if headline != "" {
+		doc.Headline = headline
 		jo.SetString("headline", headline)
 	}
-
-	doc.Headline = headline
 }
 
 func (doc *document) SetCopyright(s string, jo *json.Object) {
@@ -316,4 +351,20 @@ func getPerson(ns []xml.Node, jo *json.Object) {
 	if add {
 		jo.AddArray("person", persons)
 	}
+}
+
+func getFirstTenWords(jo *json.Object) string {
+	o, err := jo.GetObject("main")
+	if err == nil {
+		s, _ := o.GetString("nitf")
+		if s != "" {
+			tokens := strings.Split(s, " ")
+			if len(tokens) > 10 {
+				return strings.Join(tokens[0:10], " ")
+			} else {
+				return s
+			}
+		}
+	}
+	return ""
 }

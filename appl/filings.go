@@ -74,12 +74,12 @@ func parseFiling(nd xml.Node) filing {
 			}
 		case "Source":
 			if n.Text != "" {
-				f.Source = nd.Text
+				f.Source = n.Text
 				jo.AddString("filingsource", n.Text)
 			}
 		case "Category":
 			if n.Text != "" {
-				f.Category = nd.Text
+				f.Category = n.Text
 				jo.AddString("filingcategory", n.Text)
 			}
 		case "Routing":
@@ -115,7 +115,7 @@ func parseFiling(nd xml.Node) filing {
 			}
 		case "SlugLine":
 			if n.Text != "" {
-				f.Slugline = nd.Text
+				f.Slugline = n.Text
 				jo.AddString("slugline", n.Text)
 			}
 		case "OriginalMediaId":
