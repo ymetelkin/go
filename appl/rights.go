@@ -27,19 +27,19 @@ func (doc *document) ParseRightsMetadata(parent *json.Object) error {
 					case "UsageType":
 						ut = n.Text
 					case "Geography":
-						geo.AddString(nd.Text)
+						geo.AddString(n.Text)
 					case "RightsHolder":
 						rh = n.Text
 					case "Limitations":
-						lim.AddString(nd.Text)
+						lim.AddString(n.Text)
 					case "StartDate":
 						sd = n.Text
 					case "EndDate":
 						ed = n.Text
 					case "Group":
 						g := json.Object{}
-						if nd.Attributes != nil {
-							for _, a := range nd.Attributes {
+						if n.Attributes != nil {
+							for _, a := range n.Attributes {
 								switch a.Name {
 								case "Type":
 									if a.Value != "" {

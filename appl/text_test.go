@@ -143,4 +143,8 @@ func TestTexts(t *testing.T) {
 	}
 
 	fmt.Printf("%s\n", jo.ToString())
+
+	s=`
+	
+	`
 }

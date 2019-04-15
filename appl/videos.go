@@ -23,7 +23,7 @@ func (rnds *renditions) ParseVideoComponent(pc pubcomponent) int64 {
 	key := strings.ToLower(pc.Role)
 	switch key {
 	case "main":
-		ext := pc.Node.GetAttribute("FileExtension")
+		ext := chars.GetAttribute("FileExtension")
 
 		if ext != "" {
 			ext = strings.ToUpper(ext)
@@ -32,7 +32,7 @@ func (rnds *renditions) ParseVideoComponent(pc pubcomponent) int64 {
 		if ext != "TXT" {
 			var file string
 
-			ofn := pc.Node.GetAttribute("OriginalFileName")
+			ofn := chars.GetAttribute("OriginalFileName")
 			if ofn != "" {
 				toks := strings.Split(ofn, "_")
 				tmp := toks[len(toks)-1]

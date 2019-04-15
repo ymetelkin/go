@@ -112,6 +112,8 @@ func parseXML(s string) (document, error) {
 		return document{}, err
 	}
 
+	//fmt.Println(root.ToString())
+
 	var (
 		fs  []filing
 		pcs []pubcomponent

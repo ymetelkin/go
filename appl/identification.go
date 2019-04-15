@@ -48,9 +48,6 @@ func (doc *document) ParseIdentification(jo *json.Object) error {
 				language := string([]rune(nd.Text)[0:2])
 				jo.AddString("language", language)
 			}
-			if nd.Text != "" {
-				jo.AddString("editorialpriority", nd.Text)
-			}
 		case "RecordSequenceNumber":
 			i, err := strconv.Atoi(nd.Text)
 			if err == nil {
@@ -99,7 +96,7 @@ func (doc *document) SetReferenceID(jo *json.Object) {
 			for _, f := range doc.Filings {
 				if f.ForeignKeys != nil {
 					for _, fk := range f.ForeignKeys {
-						if fk.Value != "" {
+						if fk.Field == "storyid" && fk.Value != "" {
 							ref = fk.Value
 							exit = true
 							break

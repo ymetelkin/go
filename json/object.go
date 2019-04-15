@@ -6,12 +6,14 @@ import (
 	"strings"
 )
 
+//Object represents JSON object
 type Object struct {
 	names      []string
 	pnames     map[string]ParameterizedString
 	Properties map[string]value
 }
 
+//AddProperty adds property to parent object
 func (jo *Object) AddProperty(jp Property) error {
 	if jp.IsEmtpy() {
 		return errors.New("Missing property")
@@ -45,26 +47,32 @@ func (jo *Object) addValue(name string, jv value) error {
 	return nil
 }
 
+//AddString adds string property to parent object
 func (jo *Object) AddString(name string, value string) error {
 	return jo.addValue(name, newString(value))
 }
 
+//AddInt adds int property to parent object
 func (jo *Object) AddInt(name string, value int) error {
 	return jo.addValue(name, newInt(value))
 }
 
+//AddFloat adds float property to parent object
 func (jo *Object) AddFloat(name string, value float64) error {
 	return jo.addValue(name, newFloat(value))
 }
 
+//AddBool adds bool property to parent object
 func (jo *Object) AddBool(name string, value bool) error {
 	return jo.addValue(name, newBool(value))
 }
 
+//AddObject adds JSON object property to parent object
 func (jo *Object) AddObject(name string, value Object) error {
 	return jo.addValue(name, newObject(value))
 }
 
+//AddArray adds JSON array property to parent object
 func (jo *Object) AddArray(name string, value Array) error {
 	return jo.addValue(name, newArray(value))
 }
@@ -260,10 +268,10 @@ func (jo *Object) toString(pretty bool, level int) string {
 
 	var sb strings.Builder
 
-	sb.WriteRune(TOKEN_LEFT_CURLY)
+	sb.WriteRune(tokenLeftCurly)
 	if pretty {
-		sb.WriteRune(TOKEN_CR)
-		sb.WriteRune(TOKEN_LF)
+		sb.WriteRune(tokenCR)
+		sb.WriteRune(tokenLF)
 	}
 
 	next := level + 1
@@ -272,29 +280,29 @@ func (jo *Object) toString(pretty bool, level int) string {
 		jv, err := jo.getValue(name)
 		if err == nil {
 			if index > 0 {
-				sb.WriteRune(TOKEN_COMMA)
+				sb.WriteRune(tokenCOMMA)
 
 				if pretty {
-					sb.WriteRune(TOKEN_CR)
-					sb.WriteRune(TOKEN_LF)
+					sb.WriteRune(tokenCR)
+					sb.WriteRune(tokenLF)
 				}
 			}
 
 			if pretty {
 				i := 0
 				for i <= level {
-					sb.WriteRune(TOKEN_SPACE)
-					sb.WriteRune(TOKEN_SPACE)
+					sb.WriteRune(tokenSPACE)
+					sb.WriteRune(tokenSPACE)
 					i++
 				}
 			}
 
-			sb.WriteRune(TOKEN_QUOTE)
+			sb.WriteRune(tokenQUOTE)
 			sb.WriteString(name)
-			sb.WriteRune(TOKEN_QUOTE)
-			sb.WriteRune(TOKEN_COLON)
+			sb.WriteRune(tokenQUOTE)
+			sb.WriteRune(tokenColon)
 			if pretty {
-				sb.WriteRune(TOKEN_SPACE)
+				sb.WriteRune(tokenSPACE)
 			}
 			s := jv.ToString(pretty, next)
 			sb.WriteString(s)
@@ -302,16 +310,16 @@ func (jo *Object) toString(pretty bool, level int) string {
 	}
 
 	if pretty {
-		sb.WriteRune(TOKEN_CR)
-		sb.WriteRune(TOKEN_LF)
+		sb.WriteRune(tokenCR)
+		sb.WriteRune(tokenLF)
 		i := 0
 		for i < level {
-			sb.WriteRune(TOKEN_SPACE)
-			sb.WriteRune(TOKEN_SPACE)
+			sb.WriteRune(tokenSPACE)
+			sb.WriteRune(tokenSPACE)
 			i++
 		}
 	}
-	sb.WriteRune(TOKEN_RIGHT_CURLY)
+	sb.WriteRune(tokenRightCurly)
 
 	return sb.String()
 }

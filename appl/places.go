@@ -15,7 +15,7 @@ type place struct {
 	Creator      string
 	Rels         uniqueArray
 	ParentIds    uniqueArray
-	TopParent    bool
+	TopParent    string
 	LocationType json.Property
 	Geo          json.Property
 }
@@ -33,10 +33,7 @@ func (ps *places) Parse(nd xml.Node) {
 	system := nd.GetAttribute("System")
 
 	for _, n := range nd.Nodes {
-		var (
-			code, name, match, pid string
-			tp                     bool
-		)
+		var code, name, match, pid, tp string
 
 		if n.Name == "Occurrence" && n.Attributes != nil {
 			for _, a := range n.Attributes {
@@ -50,7 +47,7 @@ func (ps *places) Parse(nd xml.Node) {
 				case "ParentId":
 					pid = a.Value
 				case "TopParent":
-					tp = a.Value == "true"
+					tp = a.Value
 				}
 			}
 		}
@@ -152,8 +149,10 @@ func (ps *places) ToJSONProperty() json.Property {
 			if !p.ParentIds.IsEmpty() {
 				place.AddProperty(p.ParentIds.ToJSONProperty("parentids"))
 			}
-			if p.TopParent {
+			if p.TopParent == "true" {
 				place.AddBool("topparent", true)
+			} else if p.TopParent == "false" {
+				place.AddBool("topparent", false)
 			}
 			place.AddProperty(p.LocationType)
 			place.AddProperty(p.Geo)

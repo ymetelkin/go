@@ -8,14 +8,14 @@ import (
 )
 
 const (
-	OBJECT int = iota
-	ARRAY
-	STRING
-	INT
-	FLOAT
-	BOOL
-	PARAMETERIZED
-	NULL
+	jsonObject int = iota
+	jsonArray
+	jsonString
+	jsonInt
+	jsonFloat
+	jsonBool
+	jsonParams
+	jsonNull
 )
 
 type value struct {
@@ -29,31 +29,31 @@ func (jv *value) IsEmpty() bool {
 }
 
 func newInt(i int) value {
-	return value{Value: i, Type: INT}
+	return value{Value: i, Type: jsonInt}
 }
 
 func newFloat(f float64) value {
-	return value{Value: f, Type: FLOAT}
+	return value{Value: f, Type: jsonFloat}
 }
 
 func newBool(b bool) value {
-	return value{Value: b, Type: BOOL}
+	return value{Value: b, Type: jsonBool}
 }
 
 func newString(s string) value {
-	return value{Value: s, Type: STRING}
+	return value{Value: s, Type: jsonString}
 }
 
 func newObject(o Object) value {
-	return value{Value: o, Type: OBJECT}
+	return value{Value: o, Type: jsonObject}
 }
 
 func newArray(a Array) value {
-	return value{Value: a, Type: ARRAY}
+	return value{Value: a, Type: jsonArray}
 }
 
 func newNull() value {
-	return value{Value: nil, Type: NULL}
+	return value{Value: nil, Type: jsonNull}
 }
 
 func newInts(vs []int) []value {
@@ -66,7 +66,7 @@ func newInts(vs []int) []value {
 	}
 	values := make([]value, len(vs))
 	for i, v := range vs {
-		values[i] = value{Value: v, Type: INT}
+		values[i] = value{Value: v, Type: jsonInt}
 	}
 	return values
 }
@@ -81,7 +81,7 @@ func newFloats(vs []float64) []value {
 	}
 	values := make([]value, len(vs))
 	for i, v := range vs {
-		values[i] = value{Value: v, Type: FLOAT}
+		values[i] = value{Value: v, Type: jsonFloat}
 	}
 	return values
 }
@@ -96,7 +96,7 @@ func newBools(vs []bool) []value {
 	}
 	values := make([]value, len(vs))
 	for i, v := range vs {
-		values[i] = value{Value: v, Type: BOOL}
+		values[i] = value{Value: v, Type: jsonBool}
 	}
 	return values
 }
@@ -111,7 +111,7 @@ func newStrings(vs []string) []value {
 	}
 	values := make([]value, len(vs))
 	for i, v := range vs {
-		values[i] = value{Value: v, Type: STRING}
+		values[i] = value{Value: v, Type: jsonString}
 	}
 	return values
 }
@@ -126,7 +126,7 @@ func newObjects(vs []Object) []value {
 	}
 	values := make([]value, len(vs))
 	for i, v := range vs {
-		values[i] = value{Value: v, Type: OBJECT}
+		values[i] = value{Value: v, Type: jsonObject}
 	}
 	return values
 }
@@ -141,44 +141,41 @@ func newArrays(vs []Array) []value {
 	}
 	values := make([]value, len(vs))
 	for i, v := range vs {
-		values[i] = value{Value: v, Type: ARRAY}
+		values[i] = value{Value: v, Type: jsonArray}
 	}
 	return values
 }
 
 func newParameterizedString(ps ParameterizedString) value {
-	return value{Value: ps, Type: PARAMETERIZED}
+	return value{Value: ps, Type: jsonParams}
 }
 
 func (jv *value) GetInt() (int, error) {
-	if jv.Type == INT {
+	if jv.Type == jsonInt {
 		i, ok := jv.Value.(int)
 		if ok {
 			return i, nil
-		} else {
-			u, ok := jv.Value.(uint)
-			if ok {
-				return int(u), nil
-			}
 		}
-	} else if jv.Type == FLOAT {
+		u, ok := jv.Value.(uint)
+		if ok {
+			return int(u), nil
+		}
+	} else if jv.Type == jsonFloat {
 		f, ok := jv.Value.(float64)
 		if ok {
 			return int(f), nil
 		}
-	} else if jv.Type == STRING {
+	} else if jv.Type == jsonString {
 		s, ok := jv.Value.(string)
 		if ok {
 			if strings.Contains(s, ".") {
 				f, err := strconv.ParseFloat(s, 64)
 				return int(f), err
-			} else {
-				i, err := strconv.ParseInt(s, 0, 64)
-				return int(i), err
 			}
-		} else {
-			return 0, errors.New("Cannot read string value")
+			i, err := strconv.ParseInt(s, 0, 64)
+			return int(i), err
 		}
+		return 0, errors.New("Cannot read string value")
 	}
 
 	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
@@ -186,22 +183,20 @@ func (jv *value) GetInt() (int, error) {
 }
 
 func (jv *value) GetFloat() (float64, error) {
-	if jv.Type == FLOAT || jv.Type == INT {
+	if jv.Type == jsonFloat || jv.Type == jsonInt {
 		f, ok := jv.Value.(float64)
 		if ok {
 			return f, nil
-		} else {
-			err := fmt.Sprintf("Unsupported integer type: %T", jv.Value)
-			return 0, errors.New(err)
 		}
-	} else if jv.Type == STRING {
+		err := fmt.Sprintf("Unsupported integer type: %T", jv.Value)
+		return 0, errors.New(err)
+	} else if jv.Type == jsonString {
 		s, ok := jv.Value.(string)
 		if ok {
 			f, err := strconv.ParseFloat(s, 64)
 			return f, err
-		} else {
-			return 0, errors.New("Cannot read string value")
 		}
+		return 0, errors.New("Cannot read string value")
 	}
 
 	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
@@ -209,34 +204,30 @@ func (jv *value) GetFloat() (float64, error) {
 }
 
 func (jv *value) GetString() (string, error) {
-	if jv.Type == STRING {
+	if jv.Type == jsonString {
 		s, ok := jv.Value.(string)
 		if ok {
 			return s, nil
-		} else {
-			return "", errors.New("Cannot read string value")
 		}
-	} else {
-		return jv.ToString(true, 0), nil
+		return "", errors.New("Cannot read string value")
 	}
+	return jv.ToString(true, 0), nil
 }
 
 func (jv *value) GetBool() (bool, error) {
-	if jv.Type == BOOL {
+	if jv.Type == jsonBool {
 		b, ok := jv.Value.(bool)
 		if ok {
 			return b, nil
-		} else {
-			return false, errors.New("Cannot read string value")
 		}
-	} else if jv.Type == STRING {
+		return false, errors.New("Cannot read string value")
+	} else if jv.Type == jsonString {
 		s, ok := jv.Value.(string)
 		if ok {
 			b, err := strconv.ParseBool(s)
 			return b, err
-		} else {
-			return false, errors.New("Cannot read string value")
 		}
+		return false, errors.New("Cannot read string value")
 	}
 
 	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
@@ -244,13 +235,12 @@ func (jv *value) GetBool() (bool, error) {
 }
 
 func (jv *value) GetObject() (Object, error) {
-	if jv.Type == OBJECT {
+	if jv.Type == jsonObject {
 		jo, ok := jv.Value.(Object)
 		if ok {
 			return jo, nil
-		} else {
-			return Object{}, errors.New("Cannot read Object value")
 		}
+		return Object{}, errors.New("Cannot read Object value")
 	}
 
 	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
@@ -258,13 +248,12 @@ func (jv *value) GetObject() (Object, error) {
 }
 
 func (jv *value) GetArray() (Array, error) {
-	if jv.Type == ARRAY {
+	if jv.Type == jsonArray {
 		ja, ok := jv.Value.(Array)
 		if ok {
 			return ja, nil
-		} else {
-			return Array{}, errors.New("Cannot read Array value")
 		}
+		return Array{}, errors.New("Cannot read Array value")
 	}
 
 	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
@@ -272,13 +261,12 @@ func (jv *value) GetArray() (Array, error) {
 }
 
 func (jv *value) GetParameterizedString() (ParameterizedString, error) {
-	if jv.Type == PARAMETERIZED {
+	if jv.Type == jsonParams {
 		ps, ok := jv.Value.(ParameterizedString)
 		if ok {
 			return ps, nil
-		} else {
-			return ParameterizedString{}, errors.New("Cannot read string value")
 		}
+		return ParameterizedString{}, errors.New("Cannot read string value")
 	}
 
 	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
@@ -295,67 +283,67 @@ func (jv *value) ToString(pretty bool, level int) string {
 	}
 
 	switch jv.Type {
-	case STRING:
+	case jsonString:
 		s, ok := jv.Value.(string)
 		if ok {
 			runes := []rune(s)
 			var sb strings.Builder
-			sb.WriteRune(TOKEN_QUOTE)
+			sb.WriteRune(tokenQUOTE)
 
 			for _, r := range runes {
 				switch r {
-				case TOKEN_QUOTE:
-					sb.WriteRune(TOKEN_BACKSLASH)
-					sb.WriteRune(TOKEN_QUOTE)
-				case TOKEN_BACKSLASH:
-					sb.WriteRune(TOKEN_BACKSLASH)
-					sb.WriteRune(TOKEN_BACKSLASH)
-				case TOKEN_CR:
-					sb.WriteRune(TOKEN_BACKSLASH)
-					sb.WriteRune(TOKEN_R)
-				case TOKEN_LF:
-					sb.WriteRune(TOKEN_BACKSLASH)
-					sb.WriteRune(TOKEN_N)
-				case TOKEN_HT:
-					sb.WriteRune(TOKEN_BACKSLASH)
-					sb.WriteRune(TOKEN_T)
-				case TOKEN_BS:
-					sb.WriteRune(TOKEN_BACKSLASH)
-					sb.WriteRune(TOKEN_B)
-				case TOKEN_FF:
-					sb.WriteRune(TOKEN_BACKSLASH)
-					sb.WriteRune(TOKEN_F)
-				case TOKEN_VT:
-					sb.WriteRune(TOKEN_SPACE)
+				case tokenQUOTE:
+					sb.WriteRune(tokenBackslash)
+					sb.WriteRune(tokenQUOTE)
+				case tokenBackslash:
+					sb.WriteRune(tokenBackslash)
+					sb.WriteRune(tokenBackslash)
+				case tokenCR:
+					sb.WriteRune(tokenBackslash)
+					sb.WriteRune(tokenR)
+				case tokenLF:
+					sb.WriteRune(tokenBackslash)
+					sb.WriteRune(tokenN)
+				case tokenHT:
+					sb.WriteRune(tokenBackslash)
+					sb.WriteRune(tokenT)
+				case tokenBS:
+					sb.WriteRune(tokenBackslash)
+					sb.WriteRune(tokenB)
+				case tokenFF:
+					sb.WriteRune(tokenBackslash)
+					sb.WriteRune(tokenF)
+				case tokenVT:
+					sb.WriteRune(tokenSPACE)
 				default:
 					sb.WriteRune(r)
 				}
 			}
 
-			sb.WriteRune(TOKEN_QUOTE)
+			sb.WriteRune(tokenQUOTE)
 			return sb.String()
 		}
-	case INT:
+	case jsonInt:
 		i, ok := jv.Value.(int)
 		if ok {
 			return strconv.Itoa(i)
 		}
-	case FLOAT:
+	case jsonFloat:
 		f, ok := jv.Value.(float64)
 		if ok {
 			return strconv.FormatFloat(f, 'f', -1, 64)
 		}
-	case BOOL:
+	case jsonBool:
 		b, ok := jv.Value.(bool)
 		if ok {
 			return strconv.FormatBool(b)
 		}
-	case OBJECT:
+	case jsonObject:
 		jo, ok := jv.Value.(Object)
 		if ok {
 			return jo.toString(pretty, level)
 		}
-	case ARRAY:
+	case jsonArray:
 		ja, ok := jv.Value.(Array)
 		if ok {
 			return ja.toString(pretty, level)

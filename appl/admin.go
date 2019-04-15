@@ -28,6 +28,10 @@ func (doc *document) ParseAdministrativeMetadata(jo *json.Object) error {
 		switch nd.Name {
 		case "Provider":
 			getProvider(nd, jo)
+		case "Creator":
+			if nd.Text != "" {
+				jo.AddString("creator", nd.Text)
+			}
 		case "Source":
 			if srcs == nil {
 				srcs = []xml.Node{nd}
@@ -72,6 +76,14 @@ func (doc *document) ParseAdministrativeMetadata(jo *json.Object) error {
 
 			if nd.Text != "" {
 				ict.AddString("name", nd.Text)
+			}
+		case "Workgroup":
+			if nd.Text != "" {
+				jo.AddString("workgroup", nd.Text)
+			}
+		case "ContentElement":
+			if nd.Text != "" {
+				jo.AddString("editorialrole", nd.Text)
 			}
 		case "Fixture":
 			fx = json.Object{}
@@ -197,6 +209,10 @@ func getSources(srcs []xml.Node, jo *json.Object) {
 				case "Country":
 					if a.Value != "" {
 						source.AddString("country", a.Value)
+					}
+				case "County":
+					if a.Value != "" {
+						source.AddString("county", a.Value)
 					}
 				case "CountryArea":
 					if a.Value != "" {

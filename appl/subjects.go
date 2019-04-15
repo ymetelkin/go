@@ -14,7 +14,7 @@ type subject struct {
 	Creator   string
 	Rels      uniqueArray
 	ParentIds uniqueArray
-	TopParent bool
+	TopParent string
 }
 
 type subjects struct {
@@ -31,10 +31,7 @@ func (sbjs *subjects) Parse(nd xml.Node) {
 
 	for _, n := range nd.Nodes {
 		if n.Name == "Occurrence" && n.Attributes != nil {
-			var (
-				code, name, match, pid string
-				tp                     bool
-			)
+			var code, name, match, pid, tp string
 
 			for _, a := range n.Attributes {
 				switch a.Name {
@@ -47,7 +44,7 @@ func (sbjs *subjects) Parse(nd xml.Node) {
 				case "ParentId":
 					pid = a.Value
 				case "TopParent":
-					tp = a.Value == "true"
+					tp = a.Value
 				}
 			}
 
@@ -65,7 +62,8 @@ func (sbjs *subjects) Parse(nd xml.Node) {
 				if ok {
 					sbj = sbjs.Subjects[i]
 				} else {
-					sbj = subject{Name: name, Code: code, Creator: system}
+					sbj = subject{Name: name, Code: code, Creator: system, TopParent: tp}
+
 					sbjs.Subjects = append(sbjs.Subjects, sbj)
 					i = len(sbjs.Subjects) - 1
 					sbjs.Keys[key] = i
@@ -78,7 +76,6 @@ func (sbjs *subjects) Parse(nd xml.Node) {
 				setRels(system, match, &sbj.Rels)
 
 				sbj.ParentIds.AddString(pid)
-				sbj.TopParent = tp
 
 				sbjs.Subjects[i] = sbj
 			}
@@ -104,8 +101,10 @@ func (sbjs *subjects) ToJSONProperty(field string) json.Property {
 			if !sbj.ParentIds.IsEmpty() {
 				subject.AddProperty(sbj.ParentIds.ToJSONProperty("parentids"))
 			}
-			if sbj.TopParent {
+			if sbj.TopParent == "true" {
 				subject.AddBool("topparent", true)
+			} else if sbj.TopParent == "false" {
+				subject.AddBool("topparent", false)
 			}
 			ja.AddObject(subject)
 		}

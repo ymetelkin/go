@@ -53,7 +53,7 @@ func (txts *texts) ParseTextComponent(pc pubcomponent) error {
 	nd = pc.Node.GetNode("Characteristics")
 	nd = nd.GetNode("Words")
 	i, err := strconv.Atoi(nd.Text)
-	if err == nil {
+	if err == nil && i > 0 {
 		jo.AddInt("words", i)
 	}
 

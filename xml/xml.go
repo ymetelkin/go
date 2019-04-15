@@ -56,11 +56,17 @@ func New(s string) (Node, error) {
 			}
 		case xml.CharData:
 			if parent != nil {
-				parent.Text = strings.TrimSpace(string(se))
+				if parent.Text == "" {
+					parent.Text = getText(se)
+				} else {
+					parent.Text += getText(se)
+				}
 			}
 		case xml.EndElement:
 			if se.Name.Local == parent.Name && parent.parent != nil {
-				if parent.parent.Nodes == nil {
+				if parent.parent.Text != "" {
+					parent.parent.Text += parent.ToInlineString()
+				} else if parent.parent.Nodes == nil {
 					parent.parent.Nodes = []Node{*parent}
 				} else {
 					parent.parent.Nodes = append(parent.parent.Nodes, *parent)
@@ -97,11 +103,12 @@ func (nd *Node) GetAttribute(name string) string {
 	return ""
 }
 
-//ToString method serializes Node into XML string
+//ToString method serializes Node into pretty XML string
 func (nd *Node) ToString() string {
 	return nd.toString(0)
 }
 
+//ToInlineString method serializes Node into condenced XML string
 func (nd *Node) ToInlineString() string {
 	var sb strings.Builder
 	sb.WriteString("<")
@@ -174,4 +181,27 @@ func (nd *Node) toString(level int) string {
 	sb.WriteString(">")
 
 	return sb.String()
+}
+
+func getText(bytes []byte) string {
+	var ok bool
+	start := -1
+
+	for i, b := range bytes {
+		if b > 13 {
+			if start == -1 {
+				start = i
+			}
+			if b != 32 {
+				ok = true
+				break
+			}
+		}
+	}
+
+	if ok {
+		return string(bytes[start:])
+	}
+
+	return ""
 }

@@ -21,7 +21,11 @@ func TestRights(t *testing.T) {
 		<Title>FBN--Vikings-Free Agency</Title>
 	</NewsLines>  
 	<RightsMetadata>
-		<Copyright Holder="Copyright The Associated Press" Date="2011" />
+		<Copyright Holder="Copyright The Associated Press" Date="2011" />	
+		<UsageRights>
+			<UsageType>MobileNewsNetworkDistribution</UsageType>
+			<Limitations>none</Limitations>
+		</UsageRights>	
 		<UsageRights>
 			<UsageType>MobileNewsNetworkDistribution</UsageType>
 		</UsageRights>
@@ -62,6 +66,8 @@ func TestRights(t *testing.T) {
 		t.Error(err.Error())
 	}
 
+	fmt.Printf("%s\n", jo.ToString())
+
 	if _, err := jo.GetString("copyrightnotice"); err != nil {
 		t.Error("[copyrightnotice] is expected")
 	}
@@ -77,6 +83,4 @@ func TestRights(t *testing.T) {
 	if _, err := jo.GetArray("usagerights"); err != nil {
 		t.Error("[usagerights] is expected")
 	}
-
-	fmt.Printf("%s\n", jo.ToString())
 }

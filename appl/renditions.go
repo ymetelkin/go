@@ -1,7 +1,6 @@
 package appl
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -10,7 +9,7 @@ import (
 )
 
 type renditions struct {
-	Renditions    map[string]json.Object
+	Renditions    json.Array
 	Counts        map[string]int
 	NonRenditions []json.Property
 }
@@ -131,32 +130,21 @@ func (rnds *renditions) GetRendition(title string, role string, mt mediaType, nd
 }
 
 func (rnds *renditions) AddRendition(name string, jo json.Object, multiple bool) {
-	if rnds.Renditions == nil {
-		rnds.Renditions = make(map[string]json.Object)
+	if rnds.Counts == nil {
+		rnds.Counts = make(map[string]int)
 	}
 
-	if multiple {
-		if rnds.Counts == nil {
-			rnds.Counts = make(map[string]int)
-		}
-
-		i, ok := rnds.Counts[name]
-		if ok {
-			i++
-		} else {
-			i = 1
-		}
-		rnds.Counts[name] = i
-
-		name = fmt.Sprintf("%s%d", name, i)
+	i, ok := rnds.Counts[name]
+	if ok {
+		i++
 	} else {
-		_, ok := rnds.Renditions[name]
-		if ok {
-			return
-		}
+		i = 1
 	}
+	rnds.Counts[name] = i
 
-	rnds.Renditions[name] = jo
+	if multiple || !ok {
+		rnds.Renditions.AddObject(jo)
+	}
 }
 
 func (rnds *renditions) AddNonRenditions(jo *json.Object) {
@@ -168,20 +156,8 @@ func (rnds *renditions) AddNonRenditions(jo *json.Object) {
 }
 
 func (rnds *renditions) AddRenditions(jo *json.Object) {
-	if rnds.Renditions != nil {
-		var (
-			ja  json.Array
-			add bool
-		)
-
-		for _, r := range rnds.Renditions {
-			ja.AddObject(r)
-			add = true
-		}
-
-		if add {
-			jo.AddArray("renditions", ja)
-		}
+	if !rnds.Renditions.IsEmpty() {
+		jo.AddArray("renditions", rnds.Renditions)
 	}
 }
 

@@ -57,8 +57,8 @@ func (jo *Object) AddWithParameters(pname ParameterizedString, jv value) error {
 	return nil
 }
 
-func ParseJsonObjectWithParameters(s string) (Object, error) {
-	jo, err := parseJsonObject(s, true)
+func ParseJSONObjectWithParameters(s string) (Object, error) {
+	jo, err := parseJSONObject(s, true)
 	if err != nil {
 		return Object{}, err
 	}
@@ -88,7 +88,7 @@ func (jo *Object) setObjectParameters(props map[string]value) bool {
 	remove := []string{}
 
 	for name, jv := range jo.Properties {
-		if jv.Type == PARAMETERIZED {
+		if jv.Type == jsonParams {
 			modified = true
 
 			ps, err := jv.GetParameterizedString()
@@ -100,7 +100,7 @@ func (jo *Object) setObjectParameters(props map[string]value) bool {
 					jo.setValue(name, update)
 				}
 			}
-		} else if jv.Type == OBJECT {
+		} else if jv.Type == jsonObject {
 			child, err := jv.GetObject()
 			if err == nil {
 				modified = child.setObjectParameters(props)
@@ -112,7 +112,7 @@ func (jo *Object) setObjectParameters(props map[string]value) bool {
 					}
 				}
 			}
-		} else if jv.Type == ARRAY {
+		} else if jv.Type == jsonArray {
 			ja, err := jv.GetArray()
 			if err == nil {
 				modified = ja.setArrayParameters(props)
@@ -170,7 +170,7 @@ func (ja *Array) setArrayParameters(props map[string]value) bool {
 	values := []value{}
 
 	for _, jv := range ja.Values {
-		if jv.Type == PARAMETERIZED {
+		if jv.Type == jsonParams {
 			modified = true
 
 			ps, err := jv.GetParameterizedString()
@@ -180,7 +180,7 @@ func (ja *Array) setArrayParameters(props map[string]value) bool {
 					values = append(values, add)
 				}
 			}
-		} else if jv.Type == OBJECT {
+		} else if jv.Type == jsonObject {
 			jo, err := jv.GetObject()
 			if err == nil {
 				modified = jo.setObjectParameters(props)
@@ -192,7 +192,7 @@ func (ja *Array) setArrayParameters(props map[string]value) bool {
 					values = append(values, jv)
 				}
 			}
-		} else if jv.Type == ARRAY {
+		} else if jv.Type == jsonArray {
 			ja, err := jv.GetArray()
 			if err == nil {
 				modified = ja.setArrayParameters(props)
@@ -231,7 +231,7 @@ func setValueParameters(s string, ps ParameterizedString, params map[string]valu
 			key := string(runes[p.StartIndex:p.EndIndex])
 			jv, ok := params[p.Name]
 			if ok {
-				if jv.Type == STRING || jv.Type == INT || jv.Type == FLOAT || jv.Type == BOOL {
+				if jv.Type == jsonString || jv.Type == jsonInt || jv.Type == jsonFloat || jv.Type == jsonBool {
 					replace[key] = fmt.Sprintf("%v", jv.Value)
 				}
 			} else {
@@ -256,19 +256,19 @@ func parsePropertyNameWithParameters(runes []rune, size int, index int) (Paramet
 	start := index
 	pstart := 0
 	pdef := 0
-	r := TOKEN_NULL
+	r := tokenNull
 
 	var params []Parameter
 
 	for index < size {
 		r = runes[index]
 
-		if r == TOKEN_QUOTE {
+		if r == tokenQUOTE {
 			end := index
 
 			index++
 			r, index = skipWhitespace(runes, size, index)
-			if r == TOKEN_COLON {
+			if r == tokenColon {
 				value := string(runes[start:end])
 				parameterized := params != nil
 				ps := ParameterizedString{Value: value, IsParameterized: parameterized, Parameters: params}
@@ -299,27 +299,27 @@ func parseTextValueWithParameters(runes []rune, size int, index int) (Parameteri
 	for index < size {
 		r := runes[index]
 
-		if r == TOKEN_BACKSLASH {
+		if r == tokenBackslash {
 			index++
 			if index < size {
 				test := runes[index]
-				if test == TOKEN_R {
-					sb.WriteRune(TOKEN_CR)
-				} else if test == TOKEN_N {
-					sb.WriteRune(TOKEN_LF)
-				} else if test == TOKEN_T {
-					sb.WriteRune(TOKEN_HT)
-				} else if test == TOKEN_B {
-					sb.WriteRune(TOKEN_BS)
-				} else if test == TOKEN_F {
-					sb.WriteRune(TOKEN_FF)
-				} else if test == TOKEN_A {
-					sb.WriteRune(TOKEN_BL)
-				} else if test == TOKEN_V {
-					sb.WriteRune(TOKEN_VT)
+				if test == tokenR {
+					sb.WriteRune(tokenCR)
+				} else if test == tokenN {
+					sb.WriteRune(tokenLF)
+				} else if test == tokenT {
+					sb.WriteRune(tokenHT)
+				} else if test == tokenB {
+					sb.WriteRune(tokenBS)
+				} else if test == tokenF {
+					sb.WriteRune(tokenFF)
+				} else if test == tokenA {
+					sb.WriteRune(tokenBL)
+				} else if test == tokenV {
+					sb.WriteRune(tokenVT)
 				}
 			}
-		} else if r == TOKEN_QUOTE {
+		} else if r == tokenQUOTE {
 			value := string(runes[start:index])
 			parameterized := params != nil
 			ps := ParameterizedString{Value: value, IsParameterized: parameterized, Parameters: params}
@@ -335,20 +335,20 @@ func parseTextValueWithParameters(runes []rune, size int, index int) (Parameteri
 }
 
 func parseParameters(runes []rune, index int, r rune, start int, pstart int, pdef int, params []Parameter) (int, int, []Parameter) {
-	if r == TOKEN_DOLLAR {
+	if r == tokenDOLLAR {
 		pstart = index + 1
 		pdef = 0
-	} else if r == TOKEN_LEFT_CURLY {
+	} else if r == tokenLeftCurly {
 		if pstart != index {
 			pstart = 0
 		} else {
 			pstart = index + 1
 		}
-	} else if r == TOKEN_QUESTION {
+	} else if r == tokenQuestion {
 		if pstart > 1 {
 			pdef = index + 1
 		}
-	} else if r == TOKEN_RIGHT_CURLY {
+	} else if r == tokenRightCurly {
 		if pstart > 1 {
 			end := index
 			def := ""

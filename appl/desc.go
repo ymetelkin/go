@@ -24,6 +24,7 @@ func (doc *document) ParseDescriptiveMetadata(jo *json.Object) error {
 		evts                   events
 		dll, fix               json.Object
 		tpm                    json.Array
+		geo                    bool
 	)
 
 	for _, nd := range doc.DescriptiveMetadata.Nodes {
@@ -37,7 +38,10 @@ func (doc *document) ParseDescriptiveMetadata(jo *json.Object) error {
 		case "EntityClassification":
 			parseEntityClassification(nd, &gens, &orgs, &prns, &cmps, &plcs, &evts)
 		case "AudienceClassification":
-			getAudences(nd, doc.Filings, &auds)
+			test := getAudences(nd, &auds)
+			if test {
+				geo = true
+			}
 		case "SalesClassification":
 			parseSalesClassification(nd, &svcs)
 		case "Comment":
@@ -71,6 +75,17 @@ func (doc *document) ParseDescriptiveMetadata(jo *json.Object) error {
 	jo.AddProperty(cmps.ToJSONProperty())
 	jo.AddProperty(plcs.ToJSONProperty())
 	jo.AddProperty(evts.ToJSONProperty())
+
+	if geo && doc.Filings != nil {
+		for _, f := range doc.Filings {
+			if strings.EqualFold(f.Category, "n") {
+				state := getState(f.Source)
+				if state != nil {
+					auds.AddObject(state.Code, state.ToJSON())
+				}
+			}
+		}
+	}
 	jo.AddProperty(auds.ToJSONProperty("audiences"))
 
 	jo.AddProperty(svcs.ToJSONProperty("services"))
@@ -268,9 +283,9 @@ func getThirdParty(nd xml.Node, ja *json.Array) {
 	}
 }
 
-func getAudences(nd xml.Node, fs []filing, ua *uniqueArray) {
+func getAudences(nd xml.Node, ua *uniqueArray) bool {
 	if nd.Nodes == nil || nd.Attributes == nil {
-		return
+		return false
 	}
 
 	var (
@@ -309,29 +324,20 @@ func getAudences(nd xml.Node, fs []filing, ua *uniqueArray) {
 					jo.AddString("name", value)
 
 					p := o.GetNode("Property")
-					if p.Text != "" {
-						if strings.EqualFold(p.Text, "AUDGEOGRAPHY") {
+					a := p.GetAttribute("Value")
+					if a != "" {
+						if strings.EqualFold(a, "AUDGEOGRAPHY") {
 							geo = true
 						}
-						jo.AddString("type", p.Text)
+						jo.AddString("type", a)
 					}
-
 					ua.AddObject(id, jo)
 				}
 			}
 		}
 	}
 
-	if !geo && fs != nil {
-		for _, f := range fs {
-			if strings.EqualFold(f.Category, "n") {
-				state := getState(f.Source)
-				if state != nil {
-					ua.AddObject(state.Code, state.ToJSON())
-				}
-			}
-		}
-	}
+	return !geo
 }
 
 func getAuthorities(nd xml.Node) (string, string) {

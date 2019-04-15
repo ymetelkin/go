@@ -279,29 +279,29 @@ func (ja *Array) toString(pretty bool, level int) string {
 
 	var sb strings.Builder
 
-	sb.WriteRune(TOKEN_LEFT_SQUARE)
+	sb.WriteRune(tokenLeftSquare)
 	if pretty {
-		sb.WriteRune(TOKEN_CR)
-		sb.WriteRune(TOKEN_LF)
+		sb.WriteRune(tokenCR)
+		sb.WriteRune(tokenLF)
 	}
 
 	next := level + 1
 
 	for index, jv := range ja.Values {
 		if index > 0 {
-			sb.WriteRune(TOKEN_COMMA)
+			sb.WriteRune(tokenCOMMA)
 
 			if pretty {
-				sb.WriteRune(TOKEN_CR)
-				sb.WriteRune(TOKEN_LF)
+				sb.WriteRune(tokenCR)
+				sb.WriteRune(tokenLF)
 			}
 		}
 
 		if pretty {
 			i := 0
 			for i <= level {
-				sb.WriteRune(TOKEN_SPACE)
-				sb.WriteRune(TOKEN_SPACE)
+				sb.WriteRune(tokenSPACE)
+				sb.WriteRune(tokenSPACE)
 				i++
 			}
 		}
@@ -311,16 +311,16 @@ func (ja *Array) toString(pretty bool, level int) string {
 	}
 
 	if pretty {
-		sb.WriteRune(TOKEN_CR)
-		sb.WriteRune(TOKEN_LF)
+		sb.WriteRune(tokenCR)
+		sb.WriteRune(tokenLF)
 		i := 0
 		for i < level {
-			sb.WriteRune(TOKEN_SPACE)
-			sb.WriteRune(TOKEN_SPACE)
+			sb.WriteRune(tokenSPACE)
+			sb.WriteRune(tokenSPACE)
 			i++
 		}
 	}
-	sb.WriteRune(TOKEN_RIGHT_SQUARE)
+	sb.WriteRune(tokenRightSquare)
 
 	return sb.String()
 }

@@ -7,8 +7,8 @@ import (
 
 func TestStringValue(test *testing.T) {
 	jv := newString("test")
-	if jv.Type != STRING {
-		test.Errorf("Expecting type %d, actual is %d", STRING, jv.Type)
+	if jv.Type != jsonString {
+		test.Errorf("Expecting type %d, actual is %d", jsonString, jv.Type)
 	} else {
 		fmt.Printf("%T\t%v %d\n", jv.Value, jv.Value, jv.Type)
 	}
@@ -24,8 +24,8 @@ func TestStringValue(test *testing.T) {
 func TestIntValue(test *testing.T) {
 	jv := newInt(123)
 	i, err := jv.GetInt()
-	if jv.Type != INT {
-		test.Errorf("Expecting type %d, actual is %d", INT, jv.Type)
+	if jv.Type != jsonInt {
+		test.Errorf("Expecting type %d, actual is %d", jsonInt, jv.Type)
 	} else {
 		fmt.Printf("%T\t%v %d\n", jv.Value, jv.Value, jv.Type)
 	}
@@ -40,8 +40,8 @@ func TestIntValue(test *testing.T) {
 
 func TestFloatValue(test *testing.T) {
 	jv := newFloat(1.23)
-	if jv.Type != FLOAT {
-		test.Errorf("Expecting type %d, actual is %d", FLOAT, jv.Type)
+	if jv.Type != jsonFloat {
+		test.Errorf("Expecting type %d, actual is %d", jsonFloat, jv.Type)
 	} else {
 		fmt.Printf("%T\t%v %d\n", jv.Value, jv.Value, jv.Type)
 	}
@@ -70,8 +70,8 @@ func TestFloatValue(test *testing.T) {
 
 func TestBooleanValue(test *testing.T) {
 	jv := newBool(true)
-	if jv.Type != BOOL {
-		test.Errorf("Expecting type %d, actual is %d", BOOL, jv.Type)
+	if jv.Type != jsonBool {
+		test.Errorf("Expecting type %d, actual is %d", jsonBool, jv.Type)
 	} else {
 		fmt.Printf("%T\t%v %d\n", jv.Value, jv.Value, jv.Type)
 	}

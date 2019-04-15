@@ -8,49 +8,51 @@ import (
 )
 
 const (
-	TOKEN_NULL         rune = 0
-	TOKEN_BL           rune = 7
-	TOKEN_BS           rune = 8
-	TOKEN_HT           rune = 9
-	TOKEN_LF           rune = 10
-	TOKEN_VT           rune = 11
-	TOKEN_FF           rune = 12
-	TOKEN_CR           rune = 13
-	TOKEN_SPACE        rune = 32
-	TOKEN_QUOTE        rune = 34
-	TOKEN_DOLLAR       rune = 36
-	TOKEN_COMMA        rune = 44
-	TOKEN_MINUS        rune = 45
-	TOKEN_PERIOD       rune = 46
-	TOKEN_0            rune = 48
-	TOKEN_9            rune = 57
-	TOKEN_COLON        rune = 58
-	TOKEN_QUESTION     rune = 63
-	TOKEN_E_UPPER      rune = 69
-	TOKEN_LEFT_SQUARE  rune = 91
-	TOKEN_BACKSLASH    rune = 92
-	TOKEN_RIGHT_SQUARE rune = 93
-	TOKEN_A            rune = 97
-	TOKEN_B            rune = 98
-	TOKEN_E            rune = 101
-	TOKEN_F            rune = 102
-	TOKEN_L            rune = 108
-	TOKEN_N            rune = 110
-	TOKEN_R            rune = 114
-	TOKEN_S            rune = 115
-	TOKEN_T            rune = 116
-	TOKEN_U            rune = 117
-	TOKEN_V            rune = 118
-	TOKEN_LEFT_CURLY   rune = 123
-	TOKEN_RIGHT_CURLY  rune = 125
+	tokenNull        rune = 0
+	tokenBL          rune = 7
+	tokenBS          rune = 8
+	tokenHT          rune = 9
+	tokenLF          rune = 10
+	tokenVT          rune = 11
+	tokenFF          rune = 12
+	tokenCR          rune = 13
+	tokenSPACE       rune = 32
+	tokenQUOTE       rune = 34
+	tokenDOLLAR      rune = 36
+	tokenCOMMA       rune = 44
+	tokenMINUS       rune = 45
+	tokenPERIOD      rune = 46
+	token0           rune = 48
+	token9           rune = 57
+	tokenColon       rune = 58
+	tokenQuestion    rune = 63
+	tokenEUpper      rune = 69
+	tokenLeftSquare  rune = 91
+	tokenBackslash   rune = 92
+	tokenRightSquare rune = 93
+	tokenA           rune = 97
+	tokenB           rune = 98
+	tokenE           rune = 101
+	tokenF           rune = 102
+	tokenL           rune = 108
+	tokenN           rune = 110
+	tokenR           rune = 114
+	tokenS           rune = 115
+	tokenT           rune = 116
+	tokenU           rune = 117
+	tokenV           rune = 118
+	tokenLeftCurly   rune = 123
+	tokenRightCurly  rune = 125
 )
 
-func ParseJsonObject(s string) (Object, error) {
-	return parseJsonObject(s, false)
+//ParseJSONObject parses string to JSON object
+func ParseJSONObject(s string) (Object, error) {
+	return parseJSONObject(s, false)
 }
 
-func ParseJsonArray(s string) (Array, error) {
-	jv, err := parseJsonValue(s, false)
+//ParseJSONArray parses string to JSON array
+func ParseJSONArray(s string) (Array, error) {
+	jv, err := parseJSONValue(s, false)
 	if err == nil {
 		ja, err := jv.GetArray()
 		if err == nil {
@@ -61,7 +63,7 @@ func ParseJsonArray(s string) (Array, error) {
 	return Array{}, err
 }
 
-func parseJsonValue(s string, parameterize bool) (value, error) {
+func parseJSONValue(s string, parameterize bool) (value, error) {
 	s = strings.Trim(s, " ")
 	if s == "" {
 		return value{}, errors.New("Missing string input")
@@ -74,14 +76,14 @@ func parseJsonValue(s string, parameterize bool) (value, error) {
 		return value{}, errors.New("Invalid string input")
 	}
 
-	if runes[0] == TOKEN_LEFT_CURLY {
+	if runes[0] == tokenLeftCurly {
 		jo, _, err := parseObject(runes, size, 0, parameterize)
 
 		if err != nil {
 			return value{}, err
 		}
 		return newObject(jo), nil
-	} else if runes[0] == TOKEN_LEFT_SQUARE {
+	} else if runes[0] == tokenLeftSquare {
 		ja, _, err := parseArray(runes, size, 0, false)
 
 		if err != nil {
@@ -93,8 +95,8 @@ func parseJsonValue(s string, parameterize bool) (value, error) {
 	}
 }
 
-func parseJsonObject(s string, parameterize bool) (Object, error) {
-	jv, err := parseJsonValue(s, parameterize)
+func parseJSONObject(s string, parameterize bool) (Object, error) {
+	jv, err := parseJSONValue(s, parameterize)
 	if err == nil {
 		jo, err := jv.GetObject()
 		if err == nil {
@@ -109,7 +111,7 @@ func addProperty(jo *Object, runes []rune, size int, index int, parameterize boo
 	index++
 	r, index := skipWhitespace(runes, size, index)
 
-	if r == TOKEN_QUOTE {
+	if r == tokenQUOTE {
 		var (
 			name  string
 			err   error
@@ -150,7 +152,7 @@ func addProperty(jo *Object, runes []rune, size int, index int, parameterize boo
 		index++
 		r, index = skipWhitespace(runes, size, index)
 		return r, index, nil
-	} else if r == TOKEN_RIGHT_CURLY {
+	} else if r == tokenRightCurly {
 		return r, index, nil
 	} else {
 		err := fmt.Sprintf("Expected '\"', found '%c'", r)
@@ -161,18 +163,18 @@ func addProperty(jo *Object, runes []rune, size int, index int, parameterize boo
 func parsePropertyName(runes []rune, size int, index int) (string, int, error) {
 	index++
 
-	r := TOKEN_NULL
+	r := tokenNull
 	start := index
 
 	for index < size {
 		r = runes[index]
 
-		if r == TOKEN_QUOTE {
+		if r == tokenQUOTE {
 			end := index
 
 			index++
 			r, index = skipWhitespace(runes, size, index)
-			if r == TOKEN_COLON {
+			if r == tokenColon {
 				return string(runes[start:end]), index, nil
 			} else {
 				err := fmt.Sprintf("Expected ':', found '%c'", r)
@@ -190,7 +192,7 @@ func parsePropertyName(runes []rune, size int, index int) (string, int, error) {
 func parseValue(runes []rune, size int, index int, parameterize bool) (value, int, ParameterizedString, error) {
 	r, index := skipWhitespace(runes, size, index)
 
-	if r == TOKEN_QUOTE {
+	if r == tokenQUOTE {
 		index++
 
 		if parameterize {
@@ -205,27 +207,27 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (value, in
 			for index < size {
 				r := runes[index]
 
-				if r == TOKEN_BACKSLASH {
+				if r == tokenBackslash {
 					index++
 					if index < size {
 						test := runes[index]
-						if test == TOKEN_R {
-							sb.WriteRune(TOKEN_CR)
-						} else if test == TOKEN_N {
-							sb.WriteRune(TOKEN_LF)
-						} else if test == TOKEN_T {
-							sb.WriteRune(TOKEN_HT)
-						} else if test == TOKEN_B {
-							sb.WriteRune(TOKEN_BS)
-						} else if test == TOKEN_F {
-							sb.WriteRune(TOKEN_FF)
-						} else if test == TOKEN_A {
-							sb.WriteRune(TOKEN_BL)
-						} else if test == TOKEN_V {
-							sb.WriteRune(TOKEN_VT)
+						if test == tokenR {
+							sb.WriteRune(tokenCR)
+						} else if test == tokenN {
+							sb.WriteRune(tokenLF)
+						} else if test == tokenT {
+							sb.WriteRune(tokenHT)
+						} else if test == tokenB {
+							sb.WriteRune(tokenBS)
+						} else if test == tokenF {
+							sb.WriteRune(tokenFF)
+						} else if test == tokenA {
+							sb.WriteRune(tokenBL)
+						} else if test == tokenV {
+							sb.WriteRune(tokenVT)
 						}
 					}
-				} else if r == TOKEN_QUOTE {
+				} else if r == tokenQUOTE {
 					return newString(sb.String()), index, ParameterizedString{}, nil
 				} else {
 					sb.WriteRune(r)
@@ -237,7 +239,7 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (value, in
 		}
 	}
 
-	if r == TOKEN_LEFT_CURLY {
+	if r == tokenLeftCurly {
 		jo, index, err := parseObject(runes, size, index, parameterize)
 		if err != nil {
 			return value{}, index, ParameterizedString{}, err
@@ -245,7 +247,7 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (value, in
 		return newObject(jo), index, ParameterizedString{}, nil
 	}
 
-	if r == TOKEN_LEFT_SQUARE {
+	if r == tokenLeftSquare {
 		ja, index, err := parseArray(runes, size, index, parameterize)
 		if err != nil {
 			return value{}, index, ParameterizedString{}, err
@@ -253,28 +255,28 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (value, in
 		return newArray(ja), index, ParameterizedString{}, nil
 	}
 
-	if r == TOKEN_T {
+	if r == tokenT {
 		index++
-		if index < size && runes[index] == TOKEN_R {
+		if index < size && runes[index] == tokenR {
 			index++
-			if index < size && runes[index] == TOKEN_U {
+			if index < size && runes[index] == tokenU {
 				index++
-				if index < size && runes[index] == TOKEN_E {
+				if index < size && runes[index] == tokenE {
 					jv := newBool(true)
 					jv.Text = "true"
 					return jv, index, ParameterizedString{}, nil
 				}
 			}
 		}
-	} else if r == TOKEN_F {
+	} else if r == tokenF {
 		index++
-		if index < size && runes[index] == TOKEN_A {
+		if index < size && runes[index] == tokenA {
 			index++
-			if index < size && runes[index] == TOKEN_L {
+			if index < size && runes[index] == tokenL {
 				index++
-				if index < size && runes[index] == TOKEN_S {
+				if index < size && runes[index] == tokenS {
 					index++
-					if index < size && runes[index] == TOKEN_E {
+					if index < size && runes[index] == tokenE {
 						jv := newBool(false)
 						jv.Text = "false"
 						return jv, index, ParameterizedString{}, nil
@@ -282,39 +284,39 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (value, in
 				}
 			}
 		}
-	} else if r == TOKEN_N {
+	} else if r == tokenN {
 		index++
-		if index < size && runes[index] == TOKEN_U {
+		if index < size && runes[index] == tokenU {
 			index++
-			if index < size && runes[index] == TOKEN_L {
+			if index < size && runes[index] == tokenL {
 				index++
-				if index < size && runes[index] == TOKEN_L {
+				if index < size && runes[index] == tokenL {
 					return newNull(), index, ParameterizedString{}, nil
 				}
 			}
 		}
-	} else if r > TOKEN_COMMA && r < TOKEN_COLON {
+	} else if r > tokenCOMMA && r < tokenColon {
 		start := index
 		floating := false
 
 		index++
 		r = runes[index]
-		for r > TOKEN_MINUS && r < TOKEN_COLON {
-			if r == TOKEN_PERIOD {
+		for r > tokenMINUS && r < tokenColon {
+			if r == tokenPERIOD {
 				floating = true
 			}
 			index++
 			r = runes[index]
 		}
 
-		if r == TOKEN_E || r == TOKEN_E_UPPER { //Scientific
+		if r == tokenE || r == tokenEUpper { //Scientific
 			floating = true
 			index++
 			r = runes[index] // skip sign + -
 			for index < size {
 				index++
 				r = runes[index]
-				if r < TOKEN_0 || r > TOKEN_9 { //skip digits
+				if r < token0 || r > token9 { //skip digits
 					break
 				}
 			}
@@ -356,14 +358,14 @@ func parseObject(runes []rune, size int, index int, parameterize bool) (Object, 
 		return Object{}, index, err
 	}
 
-	for r == TOKEN_COMMA {
+	for r == tokenCOMMA {
 		r, index, err = addProperty(&jo, runes, size, index, parameterize)
 		if err != nil {
 			return Object{}, index, err
 		}
 	}
 
-	if r != TOKEN_RIGHT_CURLY {
+	if r != tokenRightCurly {
 		err := fmt.Sprintf("Expected '}', found '%c'", r)
 		return Object{}, index, errors.New(err)
 	}
@@ -375,7 +377,7 @@ func addValue(ja *Array, runes []rune, size int, index int, parameterize bool) (
 	index++
 	r, index := skipWhitespace(runes, size, index)
 
-	if r == TOKEN_RIGHT_SQUARE {
+	if r == tokenRightSquare {
 		return r, index, nil
 	} else {
 		value, index, ps, err := parseValue(runes, size, index, parameterize)
@@ -408,14 +410,14 @@ func parseArray(runes []rune, size int, index int, parameterize bool) (Array, in
 		return Array{}, index, err
 	}
 
-	for r == TOKEN_COMMA {
+	for r == tokenCOMMA {
 		r, index, err = addValue(&ja, runes, size, index, parameterize)
 		if err != nil {
 			return Array{}, index, err
 		}
 	}
 
-	if r != TOKEN_RIGHT_SQUARE {
+	if r != tokenRightSquare {
 		err := fmt.Sprintf("Expected ']', found '%c'", r)
 		return Array{}, index, errors.New(err)
 	}
@@ -427,12 +429,12 @@ func skipWhitespace(runes []rune, size int, index int) (rune, int) {
 	for index < size {
 		r := runes[index]
 
-		if r == TOKEN_NULL || r == TOKEN_SPACE || r == TOKEN_LF || r == TOKEN_CR || r == TOKEN_HT || r == TOKEN_BS || r == TOKEN_FF || r == TOKEN_VT {
+		if r == tokenNull || r == tokenSPACE || r == tokenLF || r == tokenCR || r == tokenHT || r == tokenBS || r == tokenFF || r == tokenVT {
 			index++
 		} else {
 			return r, index
 		}
 	}
 
-	return TOKEN_NULL, index
+	return tokenNull, index
 }
