@@ -144,7 +144,61 @@ func TestTexts(t *testing.T) {
 
 	fmt.Printf("%s\n", jo.ToString())
 
-	s=`
-	
-	`
+	s = `
+<Publication>
+	<PublicationComponent Role="Main" MediaType="Text">
+		<TextContentItem Id="d7a5c30ccace481ca0df13f542a37064" ArrivedInFilingId="e1e60ad7c9f14de19dc5f54bf19d9cab">
+			<DataContent>
+				<nitf>
+				<body.content>
+					<!-- Language -->
+					<lang lang="it"></lang>
+					<block>
+					<p>
+						<!-- Text -->
+					(ANSA) - ROMA, 16 APR -  "Il sistema industriale italiano è
+			pronto a fare la sua parte per raggiungere importanti obiettivi
+			di sostenibilità nell'interesse del Paese" e prevede per
+			l'Italia "un programma di investimenti per oltre 300 miliardi di
+			in 10 anni che può dare una spinta al Pil pari a circa lo 0,5%
+			l'anno. Si tratta di un impiego di risorse senza precedenti
+			nella storia del Paese che deve essere guidato da una visione
+			strategica chiara". Lo sottolinea Giuseppe Pasini, coordinatore
+			del Comitato Energia di Confindustria che ha incontrato oggi il
+			Sottosegretario allo Sviluppo Economico Davide Crippa.
+			Pasini ritiene che il Piano Nazionale Integrato per l'Energia
+			e il Clima, "documento fondamentale per le politiche di
+			decarbonizzazione dell'economia, ha il merito di fissare gli
+			obiettivi in modo chiaro", e a fronte di un possibile programma
+			di investimenti di tale portata sottolinea che è "necessario
+			quindi arrivare ad una Governance condivisa tra Governo ed Enti
+			locali per semplificare i processi autorizzativi, minimizzare i
+			costi per garantire competitività ai settori manifatturieri e
+			promuovere una politica industriale per favorire lo sviluppo dei
+			settori della green economy"
+				</p>
+					</block>
+				</body.content>
+				</nitf>
+			</DataContent>
+			<Characteristics MimeType="text/xml" Format="IIM" FileExtension="xml" SizeInBytes="1273">
+				<Words>183</Words>
+			</Characteristics>
+		</TextContentItem>
+	</PublicationComponent>
+</Publication>`
+	doc, _ = parseXML(s)
+	jo = json.Object{}
+	txts = texts{}
+
+	for _, pc := range doc.PublicationComponents {
+		switch pc.Node.Name {
+		case "TextContentItem":
+			txts.ParseTextComponent(pc)
+		}
+	}
+
+	txts.AddProperties(&jo)
+
+	fmt.Printf("%s\n", jo.ToString())
 }

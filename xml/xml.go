@@ -62,10 +62,20 @@ func New(s string) (Node, error) {
 					parent.Text += getText(se)
 				}
 			}
+		case xml.Comment:
+			if parent != nil {
+				tc := Node{Name: "!", Text: string(se), parent: parent}
+				if parent.Nodes == nil {
+					parent.Nodes = []Node{tc}
+				} else {
+					parent.Nodes = append(parent.Nodes, tc)
+				}
+			}
 		case xml.EndElement:
 			if se.Name.Local == parent.Name && parent.parent != nil {
 				if parent.parent.Text != "" {
-					parent.parent.Text += parent.ToInlineString()
+					s, _ := parent.ToInlineString()
+					parent.parent.Text += s
 				} else if parent.parent.Nodes == nil {
 					parent.parent.Nodes = []Node{*parent}
 				} else {
@@ -109,33 +119,49 @@ func (nd *Node) ToString() string {
 }
 
 //ToInlineString method serializes Node into condenced XML string
-func (nd *Node) ToInlineString() string {
-	var sb strings.Builder
-	sb.WriteString("<")
-	sb.WriteString(nd.Name)
-	if nd.Attributes != nil {
-		for _, a := range nd.Attributes {
-			sb.WriteString(" ")
-			sb.WriteString(a.Name)
-			sb.WriteString("=\"")
-			sb.WriteString(a.Value)
-			sb.WriteString("\"")
-		}
-	}
-	sb.WriteString(">")
-	if nd.Text != "" {
-		sb.WriteString(nd.Text)
-	}
-	if nd.Nodes != nil {
-		for _, n := range nd.Nodes {
-			sb.WriteString(n.ToInlineString())
-		}
-	}
-	sb.WriteString("</")
-	sb.WriteString(nd.Name)
-	sb.WriteString(">")
+func (nd *Node) ToInlineString() (string, bool) {
+	var (
+		sb strings.Builder
+		f  bool
+	)
 
-	return sb.String()
+	sb.WriteString("<")
+	if nd.Name == "!" {
+		sb.WriteString("!--")
+		sb.WriteString(nd.Text)
+		sb.WriteString("-->")
+		f = true
+	} else {
+		sb.WriteString(nd.Name)
+		if nd.Attributes != nil {
+			for _, a := range nd.Attributes {
+				sb.WriteString(" ")
+				sb.WriteString(a.Name)
+				sb.WriteString("=\"")
+				sb.WriteString(a.Value)
+				sb.WriteString("\"")
+			}
+		}
+		sb.WriteString(">")
+		if nd.Nodes != nil {
+			for _, n := range nd.Nodes {
+				s, t := n.ToInlineString()
+				sb.WriteString(s)
+				if t {
+					f = true
+				}
+			}
+		}
+		if nd.Text != "" {
+			sb.WriteString(nd.Text)
+			f = true
+		}
+		sb.WriteString("</")
+		sb.WriteString(nd.Name)
+		sb.WriteString(">")
+	}
+
+	return sb.String(), f
 }
 
 func (nd *Node) toString(level int) string {
@@ -147,38 +173,45 @@ func (nd *Node) toString(level int) string {
 			i++
 		}
 	}
+
 	sb.WriteString("<")
-	sb.WriteString(nd.Name)
-	if nd.Attributes != nil {
-		for _, a := range nd.Attributes {
-			sb.WriteString(" ")
-			sb.WriteString(a.Name)
-			sb.WriteString("=\"")
-			sb.WriteString(a.Value)
-			sb.WriteString("\"")
-		}
-	}
-	sb.WriteString(">")
-	if nd.Text != "" {
+	if nd.Name == "!" {
+		sb.WriteString("!--")
 		sb.WriteString(nd.Text)
-	}
-	if nd.Nodes != nil {
-		for _, n := range nd.Nodes {
-			sb.WriteString("\n")
-			sb.WriteString(n.toString(level + 1))
-		}
-		sb.WriteString("\n")
-		if level > 0 {
-			i := 0
-			for i <= level {
-				sb.WriteString("  ")
-				i++
+		sb.WriteString("-->")
+	} else {
+		sb.WriteString(nd.Name)
+		if nd.Attributes != nil {
+			for _, a := range nd.Attributes {
+				sb.WriteString(" ")
+				sb.WriteString(a.Name)
+				sb.WriteString("=\"")
+				sb.WriteString(a.Value)
+				sb.WriteString("\"")
 			}
 		}
+		sb.WriteString(">")
+		if nd.Nodes != nil {
+			for _, n := range nd.Nodes {
+				sb.WriteString("\n")
+				sb.WriteString(n.toString(level + 1))
+			}
+			sb.WriteString("\n")
+			if level > 0 {
+				i := 0
+				for i <= level {
+					sb.WriteString("  ")
+					i++
+				}
+			}
+		}
+		if nd.Text != "" {
+			sb.WriteString(nd.Text)
+		}
+		sb.WriteString("</")
+		sb.WriteString(nd.Name)
+		sb.WriteString(">")
 	}
-	sb.WriteString("</")
-	sb.WriteString(nd.Name)
-	sb.WriteString(">")
 
 	return sb.String()
 }

@@ -46,6 +46,7 @@ type document struct {
 	PubStatus              pubStatus
 	FirstCreatedYear       int
 	Signals                uniqueArray
+	Namelines              []json.Object
 	Fixture                bool
 }
 

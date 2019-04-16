@@ -16,10 +16,10 @@ func (doc *document) ParseNewsLines(jo *json.Object) error {
 	}
 
 	var (
-		summary       bool
-		overs, keys   uniqueArray
-		bys, byos, ns []xml.Node
-		cr            string
+		summary     bool
+		overs, keys uniqueArray
+		bys, byos   []xml.Node
+		cr          string
 	)
 
 	jo.AddString("headline", "")
@@ -92,10 +92,20 @@ func (doc *document) ParseNewsLines(jo *json.Object) error {
 				bys = append(bys, nd)
 			}
 		case "NameLine":
-			if ns == nil {
-				ns = []xml.Node{nd}
-			} else {
-				ns = append(byos, nd)
+			if nd.Text != "" {
+				person := json.Object{}
+				person.AddString("name", nd.Text)
+				if strings.EqualFold(nd.GetAttribute("Parametric"), "PERSON_FEATURED") {
+					rel := json.Array{}
+					rel.AddString("personfeatured")
+					person.AddArray("rel", rel)
+				}
+				person.AddString("creator", "Editorial")
+				if doc.Namelines == nil {
+					doc.Namelines = []json.Object{person}
+				} else {
+					doc.Namelines = append(doc.Namelines, person)
+				}
 			}
 		}
 	}
@@ -104,7 +114,6 @@ func (doc *document) ParseNewsLines(jo *json.Object) error {
 	jo.AddProperty(keys.ToJSONProperty("keywordlines"))
 
 	getBylines(bys, byos, jo)
-	getPerson(ns, jo)
 
 	doc.SetCopyright(cr, jo)
 

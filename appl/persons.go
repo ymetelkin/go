@@ -104,9 +104,11 @@ func (ps *persons) Parse(nd xml.Node) {
 	}
 }
 
-func (ps *persons) ToJSONProperty() json.Property {
+func (ps *persons) ToJSONProperty(namelines []json.Object) json.Property {
+	ja := json.Array{}
+	var add bool
+
 	if ps.Keys != nil {
-		ja := json.Array{}
 		for _, item := range ps.Persons {
 			p := item
 			person := json.Object{}
@@ -136,8 +138,18 @@ func (ps *persons) ToJSONProperty() json.Property {
 			}
 
 			ja.AddObject(person)
+			add = true
 		}
+	}
 
+	if namelines != nil {
+		for _, jo := range namelines {
+			ja.AddObject(jo)
+			add = true
+		}
+	}
+
+	if add {
 		return json.NewArrayProperty("persons", ja)
 	}
 

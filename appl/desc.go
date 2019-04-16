@@ -70,7 +70,7 @@ func (doc *document) ParseDescriptiveMetadata(jo *json.Object) error {
 	jo.AddProperty(sups.ToJSONProperty("suppcategories"))
 	jo.AddProperty(alts.ToJSONProperty("alertcategories"))
 	jo.AddProperty(sbjs.ToJSONProperty("subjects"))
-	jo.AddProperty(prns.ToJSONProperty())
+	jo.AddProperty(prns.ToJSONProperty(doc.Namelines))
 	jo.AddProperty(orgs.ToJSONProperty("organizations"))
 	jo.AddProperty(cmps.ToJSONProperty())
 	jo.AddProperty(plcs.ToJSONProperty())
@@ -179,7 +179,7 @@ func parseSalesClassification(nd xml.Node, svcs *uniqueArray) {
 				if code != "" && name != "" {
 					jo := json.Object{}
 					jo.AddString("code", code)
-					jo.AddString("name", name)
+					jo.AddString("apsales", name)
 					svcs.AddObject(code, jo)
 				}
 			}

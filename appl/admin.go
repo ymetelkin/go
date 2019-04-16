@@ -44,6 +44,10 @@ func (doc *document) ParseAdministrativeMetadata(jo *json.Object) error {
 			} else {
 				sms = append(sms, nd)
 			}
+		case "WorkflowStatus":
+			if nd.Text != "" {
+				jo.AddString("workflowstatus", nd.Text)
+			}
 		case "TransmissionSource":
 			tss.AddString(nd.Text)
 		case "ProductSource":

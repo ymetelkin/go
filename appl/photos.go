@@ -115,8 +115,8 @@ func (rnds *renditions) ParsePhotoCollection(pc pubcomponent, duration int64) {
 			jo.AddInt("seq", i+1)
 
 			if href {
-				s := string(i)
-				z := string(zeros[0 : len(zeros)-len(s)-1])
+				s := strconv.Itoa(i)
+				z := string(zeros[0 : len(zeros)-len(s)])
 				s = fmt.Sprintf("%s%s%s%s.%s", url, sep, z, s, ext)
 				jo.AddString("href", s)
 			}

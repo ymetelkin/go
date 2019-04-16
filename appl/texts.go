@@ -30,9 +30,20 @@ func (txts *texts) ParseTextComponent(pc pubcomponent) error {
 	for _, b := range nd.Nodes {
 		if b.Name == "block" {
 			if b.Nodes != nil {
+				var (
+					txt strings.Builder
+					add bool
+				)
 				for _, p := range b.Nodes {
-					s := p.ToInlineString()
-					sb.WriteString(s)
+					s, b := p.ToInlineString()
+					if b {
+						add = true
+					}
+					txt.WriteString(s)
+				}
+
+				if add {
+					sb.WriteString(txt.String())
 				}
 			}
 

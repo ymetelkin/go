@@ -156,7 +156,7 @@ func parseIsoDate(s string) string {
 }
 
 func formatTime(ms int64) string {
-	t := time.Unix(0, ms*int64(time.Millisecond))
+	t := time.Unix(0, ms*int64(time.Millisecond)).UTC()
 	return t.Format("15:04:05.000")
 }
 

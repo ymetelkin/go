@@ -10,6 +10,18 @@ import (
 func TestPersons(t *testing.T) {
 	s := `
 <Publication>
+	<NewsLines>
+		<Title>FBN--Vikings-Free Agency</Title>
+		<HeadLine>Vikings, Sage Rosenfels agree to 2-year contract</HeadLine>
+		<OriginalHeadLine>Vikings, Sage Rosenfels agree to 2-year contract</OriginalHeadLine>
+		<ExtendedHeadLine>Agent: Vikings, Rosenfels agree in principle to 2-year contract to give team veteran backup QB</ExtendedHeadLine>
+		<ByLine Title="AP Sports Writer">DAVE CAMPBELL</ByLine>
+		<DateLine>EDEN PRAIRIE, Minn.</DateLine>
+		<CopyrightLine>Copyright 2012 The Associated Press. All rights reserved. This material may not be published, broadcast, rewritten or redistributed.</CopyrightLine>
+		<KeywordLine>Vikings-Free Agency</KeywordLine>
+		<ByLineOriginal>By DAVE CAMPBELL</ByLineOriginal>
+		<NameLine Parametric="PERSON_FEATURED">Magdalena Neuner</NameLine>
+	</NewsLines>  
 	<DescriptiveMetadata>
 		<EntityClassification SystemVersion="1" AuthorityVersion="2375" System="Teragram" Authority="AP Party">
 			<Occurrence Count="5" Id="b1d550d087874a0393ebfa85dab5ea0a" Value="Barack Obama">
@@ -62,7 +74,12 @@ func TestPersons(t *testing.T) {
 	doc, _ := parseXML(s)
 	jo := json.Object{}
 
-	err := doc.ParseDescriptiveMetadata(&jo)
+	err := doc.ParseNewsLines(&jo)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	err = doc.ParseDescriptiveMetadata(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}

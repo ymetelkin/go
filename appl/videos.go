@@ -56,7 +56,7 @@ func (rnds *renditions) ParseVideoComponent(pc pubcomponent) int64 {
 			rnds.AddRendition(name, jo, true)
 		}
 	case "preview":
-		n, k := getBinaryName(chars, "", true)
+		n, k := getBinaryName(chars, "", false)
 		name := "preview" + k
 		title := fmt.Sprintf("Preview (%s)", n)
 		jo := rnds.GetRendition(title, pc.Role, pc.MediaType, pc.Node, chars)
