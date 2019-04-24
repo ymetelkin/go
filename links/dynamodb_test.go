@@ -7,19 +7,20 @@ import (
 
 func TestCRUD(t *testing.T) {
 	id := "parent"
+	by := "YM"
 	col := Collection{ID: id}
 
 	fmt.Println("Append three links")
-	col.Append("d1")
-	col.Append("d2")
-	col.Append("d3")
-	col.Insert("d0", 0)
+	col.Append("d1", by)
+	col.Append("d2", by)
+	col.Append("d3", by)
+	col.Insert("d0", 0, by)
 	fmt.Println("In-memory collection")
 	for _, link := range col.Links {
 		fmt.Printf("%d\t%s\n", link.Seq, link.ID)
 	}
 
-	db := newDb()
+	db := newDb("LinkCollections")
 
 	err := db.SaveCollection(col)
 	if err != nil {
@@ -32,6 +33,6 @@ func TestCRUD(t *testing.T) {
 	}
 	fmt.Println("\nStored collection")
 	for _, link := range col.Links {
-		fmt.Printf("%d\t%s\n", link.Seq, link.ID)
+		fmt.Printf("%d\t%s\t%s:%v\t%s\n", link.Seq, link.ID, link.Updated.ID, link.Updated.Unix, link.Updated.DateTime())
 	}
 }

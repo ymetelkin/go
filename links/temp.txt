@@ -1,3 +1,4 @@
+/*
 package links
 
 import (
@@ -14,49 +15,6 @@ type Service struct {
 //New is shortcut constructor for Service
 func New() Service {
 	return Service{db: newDb("LinkCollections"), rd: newDb("LinkReversedCollections")}
-}
-
-//AddLink2 adds link to collection
-func (svc *Service) AddLink2(collectionID string, linkID string, byID string) error {
-	col, err := svc.db.GetCollection(collectionID)
-	if err != nil {
-		return err
-	}
-
-	rvs, err := svc.rd.GetCollection(linkID)
-	if err != nil {
-		return err
-	}
-
-	if col.ID == "" {
-		col.ID = collectionID
-	}
-
-	if rvs.ID == "" {
-		rvs.ID = linkID
-	}
-
-	seq, err := col.Append(linkID, byID)
-	if err != nil {
-		return err
-	}
-
-	_, err = rvs.AddReversed(collectionID, seq, byID)
-	if err != nil {
-		return err
-	}
-
-	err = svc.db.SaveCollection(col)
-	if err != nil {
-		return err
-	}
-
-	err = svc.rd.SaveCollection(rvs)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 //AddLink adds link to collection
@@ -121,44 +79,8 @@ func (svc *Service) addReverse(collectionID string, linkID string, byID string, 
 	ex <- nil
 }
 
-//RemoveLink removes link from collection
-func (svc *Service) RemoveLink(collectionID string, linkID string, byID string) error {
-	col, err := svc.db.GetCollection(collectionID)
-	if err != nil {
-		return err
-	}
-	if col.ID == "" {
-		s := fmt.Sprintf("Collection [%s] does not exist", collectionID)
-		return errors.New(s)
-	}
-
-	rvs, err := svc.rd.GetCollection(linkID)
-	if err != nil {
-		return err
-	}
-
-	_, err = col.Remove(linkID, byID)
-	if err != nil {
-		return err
-	}
-
-	rvs.RemoveReversed(collectionID, byID)
-
-	err = svc.db.SaveCollection(col)
-	if err != nil {
-		return err
-	}
-
-	err = svc.rd.SaveCollection(rvs)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-//RemoveLink2 removes link from collection using goroutines
-func (svc *Service) RemoveLink2(collectionID string, linkID string, byID string) error {
+//RemoveLinkAsync removes link from collection using goroutines
+func (svc *Service) RemoveLinkAsync(collectionID string, linkID string, byID string) error {
 	ex := make(chan error)
 
 	go svc.removeForward(collectionID, linkID, byID, ex)
@@ -225,3 +147,4 @@ func (svc *Service) GetReversedCollection(linkID string) (Collection, error) {
 	col, err := svc.rd.GetCollection(linkID)
 	return col, err
 }
+*/

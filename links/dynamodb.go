@@ -10,10 +10,17 @@ import (
 type db struct {
 	ID    string
 	Table string
+	svc   *dynamodb.DynamoDB
 }
 
-func newDb() db {
-	return db{ID: "ID", Table: "LinkCollections"}
+func newDb(table string) db {
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	}))
+
+	svc := dynamodb.New(sess)
+
+	return db{ID: "ID", Table: table, svc: svc}
 }
 
 func (db *db) SaveCollection(col Collection) error {
@@ -27,13 +34,7 @@ func (db *db) SaveCollection(col Collection) error {
 		TableName: aws.String(db.Table),
 	}
 
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
-
-	svc := dynamodb.New(sess)
-
-	_, err = svc.PutItem(pi)
+	_, err = db.svc.PutItem(pi)
 	if err != nil {
 		return err
 	}
@@ -42,15 +43,9 @@ func (db *db) SaveCollection(col Collection) error {
 }
 
 func (db *db) GetCollection(id string) (Collection, error) {
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
-
-	svc := dynamodb.New(sess)
-
 	col := Collection{}
 
-	result, err := svc.GetItem(&dynamodb.GetItemInput{
+	result, err := db.svc.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(db.Table),
 		Key: map[string]*dynamodb.AttributeValue{
 			"ID": {
