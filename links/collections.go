@@ -1,7 +1,6 @@
 package links
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -25,8 +24,7 @@ func (col *Collection) Append(id string, by string) (int, error) {
 	if size > 0 {
 		for i, l := range col.Links {
 			if l.ID == id {
-				s := fmt.Sprintf("Link [%s] already exists in [%s] collection", id, col.ID)
-				return i, errors.New(s)
+				return i, fmt.Errorf("Link [%s] already exists in [%s] collection", id, col.ID)
 			}
 		}
 	}
@@ -259,11 +257,9 @@ func (col *Collection) RemoveReversed(id string, by string) (int, error) {
 }
 
 func invalidLinkError(id string, col *Collection) error {
-	s := fmt.Sprintf("Link [%s] does not exists in [%s] collection", id, col.ID)
-	return errors.New(s)
+	return fmt.Errorf("Link [%s] does not exists in [%s] collection", id, col.ID)
 }
 
 func invalidPositionError(pos int, col *Collection) error {
-	s := fmt.Sprintf("Invalid position [%d] in [%s] collection", pos, col.ID)
-	return errors.New(s)
+	return fmt.Errorf("Invalid position [%d] in [%s] collection", pos, col.ID)
 }
