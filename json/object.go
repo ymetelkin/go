@@ -90,8 +90,7 @@ func (jo *Object) setValue(name string, value value) error {
 	}
 
 	if !exists {
-		err := fmt.Sprintf("Field [%s] does not exist", name)
-		return errors.New(err)
+		return fmt.Errorf("Field [%s] does not exist", name)
 	}
 
 	jo.Properties[name] = value
@@ -99,30 +98,37 @@ func (jo *Object) setValue(name string, value value) error {
 	return nil
 }
 
+//SetInt sets int value of named property
 func (jo *Object) SetInt(name string, value int) error {
 	return jo.setValue(name, newInt(value))
 }
 
+//SetFloat sets float value of named property
 func (jo *Object) SetFloat(name string, value float64) error {
 	return jo.setValue(name, newFloat(value))
 }
 
+//SetBool sets int value of named property
 func (jo *Object) SetBool(name string, value bool) error {
 	return jo.setValue(name, newBool(value))
 }
 
+//SetString sets string value of named property
 func (jo *Object) SetString(name string, value string) error {
 	return jo.setValue(name, newString(value))
 }
 
+//SetObject sets JSON object value of named property
 func (jo *Object) SetObject(name string, value Object) error {
 	return jo.setValue(name, newObject(value))
 }
 
+//SetArray sets JSON array value of named property
 func (jo *Object) SetArray(name string, value Array) error {
 	return jo.setValue(name, newArray(value))
 }
 
+//Remove removes named property
 func (jo *Object) Remove(name string) error {
 	name = strings.Trim(name, " ")
 	if name == "" {
@@ -160,11 +166,11 @@ func (jo *Object) getValue(name string) (value, error) {
 	if ok {
 		return jv, nil
 	} else {
-		err := fmt.Sprintf("Field [%s] does not exist", name)
-		return value{}, errors.New(err)
+		return value{}, fmt.Errorf("Field [%s] does not exist", name)
 	}
 }
 
+//GetString returns string value of named property
 func (jo *Object) GetString(name string) (string, error) {
 	jv, err := jo.getValue(name)
 	if err != nil {
@@ -179,6 +185,7 @@ func (jo *Object) GetString(name string) (string, error) {
 	return s, nil
 }
 
+//GetInt returns string int of named property
 func (jo *Object) GetInt(name string) (int, error) {
 	jv, err := jo.getValue(name)
 	if err != nil {
@@ -193,6 +200,7 @@ func (jo *Object) GetInt(name string) (int, error) {
 	return i, nil
 }
 
+//GetFloat returns float value of named property
 func (jo *Object) GetFloat(name string) (float64, error) {
 	jv, err := jo.getValue(name)
 	if err != nil {
@@ -207,6 +215,7 @@ func (jo *Object) GetFloat(name string) (float64, error) {
 	return f, nil
 }
 
+//GetBool returns bool value of named property
 func (jo *Object) GetBool(name string) (bool, error) {
 	jv, err := jo.getValue(name)
 	if err != nil {
@@ -221,6 +230,7 @@ func (jo *Object) GetBool(name string) (bool, error) {
 	return b, nil
 }
 
+//GetObject returns JSON object value of named property
 func (jo *Object) GetObject(name string) (Object, error) {
 	jv, err := jo.getValue(name)
 	if err == nil {
@@ -233,6 +243,7 @@ func (jo *Object) GetObject(name string) (Object, error) {
 	return Object{}, err
 }
 
+//GetArray returns JSON array value of named property
 func (jo *Object) GetArray(name string) (Array, error) {
 	jv, err := jo.getValue(name)
 	if err == nil {
@@ -245,6 +256,7 @@ func (jo *Object) GetArray(name string) (Array, error) {
 	return Array{}, err
 }
 
+//IsEmpty checks for properties presense
 func (jo *Object) IsEmpty() bool {
 	if jo.Properties == nil || len(jo.Properties) == 0 {
 		return true
@@ -253,10 +265,12 @@ func (jo *Object) IsEmpty() bool {
 	return false
 }
 
+//ToString returns pretty serialization
 func (jo *Object) ToString() string {
 	return jo.toString(true, 0)
 }
 
+//ToInlineString returns condensed serialization
 func (jo *Object) ToInlineString() string {
 	return jo.toString(false, 0)
 }

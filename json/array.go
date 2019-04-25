@@ -252,9 +252,8 @@ func (ja *Array) GetStrings() ([]string, error) {
 		value, err := v.GetString()
 		if err != nil {
 			return nil, err
-		} else {
-			values[i] = value
 		}
+		values[i] = value
 	}
 
 	return values, nil
@@ -272,9 +271,8 @@ func (ja *Array) GetInts() ([]int, error) {
 		value, err := v.GetInt()
 		if err != nil {
 			return nil, err
-		} else {
-			values[i] = value
 		}
+		values[i] = value
 	}
 
 	return values, nil
@@ -292,9 +290,8 @@ func (ja *Array) GetFloats() ([]float64, error) {
 		value, err := v.GetFloat()
 		if err != nil {
 			return nil, err
-		} else {
-			values[i] = value
 		}
+		values[i] = value
 	}
 
 	return values, nil
@@ -312,9 +309,8 @@ func (ja *Array) GetBools() ([]bool, error) {
 		value, err := v.GetBool()
 		if err != nil {
 			return nil, err
-		} else {
-			values[i] = value
 		}
+		values[i] = value
 	}
 
 	return values, nil
@@ -332,9 +328,8 @@ func (ja *Array) GetObjects() ([]Object, error) {
 		value, err := v.GetObject()
 		if err != nil {
 			return nil, err
-		} else {
-			values[i] = value
 		}
+		values[i] = value
 	}
 
 	return values, nil
@@ -352,9 +347,8 @@ func (ja *Array) GetArrays() ([]Array, error) {
 		value, err := v.GetArray()
 		if err != nil {
 			return nil, err
-		} else {
-			values[i] = value
 		}
+		values[i] = value
 	}
 
 	return values, nil

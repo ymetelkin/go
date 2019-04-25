@@ -178,8 +178,7 @@ func (jv *value) GetInt() (int, error) {
 		return 0, errors.New("Cannot read string value")
 	}
 
-	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
-	return 0, errors.New(err)
+	return 0, fmt.Errorf("Unsupported value type: %d", jv.Type)
 }
 
 func (jv *value) GetFloat() (float64, error) {
@@ -188,8 +187,7 @@ func (jv *value) GetFloat() (float64, error) {
 		if ok {
 			return f, nil
 		}
-		err := fmt.Sprintf("Unsupported integer type: %T", jv.Value)
-		return 0, errors.New(err)
+		return 0, fmt.Errorf("Unsupported integer type: %T", jv.Value)
 	} else if jv.Type == jsonString {
 		s, ok := jv.Value.(string)
 		if ok {
@@ -199,8 +197,7 @@ func (jv *value) GetFloat() (float64, error) {
 		return 0, errors.New("Cannot read string value")
 	}
 
-	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
-	return 0, errors.New(err)
+	return 0, fmt.Errorf("Unsupported value type: %d", jv.Type)
 }
 
 func (jv *value) GetString() (string, error) {
@@ -230,8 +227,7 @@ func (jv *value) GetBool() (bool, error) {
 		return false, errors.New("Cannot read string value")
 	}
 
-	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
-	return false, errors.New(err)
+	return false, fmt.Errorf("Unsupported value type: %d", jv.Type)
 }
 
 func (jv *value) GetObject() (Object, error) {
@@ -243,8 +239,7 @@ func (jv *value) GetObject() (Object, error) {
 		return Object{}, errors.New("Cannot read Object value")
 	}
 
-	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
-	return Object{}, errors.New(err)
+	return Object{}, fmt.Errorf("Unsupported value type: %d", jv.Type)
 }
 
 func (jv *value) GetArray() (Array, error) {
@@ -256,8 +251,7 @@ func (jv *value) GetArray() (Array, error) {
 		return Array{}, errors.New("Cannot read Array value")
 	}
 
-	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
-	return Array{}, errors.New(err)
+	return Array{}, fmt.Errorf("Unsupported value type: %d", jv.Type)
 }
 
 func (jv *value) GetParameterizedString() (ParameterizedString, error) {
@@ -269,8 +263,7 @@ func (jv *value) GetParameterizedString() (ParameterizedString, error) {
 		return ParameterizedString{}, errors.New("Cannot read string value")
 	}
 
-	err := fmt.Sprintf("Unsupported value type: %d", jv.Type)
-	return ParameterizedString{}, errors.New(err)
+	return ParameterizedString{}, fmt.Errorf("Unsupported value type: %d", jv.Type)
 }
 
 func (jv *value) ToString(pretty bool, level int) string {

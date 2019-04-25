@@ -155,8 +155,7 @@ func addProperty(jo *Object, runes []rune, size int, index int, parameterize boo
 	} else if r == tokenRightCurly {
 		return r, index, nil
 	} else {
-		err := fmt.Sprintf("Expected '\"', found '%c'", r)
-		return r, index, errors.New(err)
+		return r, index, fmt.Errorf("Expected '\"', found '%c'", r)
 	}
 }
 
@@ -177,16 +176,14 @@ func parsePropertyName(runes []rune, size int, index int) (string, int, error) {
 			if r == tokenColon {
 				return string(runes[start:end]), index, nil
 			} else {
-				err := fmt.Sprintf("Expected ':', found '%c'", r)
-				return "", index, errors.New(err)
+				return "", index, fmt.Errorf("Expected ':', found '%c'", r)
 			}
 		}
 
 		index++
 	}
 
-	err := fmt.Sprintf("Expected '\"', found '%c'", r)
-	return "", index, errors.New(err)
+	return "", index, fmt.Errorf("Expected '\"', found '%c'", r)
 }
 
 func parseValue(runes []rune, size int, index int, parameterize bool) (value, int, ParameterizedString, error) {
@@ -342,12 +339,10 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (value, in
 			}
 		}
 
-		err := fmt.Sprintf("Expected number, found '%s'", s)
-		return value{}, index, ParameterizedString{}, errors.New(err)
+		return value{}, index, ParameterizedString{}, fmt.Errorf("Expected number, found '%s'", s)
 	}
 
-	err := fmt.Sprintf("Unexpected character: '%c'", r)
-	return value{}, index, ParameterizedString{}, errors.New(err)
+	return value{}, index, ParameterizedString{}, fmt.Errorf("Unexpected character: '%c'", r)
 }
 
 func parseObject(runes []rune, size int, index int, parameterize bool) (Object, int, error) {
@@ -366,8 +361,7 @@ func parseObject(runes []rune, size int, index int, parameterize bool) (Object, 
 	}
 
 	if r != tokenRightCurly {
-		err := fmt.Sprintf("Expected '}', found '%c'", r)
-		return Object{}, index, errors.New(err)
+		return Object{}, index, fmt.Errorf("Expected '}', found '%c'", r)
 	}
 
 	return jo, index, nil
@@ -418,8 +412,7 @@ func parseArray(runes []rune, size int, index int, parameterize bool) (Array, in
 	}
 
 	if r != tokenRightSquare {
-		err := fmt.Sprintf("Expected ']', found '%c'", r)
-		return Array{}, index, errors.New(err)
+		return Array{}, index, fmt.Errorf("Expected ']', found '%c'", r)
 	}
 
 	return ja, index, nil
