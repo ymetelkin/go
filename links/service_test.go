@@ -5,164 +5,107 @@ import (
 	"testing"
 )
 
-func TestServiceCRUD(t *testing.T) {
-	svc := New()
-
-	id := "YM"
-	err := svc.AddLink(id, "V", id)
-	if err != nil {
-		t.Error(err.Error())
-	}
-	err = svc.AddLink(id, "O", id)
-	if err != nil {
-		t.Error(err.Error())
-	}
-
-	col, err := svc.GetCollection(id)
-	if err != nil {
-		t.Error(err.Error())
-	}
-	fmt.Println("YM Should have two links")
-	for _, link := range col.Links {
-		fmt.Printf("%d\t%s\t%s:%v\t%s\n", link.Seq, link.ID, link.Updated.ID, link.Updated.Unix, link.Updated.DateTime())
-	}
-
-	err = svc.RemoveLink(id, "V", id)
-	if err != nil {
-		t.Error(err.Error())
-	}
-	err = svc.RemoveLink(id, "O", id)
-	if err != nil {
-		t.Error(err.Error())
-	}
-
-	col, err = svc.GetCollection(id)
-	if err != nil {
-		t.Error(err.Error())
-	}
-	if len(col.Links) > 0 {
-		t.Error("Should have no links")
-	}
-}
-
 func TestService(t *testing.T) {
-	svc := New()
-
-	id := "YM"
-	err := svc.AddLink(id, "O", id)
+	svc, err := New("http://proteus-qa-uno-esdata.aptechlab.com:9200")
 	if err != nil {
 		t.Error(err.Error())
-	}
-	err = svc.AddLink(id, "V", id)
-	if err != nil {
-		t.Error(err.Error())
-	}
-	err = svc.AddLink(id, "A", id)
-	if err != nil {
-		t.Error(err.Error())
-	}
-	col, err := svc.GetCollection(id)
-	if err != nil {
-		t.Error(err.Error())
-	}
-	fmt.Println("YM should have 3 links")
-	for _, link := range col.Links {
-		fmt.Printf("%d\t%s\t%s:%v\t%s\n", link.Seq, link.ID, link.Updated.ID, link.Updated.Unix, link.Updated.DateTime())
 	}
 
-	id = "SV"
-	err = svc.AddLink(id, "V", id)
+	id := "1a087fa501d8445ab3d319fcbc72b709"
+	err = svc.AddLink(id, "664259da4f1f429bab16307eea9a582f", id)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	err = svc.AddLink(id, "O", id)
+	err = svc.AddLink(id, "b416041bc1de48799ff18894836e14c6", id)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	err = svc.AddLink(id, "A", id)
+	col, docs, err := svc.GetCollection(id)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	col, err = svc.GetCollection(id)
-	if err != nil {
-		t.Error(err.Error())
-	}
-	fmt.Println("\nSV should have 3 links")
-	for _, link := range col.Links {
-		fmt.Printf("%d\t%s\t%s:%v\t%s\n", link.Seq, link.ID, link.Updated.ID, link.Updated.Unix, link.Updated.DateTime())
+	fmt.Printf("%s should have 2 links\n", id)
+	for i, link := range col.Links {
+		fmt.Printf("%d\t%s\t%s:%v\t%s\t%s\t%s\n", link.Seq, link.ID, link.Updated.ID, link.Updated.Unix, link.Updated.DateTime(), docs[i].Type, docs[i].Date)
 	}
 
-	rvs, err := svc.GetReversedCollection("O")
+	id = "bbade2c1b43b4184bf0bee9eebdf9dce"
+	err = svc.AddLink(id, "b416041bc1de48799ff18894836e14c6", id)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	fmt.Println("\nO should be linked to 2 docs")
-	for _, link := range rvs.Links {
-		fmt.Printf("%d\t%s\t%s:%v\t%s\n", link.Seq, link.ID, link.Updated.ID, link.Updated.Unix, link.Updated.DateTime())
-	}
-	rvs, err = svc.GetReversedCollection("V")
+	err = svc.AddLink(id, "664259da4f1f429bab16307eea9a582f", id)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	fmt.Println("\nV should be linked to 2 docs")
-	for _, link := range rvs.Links {
-		fmt.Printf("%d\t%s\t%s:%v\t%s\n", link.Seq, link.ID, link.Updated.ID, link.Updated.Unix, link.Updated.DateTime())
-	}
-	rvs, err = svc.GetReversedCollection("A")
+	col, docs, err = svc.GetCollection(id)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	fmt.Println("\nA should be linked to 2 docs")
-	for _, link := range rvs.Links {
-		fmt.Printf("%d\t%s\t%s:%v\t%s\n", link.Seq, link.ID, link.Updated.ID, link.Updated.Unix, link.Updated.DateTime())
+	fmt.Printf("\n%s should have 2 links\n", id)
+	for i, link := range col.Links {
+		fmt.Printf("%d\t%s\t%s:%v\t%s\t%s\t%s\n", link.Seq, link.ID, link.Updated.ID, link.Updated.Unix, link.Updated.DateTime(), docs[i].Type, docs[i].Date)
 	}
 
-	err = svc.RemoveLink(id, "V", id)
+	id = "664259da4f1f429bab16307eea9a582f"
+	rvs, docs, err := svc.GetReversedCollection(id)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	err = svc.RemoveLink(id, "O", id)
+	fmt.Printf("\n%s should be linked to 2 docs\n", id)
+	for i, link := range rvs.Links {
+		fmt.Printf("%d\t%s\t%s:%v\t%s\t%s\t%s\n", link.Seq, link.ID, link.Updated.ID, link.Updated.Unix, link.Updated.DateTime(), docs[i].Type, docs[i].Date)
+	}
+	id = "b416041bc1de48799ff18894836e14c6"
+	rvs, docs, err = svc.GetReversedCollection(id)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	err = svc.RemoveLink(id, "A", id)
+	fmt.Printf("\n%s should be linked to 2 docs\n", id)
+	for i, link := range rvs.Links {
+		fmt.Printf("%d\t%s\t%s:%v\t%s\t%s\t%s\n", link.Seq, link.ID, link.Updated.ID, link.Updated.Unix, link.Updated.DateTime(), docs[i].Type, docs[i].Date)
+	}
+
+	id = "1a087fa501d8445ab3d319fcbc72b709"
+	err = svc.RemoveLink(id, "664259da4f1f429bab16307eea9a582f", id)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	col, err = svc.GetCollection(id)
+	err = svc.RemoveLink(id, "b416041bc1de48799ff18894836e14c6", id)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	col, docs, err = svc.GetCollection(id)
 	if err != nil {
 		t.Error(err.Error())
 	}
 	if len(col.Links) > 0 {
-		t.Error("\n SV should have no links")
+		t.Errorf("\n %s should have no links", id)
 	}
 
-	id = "YM"
-	err = svc.RemoveLink(id, "V", id)
+	id = "bbade2c1b43b4184bf0bee9eebdf9dce"
+	err = svc.RemoveLink(id, "664259da4f1f429bab16307eea9a582f", id)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	err = svc.RemoveLink(id, "O", id)
+	err = svc.RemoveLink(id, "b416041bc1de48799ff18894836e14c6", id)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	err = svc.RemoveLink(id, "A", id)
-	if err != nil {
-		t.Error(err.Error())
-	}
-	col, err = svc.GetCollection(id)
+	col, docs, err = svc.GetCollection(id)
 	if err != nil {
 		t.Error(err.Error())
 	}
 	if len(col.Links) > 0 {
-		t.Error("\nYM should have no links")
+		t.Errorf("\n %s should have no links", id)
 	}
 
-	rvs, err = svc.GetReversedCollection("A")
+	id = "b416041bc1de48799ff18894836e14c6"
+	rvs, docs, err = svc.GetReversedCollection(id)
 	if err != nil {
 		t.Error(err.Error())
 	}
 	if len(col.Links) > 0 {
-		t.Error("\nA should not be linked")
+		t.Errorf("\n %s should have no links", id)
 	}
 }
