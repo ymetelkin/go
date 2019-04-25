@@ -165,9 +165,8 @@ func (jo *Object) getValue(name string) (value, error) {
 	jv, ok := jo.Properties[name]
 	if ok {
 		return jv, nil
-	} else {
-		return value{}, fmt.Errorf("Field [%s] does not exist", name)
 	}
+	return value{}, fmt.Errorf("Field [%s] does not exist", name)
 }
 
 //GetString returns string value of named property

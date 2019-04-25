@@ -175,9 +175,8 @@ func parsePropertyName(runes []rune, size int, index int) (string, int, error) {
 			r, index = skipWhitespace(runes, size, index)
 			if r == tokenColon {
 				return string(runes[start:end]), index, nil
-			} else {
-				return "", index, fmt.Errorf("Expected ':', found '%c'", r)
 			}
+			return "", index, fmt.Errorf("Expected ':', found '%c'", r)
 		}
 
 		index++
@@ -198,42 +197,42 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (value, in
 				return value{}, index, ps, err
 			}
 			return value{}, index, ps, nil
-		} else {
-			var sb strings.Builder
-
-			for index < size {
-				r := runes[index]
-
-				if r == tokenBackslash {
-					index++
-					if index < size {
-						test := runes[index]
-						if test == tokenR {
-							sb.WriteRune(tokenCR)
-						} else if test == tokenN {
-							sb.WriteRune(tokenLF)
-						} else if test == tokenT {
-							sb.WriteRune(tokenHT)
-						} else if test == tokenB {
-							sb.WriteRune(tokenBS)
-						} else if test == tokenF {
-							sb.WriteRune(tokenFF)
-						} else if test == tokenA {
-							sb.WriteRune(tokenBL)
-						} else if test == tokenV {
-							sb.WriteRune(tokenVT)
-						}
-					}
-				} else if r == tokenQUOTE {
-					return newString(sb.String()), index, ParameterizedString{}, nil
-				} else {
-					sb.WriteRune(r)
-				}
-
-				index++
-			}
-			return value{}, index, ParameterizedString{}, nil
 		}
+
+		var sb strings.Builder
+
+		for index < size {
+			r := runes[index]
+
+			if r == tokenBackslash {
+				index++
+				if index < size {
+					test := runes[index]
+					if test == tokenR {
+						sb.WriteRune(tokenCR)
+					} else if test == tokenN {
+						sb.WriteRune(tokenLF)
+					} else if test == tokenT {
+						sb.WriteRune(tokenHT)
+					} else if test == tokenB {
+						sb.WriteRune(tokenBS)
+					} else if test == tokenF {
+						sb.WriteRune(tokenFF)
+					} else if test == tokenA {
+						sb.WriteRune(tokenBL)
+					} else if test == tokenV {
+						sb.WriteRune(tokenVT)
+					}
+				}
+			} else if r == tokenQUOTE {
+				return newString(sb.String()), index, ParameterizedString{}, nil
+			} else {
+				sb.WriteRune(r)
+			}
+
+			index++
+		}
+		return value{}, index, ParameterizedString{}, nil
 	}
 
 	if r == tokenLeftCurly {
@@ -373,27 +372,27 @@ func addValue(ja *Array, runes []rune, size int, index int, parameterize bool) (
 
 	if r == tokenRightSquare {
 		return r, index, nil
-	} else {
-		value, index, ps, err := parseValue(runes, size, index, parameterize)
-		if err != nil {
-			return r, index, err
-		}
-
-		if ps.Value != "" {
-			if ps.IsParameterized {
-				value = newParameterizedString(ps)
-			} else {
-				value = newString(ps.Value)
-			}
-		}
-
-		if !value.IsEmpty() {
-			ja.addValue(value)
-		}
-		index++
-		r, index = skipWhitespace(runes, size, index)
-		return r, index, nil
 	}
+
+	value, index, ps, err := parseValue(runes, size, index, parameterize)
+	if err != nil {
+		return r, index, err
+	}
+
+	if ps.Value != "" {
+		if ps.IsParameterized {
+			value = newParameterizedString(ps)
+		} else {
+			value = newString(ps.Value)
+		}
+	}
+
+	if !value.IsEmpty() {
+		ja.addValue(value)
+	}
+	index++
+	r, index = skipWhitespace(runes, size, index)
+	return r, index, nil
 }
 
 func parseArray(runes []rune, size int, index int, parameterize bool) (Array, int, error) {

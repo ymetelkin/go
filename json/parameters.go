@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+//Parameter represents JSON parameters
 type Parameter struct {
 	Name       string
 	Default    string
@@ -13,12 +14,14 @@ type Parameter struct {
 	EndIndex   int
 }
 
+//ParameterizedString represents string with JSON parameter placeholders
 type ParameterizedString struct {
 	Value           string
 	IsParameterized bool
 	Parameters      []Parameter
 }
 
+//IsOneParameter checks if the ParameterizedString is entirely one parameter
 func (ps *ParameterizedString) IsOneParameter() bool {
 	if !ps.IsParameterized || len(ps.Parameters) != 1 {
 		return false
@@ -28,6 +31,7 @@ func (ps *ParameterizedString) IsOneParameter() bool {
 	return p.StartIndex == 0 && p.EndIndex == len(ps.Value)
 }
 
+//AddWithParameters adds ParameterizedString property to JSON object
 func (jo *Object) AddWithParameters(pname ParameterizedString, jv value) error {
 	name := pname.Value
 	name = strings.Trim(name, " ")
@@ -57,6 +61,7 @@ func (jo *Object) AddWithParameters(pname ParameterizedString, jv value) error {
 	return nil
 }
 
+//ParseJSONObjectWithParameters merges JSON with parameters
 func ParseJSONObjectWithParameters(s string) (Object, error) {
 	jo, err := parseJSONObject(s, true)
 	if err != nil {
@@ -273,14 +278,10 @@ func parsePropertyNameWithParameters(runes []rune, size int, index int) (Paramet
 				parameterized := params != nil
 				ps := ParameterizedString{Value: value, IsParameterized: parameterized, Parameters: params}
 				return ps, index, nil
-			} else {
-				err := fmt.Sprintf("Expected ':', found '%c'", r)
-				return ParameterizedString{}, index, errors.New(err)
 			}
-		} else {
-			pstart, pdef, params = parseParameters(runes, index, r, start, pstart, pdef, params)
+			return ParameterizedString{}, index, fmt.Errorf("Expected ':', found '%c'", r)
 		}
-
+		pstart, pdef, params = parseParameters(runes, index, r, start, pstart, pdef, params)
 		index++
 	}
 
