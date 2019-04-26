@@ -28,13 +28,14 @@ func New(elasticseachClusterURL string) (Service, error) {
 
 //AddLink adds link to collection
 func (svc *Service) AddLink(collectionID string, linkID string, byID string) error {
-	ex := make(chan error)
+	ex1 := make(chan error, 1)
+	ex2 := make(chan error, 1)
 	seq := make(chan int, 1)
 
 	go func() {
 		col, err := svc.db.GetCollection(collectionID)
 		if err != nil {
-			ex <- err
+			ex1 <- err
 			return
 		}
 
@@ -46,23 +47,23 @@ func (svc *Service) AddLink(collectionID string, linkID string, byID string) err
 		if err == nil {
 			seq <- i
 		} else {
-			ex <- err
+			ex1 <- err
 			return
 		}
 
 		err = svc.db.SaveCollection(col)
 		if err != nil {
-			ex <- err
+			ex1 <- err
 			return
 		}
 
-		ex <- nil
+		ex1 <- nil
 	}()
 
 	go func() {
 		col, err := svc.rd.GetCollection(linkID)
 		if err != nil {
-			ex <- err
+			ex2 <- err
 			return
 		}
 
@@ -72,76 +73,87 @@ func (svc *Service) AddLink(collectionID string, linkID string, byID string) err
 
 		_, err = col.AddReversed(collectionID, <-seq, byID)
 		if err != nil {
-			ex <- err
+			ex2 <- err
 			return
 		}
 
 		err = svc.rd.SaveCollection(col)
 		if err != nil {
-			ex <- err
+			ex2 <- err
 			return
 		}
 
-		ex <- nil
+		ex2 <- nil
 	}()
 
-	return <-ex
+	err := <-ex1
+	if err == nil {
+		return <-ex2
+	}
+
+	return err
 }
 
 //RemoveLink removes link from collection using goroutines
 func (svc *Service) RemoveLink(collectionID string, linkID string, byID string) error {
-	ex := make(chan error)
+	ex1 := make(chan error, 1)
+	ex2 := make(chan error, 1)
 
 	go func() {
 		col, err := svc.db.GetCollection(collectionID)
 		if err != nil {
-			ex <- err
+			ex1 <- err
 			return
 		}
 		if col.ID == "" {
-			ex <- fmt.Errorf("Collection [%s] does not exist", collectionID)
+			ex1 <- fmt.Errorf("Collection [%s] does not exist", collectionID)
 			return
 		}
 
 		_, err = col.Remove(linkID, byID)
 		if err != nil {
-			ex <- err
+			ex1 <- err
 			return
 		}
 
 		err = svc.db.SaveCollection(col)
 		if err != nil {
-			ex <- err
+			ex1 <- err
 			return
 		}
 
-		ex <- nil
+		ex1 <- nil
 	}()
 
 	go func() {
 		col, err := svc.rd.GetCollection(linkID)
 		if err != nil {
-			ex <- err
+			ex2 <- err
 			return
 		}
 		if col.ID == "" {
-			ex <- fmt.Errorf("Link [%s] does not exist", linkID)
+			ex2 <- fmt.Errorf("Link [%s] does not exist", linkID)
 		}
 
 		_, err = col.RemoveReversed(collectionID, byID)
 		if err != nil {
-			ex <- err
+			ex2 <- err
 		}
 
 		err = svc.rd.SaveCollection(col)
 		if err != nil {
-			ex <- err
+			ex2 <- err
 		}
 
-		ex <- nil
+		ex2 <- nil
 	}()
 
-	return <-ex
+	err := <-ex1
+	if err == nil {
+		return <-ex2
+	}
+
+	return err
 }
 
 //GetCollection gets collection by its ID
