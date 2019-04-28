@@ -7,22 +7,14 @@ import (
 	"github.com/ymetelkin/go/links"
 )
 
-func execute(req links.LambdaLinkRequest) (links.LambdaResponse, error) {
+func execute(req links.LinkRequest) (links.LinkResponse, error) {
 	svc, err := links.New(os.Getenv("ES"))
 	if err != nil {
-		return links.LambdaResponse{Text: err.Error()}, nil
+		return links.LinkResponse{Status: links.Failure, Code: links.ElasticsearchError, Result: err.Error()}, nil
 	}
 
-	err = svc.AddLink(req.CollectionID, req.LinkID, req.UserID)
-	if err != nil {
-		return links.LambdaResponse{Text: err.Error()}, nil
-	}
-	col, docs, err := svc.GetCollection(req.CollectionID)
-	if err != nil {
-		return links.LambdaResponse{Text: err.Error()}, nil
-	}
-
-	return links.NewLambdaResponse(true, "Success", col, docs), nil
+	res := svc.AddLink(req)
+	return res, nil
 }
 
 func main() {

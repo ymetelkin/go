@@ -17,7 +17,7 @@ func TestApplGetDocuments(t *testing.T) {
 		"664259da4f1f429bab16307eea9a582f",
 		"b416041bc1de48799ff18894836e14c6",
 	}
-	docs, err := svc.GetDocuments(ids)
+	docs, err := svc.GetDocuments(ids, []string{"itemid", "headline"})
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -28,11 +28,5 @@ func TestApplGetDocuments(t *testing.T) {
 	}
 
 	fmt.Println("\nDocuments:")
-	for i, doc := range docs {
-		if doc.ID != ids[i] {
-			t.Errorf("Bar order %d:%s", i, doc.ID)
-		} else {
-			fmt.Printf("%d\t%s\t%s\t%s\n", i, doc.ID, doc.Type, doc.Date)
-		}
-	}
+	fmt.Println(docs.ToString())
 }

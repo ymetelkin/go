@@ -7,14 +7,6 @@ import (
 	"github.com/ymetelkin/go/json"
 )
 
-//ApplDocument struct
-type ApplDocument struct {
-	ID   string
-	Type string
-	Date string
-	Body json.Object
-}
-
 //ApplService struct to aggregate all APPL related ES functions
 type ApplService struct {
 	ec client
@@ -30,10 +22,11 @@ func NewApplService(clusterURL string) (ApplService, error) {
 }
 
 //GetDocuments get docs in order of IDs
-func (appl *ApplService) GetDocuments(ids []string) ([]ApplDocument, error) {
+func (appl *ApplService) GetDocuments(ids []string, fields []string) (json.Array, error) {
 	var (
 		size int
 		sb   strings.Builder
+		docs json.Array
 	)
 
 	if ids != nil {
@@ -41,7 +34,7 @@ func (appl *ApplService) GetDocuments(ids []string) ([]ApplDocument, error) {
 	}
 
 	if size == 0 {
-		return []ApplDocument{}, nil
+		return docs, nil
 	}
 
 	sb.WriteString(`{"query":{"bool":{"filter":{"terms":{"itemid":[`)
@@ -61,70 +54,66 @@ func (appl *ApplService) GetDocuments(ids []string) ([]ApplDocument, error) {
 	sr.SetQuery(query)
 	sr.SetSize(size)
 
+	if fields != nil && len(fields) > 0 {
+		sr.SetSource(fields)
+	}
+
 	cr, err := appl.ec.Search(sr)
 	if err != nil {
-		return nil, err
+		return docs, err
 	}
 
 	defer cr.Close()
 
 	bytes, err := ioutil.ReadAll(cr)
 	if err != nil {
-		return nil, err
+		return docs, err
 	}
 
 	s := string(bytes)
 
 	jo, err := json.ParseJSONObject(s)
 	if err != nil {
-		return nil, err
+		return docs, err
 	}
 
 	jo, err = jo.GetObject("hits")
 	if err != nil {
-		return nil, err
+		return docs, err
 	}
 
 	ja, err := jo.GetArray("hits")
 	if err != nil {
-		return nil, err
+		return docs, err
 	}
 
 	hits, err := ja.GetObjects()
 	if err != nil {
-		return nil, err
+		return docs, err
 	}
 
-	docs := make([]ApplDocument, len(ids))
+	tmp := make([]json.Object, size)
 
 	for _, hit := range hits {
+		test, err := hit.GetString("_id")
+		if err != nil {
+			return docs, err
+		}
 		src, err := hit.GetObject("_source")
 		if err != nil {
-			return nil, err
+			return docs, err
 		}
-
-		iid, err := src.GetString("itemid")
-		if err != nil {
-			return nil, err
-		}
-
-		tp, err := src.GetString("type")
-		if err != nil {
-			return nil, err
-		}
-
-		dt, err := src.GetString("arrivaldatetime")
-		if err != nil {
-			return nil, err
-		}
-
-		doc := ApplDocument{ID: iid, Type: tp, Date: dt, Body: src}
 
 		for i, id := range ids {
-			if id == iid {
-				docs[i] = doc
+			if id == test {
+				tmp[i] = src
+				break
 			}
 		}
+	}
+
+	for _, doc := range tmp {
+		docs.AddObject(doc)
 	}
 
 	return docs, nil
