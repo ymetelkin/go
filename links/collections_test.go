@@ -45,7 +45,7 @@ func TestCollections(t *testing.T) {
 	}
 
 	fmt.Println("Move d3 to the second position")
-	err = col.Move("d3", 1, by)
+	_, err = col.Move("d3", 1, by)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -54,7 +54,7 @@ func TestCollections(t *testing.T) {
 	}
 
 	fmt.Println("Move d3 to the back")
-	err = col.Move("d3", 3, by)
+	_, err = col.Move("d3", 3, by)
 	if err != nil {
 		t.Error(err.Error())
 	}

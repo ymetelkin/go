@@ -2,6 +2,7 @@ package links
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/ymetelkin/go/es"
 	"github.com/ymetelkin/go/json"
@@ -9,16 +10,16 @@ import (
 
 //Statuses and Codes
 const (
-	Success               int = 200
-	Failure               int = 400
-	DynamoError           int = 40001
-	LinkAddError          int = 40002
-	LinkAddReverseError   int = 40003
-	LinkRemoveError       int = 40004
-	LinRemoveReverseError int = 40005
-	NoCollectionError     int = 40006
-	NoLinkError           int = 40007
-	ElasticsearchError    int = 40008
+	StatusSuccess             int = 200
+	StatusFailure             int = 400
+	CodeDynamoError           int = 40001
+	CodeLinkAddError          int = 40002
+	CodeLinkAddReverseError   int = 40003
+	CodeLinkRemoveError       int = 40004
+	CodeLinRemoveReverseError int = 40005
+	CodeNoCollectionError     int = 40006
+	CodeNoLinkError           int = 40007
+	CodeElasticsearchError    int = 40008
 )
 
 //LinkRequest link CRUD request
@@ -81,7 +82,7 @@ func (svc *Service) AddLink(req LinkRequest) LinkResponse {
 	go func() {
 		col, err := svc.db.GetCollection(req.CollectionID)
 		if err != nil {
-			res1 <- LinkResponse{Status: Failure, Code: DynamoError, Result: err.Error()}
+			res1 <- LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
 			return
 		}
 
@@ -93,23 +94,23 @@ func (svc *Service) AddLink(req LinkRequest) LinkResponse {
 		if err == nil {
 			seq <- i
 		} else {
-			res1 <- LinkResponse{Status: Failure, Code: LinkAddError, Result: err.Error()}
+			res1 <- LinkResponse{Status: StatusFailure, Code: CodeLinkAddError, Result: err.Error()}
 			return
 		}
 
 		err = svc.db.SaveCollection(col)
 		if err != nil {
-			res1 <- LinkResponse{Status: Failure, Code: DynamoError, Result: err.Error()}
+			res1 <- LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
 			return
 		}
 
-		res1 <- LinkResponse{Status: Success, Code: Success, Result: "Added"}
+		res1 <- LinkResponse{Status: StatusSuccess, Code: StatusSuccess, Result: "Added"}
 	}()
 
 	go func() {
 		col, err := svc.rd.GetCollection(req.LinkID)
 		if err != nil {
-			res2 <- LinkResponse{Status: Failure, Code: DynamoError, Result: err.Error()}
+			res2 <- LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
 			return
 		}
 
@@ -119,21 +120,21 @@ func (svc *Service) AddLink(req LinkRequest) LinkResponse {
 
 		_, err = col.AddReversed(req.CollectionID, <-seq, req.UserID)
 		if err != nil {
-			res2 <- LinkResponse{Status: Failure, Code: LinkAddReverseError, Result: err.Error()}
+			res2 <- LinkResponse{Status: StatusFailure, Code: CodeLinkAddReverseError, Result: err.Error()}
 			return
 		}
 
 		err = svc.rd.SaveCollection(col)
 		if err != nil {
-			res2 <- LinkResponse{Status: Failure, Code: DynamoError, Result: err.Error()}
+			res2 <- LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
 			return
 		}
 
-		res2 <- LinkResponse{Status: Success, Code: Success, Result: "Added"}
+		res2 <- LinkResponse{Status: StatusSuccess, Code: StatusSuccess, Result: "Added"}
 	}()
 
 	res := <-res1
-	if res.Status != Success {
+	if res.Status != StatusSuccess {
 		return res
 	}
 
@@ -142,67 +143,85 @@ func (svc *Service) AddLink(req LinkRequest) LinkResponse {
 
 //MoveLink moves link in collection
 func (svc *Service) MoveLink(req LinkRequest) LinkResponse {
-	res1 := make(chan LinkResponse, 1)
-	res2 := make(chan LinkResponse, 1)
-
-	go func() {
-		col, err := svc.db.GetCollection(req.CollectionID)
-		if err != nil {
-			res1 <- LinkResponse{Status: Failure, Code: DynamoError, Result: err.Error()}
-			return
-		}
-
-		if col.ID == "" {
-			col.ID = req.CollectionID
-		}
-
-		err = col.Move(req.LinkID, req.Seq, req.UserID)
-		if err != nil {
-			res1 <- LinkResponse{Status: Failure, Code: LinkAddError, Result: err.Error()}
-			return
-		}
-
-		err = svc.db.SaveCollection(col)
-		if err != nil {
-			res1 <- LinkResponse{Status: Failure, Code: DynamoError, Result: err.Error()}
-			return
-		}
-
-		res1 <- LinkResponse{Status: Success, Code: Success, Result: "Moved"}
-	}()
-
-	go func() {
-		col, err := svc.rd.GetCollection(req.LinkID)
-		if err != nil {
-			res2 <- LinkResponse{Status: Failure, Code: DynamoError, Result: err.Error()}
-			return
-		}
-
-		if col.ID == "" {
-			col.ID = req.LinkID
-		}
-
-		_, err = col.AddReversed(req.CollectionID, req.Seq, req.UserID)
-		if err != nil {
-			res2 <- LinkResponse{Status: Failure, Code: LinkAddReverseError, Result: err.Error()}
-			return
-		}
-
-		err = svc.rd.SaveCollection(col)
-		if err != nil {
-			res2 <- LinkResponse{Status: Failure, Code: DynamoError, Result: err.Error()}
-			return
-		}
-
-		res2 <- LinkResponse{Status: Success, Code: Success, Result: "Added"}
-	}()
-
-	res := <-res1
-	if res.Status != Success {
-		return res
+	col, err := svc.db.GetCollection(req.CollectionID)
+	if err != nil {
+		return LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
 	}
 
-	return <-res2
+	if col.ID == "" {
+		col.ID = req.CollectionID
+	}
+
+	mv, err := col.Move(req.LinkID, req.Seq, req.UserID)
+	if err != nil {
+		return LinkResponse{Status: StatusFailure, Code: CodeLinkAddError, Result: err.Error()}
+	}
+
+	err = svc.db.SaveCollection(col)
+	if err != nil {
+		return LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
+	}
+
+	if mv != nil && len(mv) > 0 {
+		res := moveReverse(mv, req, svc.rd)
+		if res.Status != StatusSuccess {
+			return res
+		}
+	}
+
+	return LinkResponse{Status: StatusSuccess, Code: StatusSuccess, Result: "Moved"}
+}
+
+func moveReverse(moved []Link, req LinkRequest, rd db) LinkResponse {
+	res := make(chan LinkResponse)
+
+	var (
+		wg sync.WaitGroup
+		lr LinkResponse
+	)
+
+	wg.Add(len(moved))
+
+	for _, lnk := range moved {
+		go func(lnk Link) {
+			defer wg.Done()
+
+			col, err := rd.GetCollection(lnk.ID)
+			if err != nil {
+				res <- LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
+				return
+			}
+			if col.ID == "" {
+				col.ID = lnk.ID
+			}
+
+			_, err = col.AddReversed(req.CollectionID, lnk.Seq, req.UserID)
+			if err != nil {
+				res <- LinkResponse{Status: StatusFailure, Code: CodeLinkAddReverseError, Result: err.Error()}
+				return
+			}
+
+			err = rd.SaveCollection(col)
+			if err != nil {
+				res <- LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
+				return
+			}
+
+			res <- LinkResponse{Status: StatusSuccess, Code: StatusSuccess, Result: "Moved"}
+		}(lnk)
+	}
+
+	go func() {
+		for r := range res {
+			if lr.Status == 0 || r.Status != StatusSuccess {
+				lr = r
+			}
+		}
+	}()
+
+	wg.Wait()
+
+	return lr
 }
 
 //RemoveLink removes link from collection using goroutines
@@ -213,54 +232,54 @@ func (svc *Service) RemoveLink(req LinkRequest) LinkResponse {
 	go func() {
 		col, err := svc.db.GetCollection(req.CollectionID)
 		if err != nil {
-			res1 <- LinkResponse{Status: Failure, Code: DynamoError, Result: err.Error()}
+			res1 <- LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
 			return
 		}
 		if col.ID == "" {
-			res1 <- LinkResponse{Status: Failure, Code: NoCollectionError, Result: fmt.Sprintf("Collection [%s] does not exist", req.CollectionID)}
+			res1 <- LinkResponse{Status: StatusFailure, Code: CodeNoCollectionError, Result: fmt.Sprintf("Collection [%s] does not exist", req.CollectionID)}
 			return
 		}
 
 		_, err = col.Remove(req.LinkID, req.UserID)
 		if err != nil {
-			res1 <- LinkResponse{Status: Failure, Code: LinkRemoveError, Result: err.Error()}
+			res1 <- LinkResponse{Status: StatusFailure, Code: CodeLinkRemoveError, Result: err.Error()}
 			return
 		}
 
 		err = svc.db.SaveCollection(col)
 		if err != nil {
-			res1 <- LinkResponse{Status: Failure, Code: DynamoError, Result: err.Error()}
+			res1 <- LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
 			return
 		}
 
-		res1 <- LinkResponse{Status: Success, Code: Success, Result: "Removed"}
+		res1 <- LinkResponse{Status: StatusSuccess, Code: StatusSuccess, Result: "Removed"}
 	}()
 
 	go func() {
 		col, err := svc.rd.GetCollection(req.LinkID)
 		if err != nil {
-			res2 <- LinkResponse{Status: Failure, Code: DynamoError, Result: err.Error()}
+			res2 <- LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
 			return
 		}
 		if col.ID == "" {
-			res2 <- LinkResponse{Status: Failure, Code: NoLinkError, Result: fmt.Sprintf("Link [%s] does not exist", req.LinkID)}
+			res2 <- LinkResponse{Status: StatusFailure, Code: CodeNoLinkError, Result: fmt.Sprintf("Link [%s] does not exist", req.LinkID)}
 		}
 
 		_, err = col.RemoveReversed(req.CollectionID, req.UserID)
 		if err != nil {
-			res2 <- LinkResponse{Status: Failure, Code: LinRemoveReverseError, Result: err.Error()}
+			res2 <- LinkResponse{Status: StatusFailure, Code: CodeLinRemoveReverseError, Result: err.Error()}
 		}
 
 		err = svc.rd.SaveCollection(col)
 		if err != nil {
-			res2 <- LinkResponse{Status: Failure, Code: DynamoError, Result: err.Error()}
+			res2 <- LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
 		}
 
-		res2 <- LinkResponse{Status: Success, Code: Success, Result: "Removed"}
+		res2 <- LinkResponse{Status: StatusSuccess, Code: StatusSuccess, Result: "Removed"}
 	}()
 
 	res := <-res1
-	if res.Status != Success {
+	if res.Status != StatusSuccess {
 		return res
 	}
 
@@ -286,7 +305,7 @@ func getCollection(req GetCollectionRequest, db db, appl es.ApplService) GetColl
 
 	col, err := db.GetCollection(req.CollectionID)
 	if err != nil {
-		return getCollectionResponse(Failure, DynamoError, err.Error(), col, docs)
+		return getCollectionResponse(StatusFailure, CodeDynamoError, err.Error(), col, docs)
 	}
 
 	if col.Links != nil {
@@ -294,7 +313,7 @@ func getCollection(req GetCollectionRequest, db db, appl es.ApplService) GetColl
 	}
 
 	if size == 0 {
-		return getCollectionResponse(Success, Success, "Empty collection", col, docs)
+		return getCollectionResponse(StatusSuccess, StatusSuccess, "Empty collection", col, docs)
 	}
 
 	ids = make([]string, size)
@@ -304,15 +323,15 @@ func getCollection(req GetCollectionRequest, db db, appl es.ApplService) GetColl
 
 	docs, err = appl.GetDocuments(ids, req.Fields)
 	if err != nil {
-		return getCollectionResponse(Failure, ElasticsearchError, err.Error(), col, docs)
+		return getCollectionResponse(StatusFailure, CodeElasticsearchError, err.Error(), col, docs)
 	}
-	return getCollectionResponse(Success, Success, "Collection", col, docs)
+	return getCollectionResponse(StatusSuccess, StatusSuccess, "Collection", col, docs)
 }
 
 func getCollectionResponse(status int, code int, result string, col Collection, docs json.Array) GetCollectionResponse {
 	return GetCollectionResponse{
-		Status:     Success,
-		Code:       Success,
+		Status:     StatusSuccess,
+		Code:       StatusSuccess,
 		Result:     result,
 		Collection: col,
 		Documents:  docs,

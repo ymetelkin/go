@@ -74,9 +74,9 @@ func (col *Collection) Insert(id string, pos int, by string) error {
 }
 
 //Move existing link into new position
-func (col *Collection) Move(id string, pos int, by string) error {
+func (col *Collection) Move(id string, pos int, by string) ([]Link, error) {
 	if col.Links == nil {
-		return invalidLinkError(id, col)
+		return nil, invalidLinkError(id, col)
 	}
 
 	size := len(col.Links)
@@ -84,7 +84,7 @@ func (col *Collection) Move(id string, pos int, by string) error {
 
 	}
 	if pos >= size {
-		return invalidPositionError(pos, col)
+		return nil, invalidPositionError(pos, col)
 	}
 
 	cur := -1
@@ -97,19 +97,21 @@ func (col *Collection) Move(id string, pos int, by string) error {
 		}
 	}
 	if cur == -1 {
-		return invalidLinkError(id, col)
+		return nil, invalidLinkError(id, col)
 	}
 	if cur == pos {
-		return nil
+		return nil, nil
 	}
 
 	links := make([]Link, size)
+	moved := []Link{}
+
+	var lnk Link
 
 	for i, link := range col.Links {
 		if i == pos {
-			links[i] = Link{ID: id, Seq: pos}
+			lnk = Link{ID: id, Seq: pos}
 		} else {
-			var lnk Link
 			if pos < cur { //moving left
 				if i < pos || i > cur {
 					links[i] = link
@@ -126,15 +128,17 @@ func (col *Collection) Move(id string, pos int, by string) error {
 				}
 			}
 			lnk.Seq = i
-			link.Updated = NewUpdateHistory(by)
-			links[i] = lnk
+			lnk.Updated = NewUpdateHistory(by)
 		}
+
+		links[i] = lnk
+		moved = append(moved, lnk)
 	}
 
 	col.Updated = NewUpdateHistory(by)
 	col.Links = links
 
-	return nil
+	return moved, nil
 }
 
 //Remove link from collection
