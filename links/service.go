@@ -37,6 +37,13 @@ type LinkResponse struct {
 	Result string `json:"result"`
 }
 
+//ResetRequest to reset links for col
+type ResetRequest struct {
+	CollectionID string   `json:"doc_id"`
+	LinkIDs      []string `json:"link_ids"`
+	UserID       string   `json:"user_id"`
+}
+
 //GetCollectionRequest get collection from db and es request
 type GetCollectionRequest struct {
 	CollectionID string   `json:"doc_id"`
@@ -75,42 +82,42 @@ func New(elasticseachClusterURL string) (Service, error) {
 
 //AddLink adds link to collection
 func (svc *Service) AddLink(req LinkRequest) LinkResponse {
-	res1 := make(chan LinkResponse, 1)
-	res2 := make(chan LinkResponse, 1)
-	seq := make(chan int, 1)
-
-	go func() {
-		col, err := svc.db.GetCollection(req.CollectionID)
-		if err != nil {
-			res1 <- LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
-			return
+	col, err := svc.db.GetCollection(req.CollectionID)
+	if err != nil {
+		return LinkResponse{
+			Status: StatusFailure,
+			Code:   CodeDynamoError,
+			Result: err.Error(),
 		}
+	}
 
-		if col.ID == "" {
-			col.ID = req.CollectionID
+	if col.ID == "" {
+		col.ID = req.CollectionID
+	}
+
+	seq, err := col.Append(req.LinkID, req.UserID)
+	if err != nil {
+		return LinkResponse{
+			Status: StatusFailure,
+			Code:   CodeLinkAddError,
+			Result: err.Error(),
 		}
+	}
 
-		i, err := col.Append(req.LinkID, req.UserID)
-		if err == nil {
-			seq <- i
-		} else {
-			res1 <- LinkResponse{Status: StatusFailure, Code: CodeLinkAddError, Result: err.Error()}
-			return
-		}
+	var (
+		res1, res2 LinkResponse
+	)
 
-		err = svc.db.SaveCollection(col)
-		if err != nil {
-			res1 <- LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
-			return
-		}
-
-		res1 <- LinkResponse{Status: StatusSuccess, Code: StatusSuccess, Result: "Added"}
-	}()
+	res := make(chan LinkResponse)
 
 	go func() {
 		col, err := svc.rd.GetCollection(req.LinkID)
 		if err != nil {
-			res2 <- LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
+			res <- LinkResponse{
+				Status: StatusFailure,
+				Code:   CodeDynamoError,
+				Result: err.Error(),
+			}
 			return
 		}
 
@@ -118,61 +125,122 @@ func (svc *Service) AddLink(req LinkRequest) LinkResponse {
 			col.ID = req.LinkID
 		}
 
-		_, err = col.AddReversed(req.CollectionID, <-seq, req.UserID)
+		_, err = col.AddReversed(req.CollectionID, seq, req.UserID)
 		if err != nil {
-			res2 <- LinkResponse{Status: StatusFailure, Code: CodeLinkAddReverseError, Result: err.Error()}
+			res <- LinkResponse{
+				Status: StatusFailure,
+				Code:   CodeLinkAddReverseError,
+				Result: err.Error(),
+			}
 			return
 		}
 
 		err = svc.rd.SaveCollection(col)
 		if err != nil {
-			res2 <- LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
+			res <- LinkResponse{
+				Status: StatusFailure,
+				Code:   CodeDynamoError,
+				Result: err.Error(),
+			}
 			return
 		}
 
-		res2 <- LinkResponse{Status: StatusSuccess, Code: StatusSuccess, Result: "Added"}
+		res <- LinkResponse{
+			Status: StatusSuccess,
+			Code:   StatusSuccess,
+			Result: "Added",
+		}
 	}()
 
-	res := <-res1
-	if res.Status != StatusSuccess {
-		return res
+	err = svc.db.SaveCollection(col)
+	if err != nil {
+		res1 = LinkResponse{
+			Status: StatusFailure,
+			Code:   CodeDynamoError,
+			Result: err.Error(),
+		}
 	}
 
-	return <-res2
+	res2 = <-res
+
+	if res1.Status > 0 && res1.Status != StatusSuccess {
+		return res1
+	}
+
+	return res2
 }
 
-//MoveLink moves link in collection
-func (svc *Service) MoveLink(req LinkRequest) LinkResponse {
+//ResetLinks reset links in collection
+func (svc *Service) ResetLinks(req ResetRequest) LinkResponse {
 	col, err := svc.db.GetCollection(req.CollectionID)
 	if err != nil {
-		return LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
+		return LinkResponse{
+			Status: StatusFailure,
+			Code:   CodeDynamoError,
+			Result: err.Error(),
+		}
 	}
 
-	if col.ID == "" {
-		col.ID = req.CollectionID
+	rms := []Link{}
+	if col.Links != nil && len(col.Links) > 0 {
+		for _, id := range req.LinkIDs {
+			for _, lnk := range col.Links {
+				if lnk.ID == id {
+					rms = append(rms, lnk)
+				}
+			}
+		}
 	}
 
-	mv, err := col.Move(req.LinkID, req.Seq, req.UserID)
-	if err != nil {
-		return LinkResponse{Status: StatusFailure, Code: CodeLinkAddError, Result: err.Error()}
+	upd := NewUpdateHistory(req.UserID)
+	links := make([]Link, len(req.LinkIDs))
+	for i, id := range req.LinkIDs {
+		links[i] = Link{
+			ID:      id,
+			Seq:     i,
+			Updated: upd,
+		}
+	}
+	col = Collection{
+		ID:      req.CollectionID,
+		Links:   links,
+		Updated: upd,
 	}
 
 	err = svc.db.SaveCollection(col)
 	if err != nil {
-		return LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
+		return LinkResponse{
+			Status: StatusFailure,
+			Code:   CodeDynamoError,
+			Result: err.Error(),
+		}
 	}
 
-	if mv != nil && len(mv) > 0 {
-		res := moveReverse(mv, req, svc.rd)
+	lr := LinkRequest{
+		CollectionID: req.CollectionID,
+		UserID:       req.UserID,
+	}
+
+	if len(rms) > 0 {
+		res := addReverse(rms, lr, svc.rd)
 		if res.Status != StatusSuccess {
 			return res
 		}
 	}
 
-	return LinkResponse{Status: StatusSuccess, Code: StatusSuccess, Result: "Moved"}
+	res := addReverse(links, lr, svc.rd)
+	if res.Status != StatusSuccess {
+		return res
+	}
+
+	return LinkResponse{
+		Status: StatusSuccess,
+		Code:   StatusSuccess,
+		Result: "Reseted",
+	}
 }
 
-func moveReverse(moved []Link, req LinkRequest, rd db) LinkResponse {
+func addReverse(links []Link, req LinkRequest, rd db) LinkResponse {
 	res := make(chan LinkResponse)
 
 	var (
@@ -180,15 +248,19 @@ func moveReverse(moved []Link, req LinkRequest, rd db) LinkResponse {
 		lr LinkResponse
 	)
 
-	wg.Add(len(moved))
+	wg.Add(len(links))
 
-	for _, lnk := range moved {
+	for _, lnk := range links {
 		go func(lnk Link) {
 			defer wg.Done()
 
 			col, err := rd.GetCollection(lnk.ID)
 			if err != nil {
-				res <- LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
+				res <- LinkResponse{
+					Status: StatusFailure,
+					Code:   CodeDynamoError,
+					Result: err.Error(),
+				}
 				return
 			}
 			if col.ID == "" {
@@ -197,17 +269,29 @@ func moveReverse(moved []Link, req LinkRequest, rd db) LinkResponse {
 
 			_, err = col.AddReversed(req.CollectionID, lnk.Seq, req.UserID)
 			if err != nil {
-				res <- LinkResponse{Status: StatusFailure, Code: CodeLinkAddReverseError, Result: err.Error()}
+				res <- LinkResponse{
+					Status: StatusFailure,
+					Code:   CodeLinkAddReverseError,
+					Result: err.Error(),
+				}
 				return
 			}
 
 			err = rd.SaveCollection(col)
 			if err != nil {
-				res <- LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
+				res <- LinkResponse{
+					Status: StatusFailure,
+					Code:   CodeDynamoError,
+					Result: err.Error(),
+				}
 				return
 			}
 
-			res <- LinkResponse{Status: StatusSuccess, Code: StatusSuccess, Result: "Moved"}
+			res <- LinkResponse{
+				Status: StatusSuccess,
+				Code:   StatusSuccess,
+				Result: "AddReversed",
+			}
 		}(lnk)
 	}
 
@@ -222,6 +306,53 @@ func moveReverse(moved []Link, req LinkRequest, rd db) LinkResponse {
 	wg.Wait()
 
 	return lr
+}
+
+//MoveLink moves link in collection
+func (svc *Service) MoveLink(req LinkRequest) LinkResponse {
+	col, err := svc.db.GetCollection(req.CollectionID)
+	if err != nil {
+		return LinkResponse{
+			Status: StatusFailure,
+			Code:   CodeDynamoError,
+			Result: err.Error(),
+		}
+	}
+
+	if col.ID == "" {
+		col.ID = req.CollectionID
+	}
+
+	mv, err := col.Move(req.LinkID, req.Seq, req.UserID)
+	if err != nil {
+		return LinkResponse{
+			Status: StatusFailure,
+			Code:   CodeLinkAddError,
+			Result: err.Error(),
+		}
+	}
+
+	err = svc.db.SaveCollection(col)
+	if err != nil {
+		return LinkResponse{
+			Status: StatusFailure,
+			Code:   CodeDynamoError,
+			Result: err.Error(),
+		}
+	}
+
+	if mv != nil && len(mv) > 0 {
+		res := addReverse(mv, req, svc.rd)
+		if res.Status != StatusSuccess {
+			return res
+		}
+	}
+
+	return LinkResponse{
+		Status: StatusSuccess,
+		Code:   StatusSuccess,
+		Result: "Moved",
+	}
 }
 
 //RemoveLink removes link from collection using goroutines
