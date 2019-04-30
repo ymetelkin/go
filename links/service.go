@@ -67,6 +67,8 @@ type Service struct {
 	appl es.ApplService
 }
 
+type remove func(string, string) (int, error)
+
 //New is shortcut constructor for Service
 func New(elasticseachClusterURL string) (Service, error) {
 	appl, err := es.NewApplService(elasticseachClusterURL)
@@ -82,92 +84,29 @@ func New(elasticseachClusterURL string) (Service, error) {
 
 //AddLink adds link to collection
 func (svc *Service) AddLink(req LinkRequest) LinkResponse {
-	col, err := svc.db.GetCollection(req.CollectionID)
-	if err != nil {
-		return LinkResponse{
-			Status: StatusFailure,
-			Code:   CodeDynamoError,
-			Result: err.Error(),
-		}
-	}
-
-	if col.ID == "" {
-		col.ID = req.CollectionID
-	}
-
-	seq, err := col.Append(req.LinkID, req.UserID)
-	if err != nil {
-		return LinkResponse{
-			Status: StatusFailure,
-			Code:   CodeLinkAddError,
-			Result: err.Error(),
-		}
-	}
-
 	var (
-		res1, res2 LinkResponse
+		wg  sync.WaitGroup
+		res LinkResponse
 	)
 
-	res := make(chan LinkResponse)
+	wg.Add(2)
 
-	go func() {
-		col, err := svc.rd.GetCollection(req.LinkID)
-		if err != nil {
-			res <- LinkResponse{
-				Status: StatusFailure,
-				Code:   CodeDynamoError,
-				Result: err.Error(),
-			}
-			return
-		}
+	seq := make(chan int)
 
-		if col.ID == "" {
-			col.ID = req.LinkID
-		}
+	go addLink(req.LinkID, req.CollectionID, req.UserID, seq, 0, svc.db, false, &res, &wg)
+	go addLink(req.CollectionID, req.LinkID, req.UserID, seq, 0, svc.rd, true, &res, &wg)
 
-		_, err = col.AddReversed(req.CollectionID, seq, req.UserID)
-		if err != nil {
-			res <- LinkResponse{
-				Status: StatusFailure,
-				Code:   CodeLinkAddReverseError,
-				Result: err.Error(),
-			}
-			return
-		}
+	wg.Wait()
 
-		err = svc.rd.SaveCollection(col)
-		if err != nil {
-			res <- LinkResponse{
-				Status: StatusFailure,
-				Code:   CodeDynamoError,
-				Result: err.Error(),
-			}
-			return
-		}
-
-		res <- LinkResponse{
-			Status: StatusSuccess,
-			Code:   StatusSuccess,
-			Result: "Added",
-		}
-	}()
-
-	err = svc.db.SaveCollection(col)
-	if err != nil {
-		res1 = LinkResponse{
-			Status: StatusFailure,
-			Code:   CodeDynamoError,
-			Result: err.Error(),
-		}
+	if res.Status > 0 {
+		return res
 	}
 
-	res2 = <-res
-
-	if res1.Status > 0 && res1.Status != StatusSuccess {
-		return res1
+	return LinkResponse{
+		Status: StatusSuccess,
+		Code:   StatusSuccess,
+		Result: "Added",
 	}
-
-	return res2
 }
 
 //ResetLinks reset links in collection
@@ -192,8 +131,11 @@ func (svc *Service) ResetLinks(req ResetRequest) LinkResponse {
 		}
 	}
 
+	c1 := len(rms)
+	c2 := len(req.LinkIDs)
+
 	upd := NewUpdateHistory(req.UserID)
-	links := make([]Link, len(req.LinkIDs))
+	links := make([]Link, c2)
 	for i, id := range req.LinkIDs {
 		links[i] = Link{
 			ID:      id,
@@ -216,21 +158,31 @@ func (svc *Service) ResetLinks(req ResetRequest) LinkResponse {
 		}
 	}
 
-	lr := LinkRequest{
-		CollectionID: req.CollectionID,
-		UserID:       req.UserID,
-	}
+	if c1 > 0 || c2 > 0 {
+		var (
+			wg  sync.WaitGroup
+			res LinkResponse
+		)
 
-	if len(rms) > 0 {
-		res := addReverse(rms, lr, svc.rd)
-		if res.Status != StatusSuccess {
+		wg.Add(c1 + c2)
+
+		if c1 > 0 {
+			for _, lnk := range rms {
+				go removeLink(lnk.ID, req.CollectionID, req.UserID, svc.rd, true, &res, &wg)
+			}
+		}
+
+		if c2 > 0 {
+			for _, lnk := range links {
+				go addLink(lnk.ID, req.CollectionID, req.UserID, nil, lnk.Seq, svc.rd, true, &res, &wg)
+			}
+		}
+
+		wg.Wait()
+
+		if res.Status > 0 {
 			return res
 		}
-	}
-
-	res := addReverse(links, lr, svc.rd)
-	if res.Status != StatusSuccess {
-		return res
 	}
 
 	return LinkResponse{
@@ -238,74 +190,6 @@ func (svc *Service) ResetLinks(req ResetRequest) LinkResponse {
 		Code:   StatusSuccess,
 		Result: "Reseted",
 	}
-}
-
-func addReverse(links []Link, req LinkRequest, rd db) LinkResponse {
-	res := make(chan LinkResponse)
-
-	var (
-		wg sync.WaitGroup
-		lr LinkResponse
-	)
-
-	wg.Add(len(links))
-
-	for _, lnk := range links {
-		go func(lnk Link) {
-			defer wg.Done()
-
-			col, err := rd.GetCollection(lnk.ID)
-			if err != nil {
-				res <- LinkResponse{
-					Status: StatusFailure,
-					Code:   CodeDynamoError,
-					Result: err.Error(),
-				}
-				return
-			}
-			if col.ID == "" {
-				col.ID = lnk.ID
-			}
-
-			_, err = col.AddReversed(req.CollectionID, lnk.Seq, req.UserID)
-			if err != nil {
-				res <- LinkResponse{
-					Status: StatusFailure,
-					Code:   CodeLinkAddReverseError,
-					Result: err.Error(),
-				}
-				return
-			}
-
-			err = rd.SaveCollection(col)
-			if err != nil {
-				res <- LinkResponse{
-					Status: StatusFailure,
-					Code:   CodeDynamoError,
-					Result: err.Error(),
-				}
-				return
-			}
-
-			res <- LinkResponse{
-				Status: StatusSuccess,
-				Code:   StatusSuccess,
-				Result: "AddReversed",
-			}
-		}(lnk)
-	}
-
-	go func() {
-		for r := range res {
-			if lr.Status == 0 || r.Status != StatusSuccess {
-				lr = r
-			}
-		}
-	}()
-
-	wg.Wait()
-
-	return lr
 }
 
 //MoveLink moves link in collection
@@ -342,8 +226,18 @@ func (svc *Service) MoveLink(req LinkRequest) LinkResponse {
 	}
 
 	if mv != nil && len(mv) > 0 {
-		res := addReverse(mv, req, svc.rd)
-		if res.Status != StatusSuccess {
+		var (
+			wg  sync.WaitGroup
+			res LinkResponse
+		)
+
+		wg.Add(len(mv))
+
+		for _, lnk := range mv {
+			go addLink(req.CollectionID, req.LinkID, req.UserID, nil, lnk.Seq, svc.rd, true, &res, &wg)
+		}
+
+		if res.Status > 0 {
 			return res
 		}
 	}
@@ -357,64 +251,141 @@ func (svc *Service) MoveLink(req LinkRequest) LinkResponse {
 
 //RemoveLink removes link from collection using goroutines
 func (svc *Service) RemoveLink(req LinkRequest) LinkResponse {
-	res1 := make(chan LinkResponse, 1)
-	res2 := make(chan LinkResponse, 1)
+	var (
+		wg  sync.WaitGroup
+		res LinkResponse
+	)
 
-	go func() {
-		col, err := svc.db.GetCollection(req.CollectionID)
-		if err != nil {
-			res1 <- LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
-			return
-		}
-		if col.ID == "" {
-			res1 <- LinkResponse{Status: StatusFailure, Code: CodeNoCollectionError, Result: fmt.Sprintf("Collection [%s] does not exist", req.CollectionID)}
-			return
-		}
+	wg.Add(2)
 
-		_, err = col.Remove(req.LinkID, req.UserID)
-		if err != nil {
-			res1 <- LinkResponse{Status: StatusFailure, Code: CodeLinkRemoveError, Result: err.Error()}
-			return
-		}
+	go removeLink(req.LinkID, req.CollectionID, req.UserID, svc.db, false, &res, &wg)
+	go removeLink(req.CollectionID, req.LinkID, req.UserID, svc.rd, true, &res, &wg)
 
-		err = svc.db.SaveCollection(col)
-		if err != nil {
-			res1 <- LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
-			return
-		}
+	wg.Wait()
 
-		res1 <- LinkResponse{Status: StatusSuccess, Code: StatusSuccess, Result: "Removed"}
-	}()
-
-	go func() {
-		col, err := svc.rd.GetCollection(req.LinkID)
-		if err != nil {
-			res2 <- LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
-			return
-		}
-		if col.ID == "" {
-			res2 <- LinkResponse{Status: StatusFailure, Code: CodeNoLinkError, Result: fmt.Sprintf("Link [%s] does not exist", req.LinkID)}
-		}
-
-		_, err = col.RemoveReversed(req.CollectionID, req.UserID)
-		if err != nil {
-			res2 <- LinkResponse{Status: StatusFailure, Code: CodeLinRemoveReverseError, Result: err.Error()}
-		}
-
-		err = svc.rd.SaveCollection(col)
-		if err != nil {
-			res2 <- LinkResponse{Status: StatusFailure, Code: CodeDynamoError, Result: err.Error()}
-		}
-
-		res2 <- LinkResponse{Status: StatusSuccess, Code: StatusSuccess, Result: "Removed"}
-	}()
-
-	res := <-res1
-	if res.Status != StatusSuccess {
+	if res.Status > 0 {
 		return res
 	}
 
-	return <-res2
+	return LinkResponse{
+		Status: StatusSuccess,
+		Code:   StatusSuccess,
+		Result: "Removed",
+	}
+}
+
+func addLink(id string, cid string, uid string, sqch chan int, seq int, db db, rev bool, res *LinkResponse, wg *sync.WaitGroup) {
+	var code int
+
+	defer wg.Done()
+
+	col, err := db.GetCollection(cid)
+	if err != nil {
+		res = &LinkResponse{
+			Status: StatusFailure,
+			Code:   CodeDynamoError,
+			Result: err.Error(),
+		}
+		return
+	}
+
+	if col.ID == "" {
+		col.ID = cid
+	}
+
+	if rev {
+		var i int
+		if sqch == nil {
+			i = seq
+		} else {
+			i = <-sqch
+		}
+		if i < 0 {
+			res = &LinkResponse{
+				Status: StatusFailure,
+				Code:   CodeLinkAddReverseError,
+				Result: fmt.Sprintf("Invalid sequence: [%d]", i),
+			}
+			return
+		}
+		_, err = col.AddReversed(id, i, uid)
+		if err != nil {
+			code = CodeLinkAddReverseError
+		}
+	} else {
+		i, err := col.Append(id, uid)
+		if sqch != nil {
+			sqch <- i
+		}
+		if err != nil {
+			code = CodeLinkAddError
+		}
+	}
+
+	if err != nil {
+		res = &LinkResponse{
+			Status: StatusFailure,
+			Code:   code,
+			Result: err.Error(),
+		}
+		return
+	}
+
+	err = db.SaveCollection(col)
+	if err != nil {
+		res = &LinkResponse{
+			Status: StatusFailure,
+			Code:   CodeDynamoError,
+			Result: err.Error(),
+		}
+	}
+}
+
+func removeLink(id string, cid string, uid string, db db, rev bool, res *LinkResponse, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	col, err := db.GetCollection(cid)
+	if err != nil {
+		res = &LinkResponse{
+			Status: StatusFailure,
+			Code:   CodeDynamoError,
+			Result: err.Error(),
+		}
+		return
+	}
+
+	if col.ID == "" {
+		res = &LinkResponse{
+			Status: StatusFailure,
+			Code:   CodeNoCollectionError,
+			Result: fmt.Sprintf("Collection [%s] does not exist", cid),
+		}
+		return
+	}
+
+	if rev {
+		_, err = col.RemoveReversed(id, uid)
+	} else {
+		_, err = col.Remove(id, uid)
+	}
+
+	if err != nil {
+		res = &LinkResponse{
+			Status: StatusFailure,
+			Code:   CodeLinkRemoveError,
+			Result: err.Error(),
+		}
+		return
+	}
+
+	err = db.SaveCollection(col)
+	if err != nil {
+		res = &LinkResponse{
+			Status: StatusFailure,
+			Code:   CodeDynamoError,
+			Result: err.Error(),
+		}
+	}
 }
 
 //GetCollection gets collection by its ID

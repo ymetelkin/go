@@ -14,6 +14,8 @@ const (
 	digit0 rune = 48
 )
 
+var acctXML, acctJSON []string
+
 func (doc *document) ParsePublicationManagement(jo *json.Object) error {
 	if doc.PublicationManagement.Nodes == nil {
 		return errors.New("PublicationManagement is missing")
@@ -52,10 +54,12 @@ func (doc *document) ParsePublicationManagement(jo *json.Object) error {
 			} else {
 				return err
 			}
+			getAccountInfo(nd, "firstcreator", jo)
 		case "LastModifiedDateTime":
 			if nd.Text != "" {
 				jo.AddString("lastmodifieddatetime", nd.Text+"Z")
 			}
+			getAccountInfo(nd, "lastmodifier", jo)
 		case "Status":
 			ps, err := getPubStatus(nd.Text)
 			if err == nil {
@@ -240,6 +244,45 @@ func getFirstCreatedDate(nd xml.Node) (string, int, error) {
 	}
 
 	return date, year, nil
+}
+
+func getAccountInfo(nd xml.Node, name string, parent *json.Object) {
+	if acctXML == nil {
+		acctXML = []string{
+			"UserName",
+			"UserAccount",
+			"UserAccountSystem",
+			"ToolVersion",
+			"UserLocation",
+			"UserWorkgroup",
+		}
+
+		acctJSON = []string{
+			"username",
+			"useraccount",
+			"useraccountsystem",
+			"toolversion",
+			"userlocation",
+			"userworkgroup",
+		}
+	}
+
+	var (
+		jo  json.Object
+		add bool
+	)
+
+	for i, a := range acctXML {
+		s := nd.GetAttribute(a)
+		if s != "" {
+			add = true
+			jo.AddString(acctJSON[i], s)
+		}
+	}
+
+	if add {
+		parent.AddObject(name, jo)
+	}
 }
 
 func getTimeRestriction(nd xml.Node) (string, bool) {

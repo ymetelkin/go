@@ -24,8 +24,9 @@ func (doc *document) ParseDescriptiveMetadata(jo *json.Object) error {
 		evts                   events
 		dll, fix               json.Object
 		tpm                    json.Array
-		geo                    bool
 	)
+
+	geo := true
 
 	for _, nd := range doc.DescriptiveMetadata.Nodes {
 		switch nd.Name {
@@ -39,8 +40,8 @@ func (doc *document) ParseDescriptiveMetadata(jo *json.Object) error {
 			parseEntityClassification(nd, &gens, &orgs, &prns, &cmps, &plcs, &evts)
 		case "AudienceClassification":
 			test := getAudences(nd, &auds)
-			if test {
-				geo = true
+			if !test {
+				geo = false
 			}
 		case "SalesClassification":
 			parseSalesClassification(nd, &svcs)
@@ -129,14 +130,11 @@ func (doc *document) ParseSubjectClassification(nd xml.Node, gens *uniqueArray, 
 				for _, n := range nd.Nodes {
 					code, name := getOccurrenceCodeName(n)
 					if code != "" && name != "" {
-						i, err := strconv.Atoi(code)
-						if err == nil && i >= 900 {
-							fix = json.Object{}
-							fix.AddInt("code", i)
-							fix.AddString("name", name)
-							doc.Fixture = true
-							break
-						}
+						fix = json.Object{}
+						fix.AddString("code", code)
+						fix.AddString("name", name)
+						doc.Fixture = true
+						break
 					}
 				}
 			}
@@ -285,7 +283,7 @@ func getThirdParty(nd xml.Node, ja *json.Array) {
 
 func getAudences(nd xml.Node, ua *uniqueArray) bool {
 	if nd.Nodes == nil || nd.Attributes == nil {
-		return false
+		return true
 	}
 
 	var (

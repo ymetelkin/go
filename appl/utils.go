@@ -100,7 +100,7 @@ func setRels(system string, match string, rels *uniqueArray) {
 }
 
 func getGeoProperty(lat float64, long float64) json.Property {
-	if lat == 0 || long == 0 {
+	if lat == 0 && long == 0 {
 		return json.Property{}
 	}
 

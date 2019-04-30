@@ -77,7 +77,7 @@ func (rnds *renditions) GetRendition(title string, role string, mt mediaType, nd
 			v := n.GetAttribute("Name")
 			if v != "" && strings.HasPrefix(strings.ToLower(v), "broadcastformat") {
 				runes := []rune(v)
-				jo.AddString("broadcastformat", string(runes[15:]))
+				jo.AddString("broadcastformat", string(runes[16:]))
 
 				exit++
 				if exit == 2 {
