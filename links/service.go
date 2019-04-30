@@ -67,8 +67,6 @@ type Service struct {
 	appl es.ApplService
 }
 
-type remove func(string, string) (int, error)
-
 //New is shortcut constructor for Service
 func New(elasticseachClusterURL string) (Service, error) {
 	appl, err := es.NewApplService(elasticseachClusterURL)
@@ -122,11 +120,16 @@ func (svc *Service) ResetLinks(req ResetRequest) LinkResponse {
 
 	rms := []Link{}
 	if col.Links != nil && len(col.Links) > 0 {
-		for _, id := range req.LinkIDs {
-			for _, lnk := range col.Links {
+		for _, lnk := range col.Links {
+			var exists bool
+			for _, id := range req.LinkIDs {
 				if lnk.ID == id {
-					rms = append(rms, lnk)
+					exists = true
+					break
 				}
+			}
+			if !exists {
+				rms = append(rms, lnk)
 			}
 		}
 	}
@@ -168,13 +171,13 @@ func (svc *Service) ResetLinks(req ResetRequest) LinkResponse {
 
 		if c1 > 0 {
 			for _, lnk := range rms {
-				go removeLink(lnk.ID, req.CollectionID, req.UserID, svc.rd, true, &res, &wg)
+				go removeLink(req.CollectionID, lnk.ID, req.UserID, svc.rd, true, &res, &wg)
 			}
 		}
 
 		if c2 > 0 {
 			for _, lnk := range links {
-				go addLink(lnk.ID, req.CollectionID, req.UserID, nil, lnk.Seq, svc.rd, true, &res, &wg)
+				go addLink(req.CollectionID, lnk.ID, req.UserID, nil, lnk.Seq, svc.rd, true, &res, &wg)
 			}
 		}
 
@@ -234,7 +237,7 @@ func (svc *Service) MoveLink(req LinkRequest) LinkResponse {
 		wg.Add(len(mv))
 
 		for _, lnk := range mv {
-			go addLink(req.CollectionID, req.LinkID, req.UserID, nil, lnk.Seq, svc.rd, true, &res, &wg)
+			go addLink(req.CollectionID, lnk.ID, req.UserID, nil, lnk.Seq, svc.rd, true, &res, &wg)
 		}
 
 		if res.Status > 0 {

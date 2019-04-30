@@ -81,7 +81,7 @@ func (col *Collection) Move(id string, pos int, by string) ([]Link, error) {
 
 	size := len(col.Links)
 	if size == 0 {
-
+		return nil, nil
 	}
 	if pos >= size {
 		return nil, invalidPositionError(pos, col)

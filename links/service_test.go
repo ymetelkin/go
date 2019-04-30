@@ -106,3 +106,40 @@ func TestService(t *testing.T) {
 		t.Error(res.Result)
 	}
 }
+
+func TestMove(t *testing.T) {
+	svc, err := New("http://proteus-qa-uno-esdata.aptechlab.com:9200")
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	req := LinkRequest{
+		CollectionID: "abe581385c7443de917d8f2ef7ee1cef",
+		LinkID:       "94f5a70a66f14a96922dcb0dcc1731f4",
+		UserID:       "YM",
+		Seq:          3,
+	}
+	res := svc.MoveLink(req)
+	if res.Status != StatusSuccess {
+		t.Error(res.Result)
+	}
+	cr := GetCollectionRequest{
+		CollectionID: "abe581385c7443de917d8f2ef7ee1cef",
+		Fields:       []string{"itemid", "headline", "type"},
+	}
+	col := svc.GetCollection(cr)
+	if res.Status != StatusSuccess {
+		t.Error(res.Result)
+	}
+	fmt.Println(col.ToString())
+
+	cr = GetCollectionRequest{
+		CollectionID: "94f5a70a66f14a96922dcb0dcc1731f4",
+		Fields:       []string{"itemid", "headline", "type"},
+	}
+	col = svc.GetReversedCollection(cr)
+	if res.Status != StatusSuccess {
+		t.Error(res.Result)
+	}
+	fmt.Println(col.ToString())
+}

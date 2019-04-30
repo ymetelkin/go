@@ -28,6 +28,11 @@ func execute(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	switch req.HTTPMethod {
 	case "GET":
 		return collection(req, svc), nil
+	case "POST":
+		if req.Path == "/reset" {
+			return reset(req, svc), nil
+		}
+		return link(req, svc), nil
 	default:
 		return link(req, svc), nil
 	}
@@ -118,5 +123,35 @@ func collection(req events.APIGatewayProxyRequest, svc links.Service) events.API
 	return events.APIGatewayProxyResponse{
 		StatusCode: rs.Status,
 		Body:       rs.ToString(),
+	}
+}
+
+func reset(req events.APIGatewayProxyRequest, svc links.Service) events.APIGatewayProxyResponse {
+	var (
+		rq links.ResetRequest
+		rs links.LinkResponse
+	)
+
+	bytes := []byte(req.Body)
+	if err := json.Unmarshal(bytes, &rq); err != nil {
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusBadRequest,
+			Body:       fmt.Sprintf("Invalid reset request [%s]: %s", req.Body, err.Error()),
+		}
+	}
+
+	rs = svc.ResetLinks(rq)
+
+	body, err := json.Marshal(rs)
+	if err != nil {
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusInternalServerError,
+			Body:       err.Error(),
+		}
+	}
+
+	return events.APIGatewayProxyResponse{
+		StatusCode: rs.Status,
+		Body:       string(body),
 	}
 }
