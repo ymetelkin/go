@@ -278,7 +278,7 @@ func (svc *Service) RemoveLink(req LinkRequest) LinkResponse {
 }
 
 func addLink(id string, cid string, uid string, sqch chan int, seq int, db db, rev bool, res *LinkResponse, wg *sync.WaitGroup) {
-	var code int
+	var code, pos int
 
 	defer wg.Done()
 
@@ -297,21 +297,20 @@ func addLink(id string, cid string, uid string, sqch chan int, seq int, db db, r
 	}
 
 	if rev {
-		var i int
 		if sqch == nil {
-			i = seq
+			pos = seq
 		} else {
-			i = <-sqch
+			pos = <-sqch
 		}
-		if i < 0 {
+		if pos < 0 {
 			res = &LinkResponse{
 				Status: StatusFailure,
 				Code:   CodeLinkAddReverseError,
-				Result: fmt.Sprintf("Invalid sequence: [%d]", i),
+				Result: fmt.Sprintf("Invalid sequence: [%d]", pos),
 			}
 			return
 		}
-		_, err = col.AddReversed(id, i, uid)
+		_, err = col.AddReversed(id, pos, uid)
 		if err != nil {
 			code = CodeLinkAddReverseError
 		}
@@ -410,7 +409,7 @@ func getCollection(req GetCollectionRequest, db db, appl es.ApplService) GetColl
 
 	col, err := db.GetCollection(req.CollectionID)
 	if err != nil {
-		return getCollectionResponse(StatusFailure, CodeDynamoError, err.Error(), col, docs)
+		return getFailureResponse(CodeDynamoError, err.Error(), col, docs)
 	}
 
 	if col.Links != nil {
@@ -418,7 +417,7 @@ func getCollection(req GetCollectionRequest, db db, appl es.ApplService) GetColl
 	}
 
 	if size == 0 {
-		return getCollectionResponse(StatusSuccess, StatusSuccess, "Empty collection", col, docs)
+		return getSuccessResponse("Empty collection", col, docs)
 	}
 
 	ids = make([]string, size)
@@ -428,15 +427,25 @@ func getCollection(req GetCollectionRequest, db db, appl es.ApplService) GetColl
 
 	docs, err = appl.GetDocuments(ids, req.Fields)
 	if err != nil {
-		return getCollectionResponse(StatusFailure, CodeElasticsearchError, err.Error(), col, docs)
+		return getFailureResponse(CodeElasticsearchError, err.Error(), col, docs)
 	}
-	return getCollectionResponse(StatusSuccess, StatusSuccess, "Collection", col, docs)
+	return getSuccessResponse("Collection", col, docs)
 }
 
-func getCollectionResponse(status int, code int, result string, col Collection, docs json.Array) GetCollectionResponse {
+func getSuccessResponse(result string, col Collection, docs json.Array) GetCollectionResponse {
 	return GetCollectionResponse{
 		Status:     StatusSuccess,
 		Code:       StatusSuccess,
+		Result:     result,
+		Collection: col,
+		Documents:  docs,
+	}
+}
+
+func getFailureResponse(code int, result string, col Collection, docs json.Array) GetCollectionResponse {
+	return GetCollectionResponse{
+		Status:     StatusFailure,
+		Code:       code,
 		Result:     result,
 		Collection: col,
 		Documents:  docs,
