@@ -1,6 +1,7 @@
 package xml
 
 import (
+	"bytes"
 	"encoding/xml"
 	"io"
 	"strings"
@@ -22,8 +23,8 @@ type Attribute struct {
 }
 
 //New creates a new node from a string
-func New(s string) (Node, error) {
-	decoder := xml.NewDecoder(strings.NewReader(s))
+func New(b []byte) (Node, error) {
+	decoder := xml.NewDecoder(bytes.NewReader(b))
 
 	var parent *Node
 	var root *Node

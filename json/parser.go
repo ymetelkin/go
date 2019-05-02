@@ -16,12 +16,12 @@ const (
 	tokenVT          rune = 11
 	tokenFF          rune = 12
 	tokenCR          rune = 13
-	tokenSPACE       rune = 32
-	tokenQUOTE       rune = 34
-	tokenDOLLAR      rune = 36
-	tokenCOMMA       rune = 44
-	tokenMINUS       rune = 45
-	tokenPERIOD      rune = 46
+	tokenSpace       rune = 32
+	tokenQuote       rune = 34
+	tokenDollar      rune = 36
+	tokenComma       rune = 44
+	tokenMinus       rune = 45
+	tokenPeriod      rune = 46
 	token0           rune = 48
 	token9           rune = 57
 	tokenColon       rune = 58
@@ -111,7 +111,7 @@ func addProperty(jo *Object, runes []rune, size int, index int, parameterize boo
 	index++
 	r, index := skipWhitespace(runes, size, index)
 
-	if r == tokenQUOTE {
+	if r == tokenQuote {
 		var (
 			name  string
 			err   error
@@ -168,7 +168,7 @@ func parsePropertyName(runes []rune, size int, index int) (string, int, error) {
 	for index < size {
 		r = runes[index]
 
-		if r == tokenQUOTE {
+		if r == tokenQuote {
 			end := index
 
 			index++
@@ -188,7 +188,7 @@ func parsePropertyName(runes []rune, size int, index int) (string, int, error) {
 func parseValue(runes []rune, size int, index int, parameterize bool) (value, int, ParameterizedString, error) {
 	r, index := skipWhitespace(runes, size, index)
 
-	if r == tokenQUOTE {
+	if r == tokenQuote {
 		index++
 
 		if parameterize {
@@ -222,9 +222,11 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (value, in
 						sb.WriteRune(tokenBL)
 					} else if test == tokenV {
 						sb.WriteRune(tokenVT)
+					} else if test == tokenQuote {
+						sb.WriteRune(tokenQuote)
 					}
 				}
-			} else if r == tokenQUOTE {
+			} else if r == tokenQuote {
 				return newString(sb.String()), index, ParameterizedString{}, nil
 			} else {
 				sb.WriteRune(r)
@@ -291,14 +293,14 @@ func parseValue(runes []rune, size int, index int, parameterize bool) (value, in
 				}
 			}
 		}
-	} else if r > tokenCOMMA && r < tokenColon {
+	} else if r > tokenComma && r < tokenColon {
 		start := index
 		floating := false
 
 		index++
 		r = runes[index]
-		for r > tokenMINUS && r < tokenColon {
-			if r == tokenPERIOD {
+		for r > tokenMinus && r < tokenColon {
+			if r == tokenPeriod {
 				floating = true
 			}
 			index++
@@ -352,7 +354,7 @@ func parseObject(runes []rune, size int, index int, parameterize bool) (Object, 
 		return Object{}, index, err
 	}
 
-	for r == tokenCOMMA {
+	for r == tokenComma {
 		r, index, err = addProperty(&jo, runes, size, index, parameterize)
 		if err != nil {
 			return Object{}, index, err
@@ -403,7 +405,7 @@ func parseArray(runes []rune, size int, index int, parameterize bool) (Array, in
 		return Array{}, index, err
 	}
 
-	for r == tokenCOMMA {
+	for r == tokenComma {
 		r, index, err = addValue(&ja, runes, size, index, parameterize)
 		if err != nil {
 			return Array{}, index, err
@@ -421,7 +423,7 @@ func skipWhitespace(runes []rune, size int, index int) (rune, int) {
 	for index < size {
 		r := runes[index]
 
-		if r == tokenNull || r == tokenSPACE || r == tokenLF || r == tokenCR || r == tokenHT || r == tokenBS || r == tokenFF || r == tokenVT {
+		if r == tokenNull || r == tokenSpace || r == tokenLF || r == tokenCR || r == tokenHT || r == tokenBS || r == tokenFF || r == tokenVT {
 			index++
 		} else {
 			return r, index

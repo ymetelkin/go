@@ -6,7 +6,7 @@ import (
 )
 
 func TestParsing(t *testing.T) {
-	s := `{"id":1,"name":"YM", "cool":true, "obj":{"a":"b"}}`
+	s := `{"id":1,"code":"YM","name":"\"Yuri Metelkin\"", "cool":true, "obj":{"a":"b"}}`
 	jo, err := ParseJSONObject(s)
 	if err != nil {
 		t.Error(err.Error())

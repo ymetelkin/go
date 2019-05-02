@@ -293,7 +293,7 @@ func (jo *Object) toString(pretty bool, level int) string {
 		jv, err := jo.getValue(name)
 		if err == nil {
 			if index > 0 {
-				sb.WriteRune(tokenCOMMA)
+				sb.WriteRune(tokenComma)
 
 				if pretty {
 					sb.WriteRune(tokenCR)
@@ -304,18 +304,18 @@ func (jo *Object) toString(pretty bool, level int) string {
 			if pretty {
 				i := 0
 				for i <= level {
-					sb.WriteRune(tokenSPACE)
-					sb.WriteRune(tokenSPACE)
+					sb.WriteRune(tokenSpace)
+					sb.WriteRune(tokenSpace)
 					i++
 				}
 			}
 
-			sb.WriteRune(tokenQUOTE)
+			sb.WriteRune(tokenQuote)
 			sb.WriteString(name)
-			sb.WriteRune(tokenQUOTE)
+			sb.WriteRune(tokenQuote)
 			sb.WriteRune(tokenColon)
 			if pretty {
-				sb.WriteRune(tokenSPACE)
+				sb.WriteRune(tokenSpace)
 			}
 			s := jv.ToString(pretty, next)
 			sb.WriteString(s)
@@ -327,8 +327,8 @@ func (jo *Object) toString(pretty bool, level int) string {
 		sb.WriteRune(tokenLF)
 		i := 0
 		for i < level {
-			sb.WriteRune(tokenSPACE)
-			sb.WriteRune(tokenSPACE)
+			sb.WriteRune(tokenSpace)
+			sb.WriteRune(tokenSpace)
 			i++
 		}
 	}

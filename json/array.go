@@ -399,7 +399,7 @@ func (ja *Array) toString(pretty bool, level int) string {
 
 	for index, jv := range ja.Values {
 		if index > 0 {
-			sb.WriteRune(tokenCOMMA)
+			sb.WriteRune(tokenComma)
 
 			if pretty {
 				sb.WriteRune(tokenCR)
@@ -410,8 +410,8 @@ func (ja *Array) toString(pretty bool, level int) string {
 		if pretty {
 			i := 0
 			for i <= level {
-				sb.WriteRune(tokenSPACE)
-				sb.WriteRune(tokenSPACE)
+				sb.WriteRune(tokenSpace)
+				sb.WriteRune(tokenSpace)
 				i++
 			}
 		}
@@ -425,8 +425,8 @@ func (ja *Array) toString(pretty bool, level int) string {
 		sb.WriteRune(tokenLF)
 		i := 0
 		for i < level {
-			sb.WriteRune(tokenSPACE)
-			sb.WriteRune(tokenSPACE)
+			sb.WriteRune(tokenSpace)
+			sb.WriteRune(tokenSpace)
 			i++
 		}
 	}

@@ -268,7 +268,7 @@ func parsePropertyNameWithParameters(runes []rune, size int, index int) (Paramet
 	for index < size {
 		r = runes[index]
 
-		if r == tokenQUOTE {
+		if r == tokenQuote {
 			end := index
 
 			index++
@@ -318,9 +318,11 @@ func parseTextValueWithParameters(runes []rune, size int, index int) (Parameteri
 					sb.WriteRune(tokenBL)
 				} else if test == tokenV {
 					sb.WriteRune(tokenVT)
+				} else if test == tokenQuote {
+					sb.WriteRune(tokenQuote)
 				}
 			}
-		} else if r == tokenQUOTE {
+		} else if r == tokenQuote {
 			value := string(runes[start:index])
 			parameterized := params != nil
 			ps := ParameterizedString{Value: value, IsParameterized: parameterized, Parameters: params}
@@ -336,7 +338,7 @@ func parseTextValueWithParameters(runes []rune, size int, index int) (Parameteri
 }
 
 func parseParameters(runes []rune, index int, r rune, start int, pstart int, pdef int, params []Parameter) (int, int, []Parameter) {
-	if r == tokenDOLLAR {
+	if r == tokenDollar {
 		pstart = index + 1
 		pdef = 0
 	} else if r == tokenLeftCurly {

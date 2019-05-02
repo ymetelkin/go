@@ -281,13 +281,13 @@ func (jv *value) ToString(pretty bool, level int) string {
 		if ok {
 			runes := []rune(s)
 			var sb strings.Builder
-			sb.WriteRune(tokenQUOTE)
+			sb.WriteRune(tokenQuote)
 
 			for _, r := range runes {
 				switch r {
-				case tokenQUOTE:
+				case tokenQuote:
 					sb.WriteRune(tokenBackslash)
-					sb.WriteRune(tokenQUOTE)
+					sb.WriteRune(tokenQuote)
 				case tokenBackslash:
 					sb.WriteRune(tokenBackslash)
 					sb.WriteRune(tokenBackslash)
@@ -307,13 +307,13 @@ func (jv *value) ToString(pretty bool, level int) string {
 					sb.WriteRune(tokenBackslash)
 					sb.WriteRune(tokenF)
 				case tokenVT:
-					sb.WriteRune(tokenSPACE)
+					sb.WriteRune(tokenSpace)
 				default:
 					sb.WriteRune(r)
 				}
 			}
 
-			sb.WriteRune(tokenQUOTE)
+			sb.WriteRune(tokenQuote)
 			return sb.String()
 		}
 	case jsonInt:

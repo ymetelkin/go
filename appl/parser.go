@@ -51,8 +51,8 @@ type document struct {
 }
 
 //XMLToJSON converts APPL XML to APPL JSON
-func XMLToJSON(s string) (json.Object, error) {
-	doc, err := parseXML(s)
+func XMLToJSON(bytes []byte) (json.Object, error) {
+	doc, err := parseXML(bytes)
 	if err != nil {
 		return json.Object{}, err
 	}
@@ -107,8 +107,8 @@ func XMLToJSON(s string) (json.Object, error) {
 	return jo, nil
 }
 
-func parseXML(s string) (document, error) {
-	root, err := xml.New(s)
+func parseXML(b []byte) (document, error) {
+	root, err := xml.New(b)
 	if err != nil {
 		return document{}, err
 	}
