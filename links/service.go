@@ -278,67 +278,74 @@ func (svc *Service) RemoveLink(req LinkRequest) LinkResponse {
 }
 
 func addLink(id string, cid string, uid string, sqch chan int, seq int, db db, rev bool, res *LinkResponse, wg *sync.WaitGroup) {
-	var code, pos int
+	var (
+		code, pos int
+		result    string
+		ch        bool
+	)
 
 	defer wg.Done()
 
 	col, err := db.GetCollection(cid)
 	if err != nil {
-		res = &LinkResponse{
-			Status: StatusFailure,
-			Code:   CodeDynamoError,
-			Result: err.Error(),
-		}
-		return
-	}
-
-	if col.ID == "" {
-		col.ID = cid
-	}
-
-	if rev {
-		if sqch == nil {
-			pos = seq
-		} else {
-			pos = <-sqch
-		}
-		if pos < 0 {
-			res = &LinkResponse{
-				Status: StatusFailure,
-				Code:   CodeLinkAddReverseError,
-				Result: fmt.Sprintf("Invalid sequence: [%d]", pos),
-			}
-			return
-		}
-		_, err = col.AddReversed(id, pos, uid)
-		if err != nil {
-			code = CodeLinkAddReverseError
-		}
+		code = CodeDynamoError
+		result = err.Error()
 	} else {
-		i, err := col.Append(id, uid)
-		if sqch != nil {
-			sqch <- i
+		if col.ID == "" {
+			col.ID = cid
 		}
-		if err != nil {
-			code = CodeLinkAddError
+
+		if rev {
+			if sqch == nil {
+				pos = seq
+			} else {
+				pos = <-sqch
+				ch = true
+			}
+			if pos < 0 {
+				code = CodeLinkAddReverseError
+				result = fmt.Sprintf("Invalid sequence: [%d]", pos)
+			} else {
+				_, err = col.AddReversed(id, pos, uid)
+				if err != nil {
+					code = CodeLinkAddReverseError
+					result = err.Error()
+				}
+			}
+		} else {
+			i, err := col.Append(id, uid)
+			if sqch != nil {
+				sqch <- i
+				ch = true
+			}
+			if err != nil {
+				code = CodeLinkAddError
+				result = err.Error()
+			}
+		}
+
+		if code == 0 {
+			err = db.SaveCollection(col)
+			if err != nil {
+				code = CodeDynamoError
+				result = err.Error()
+			}
 		}
 	}
 
-	if err != nil {
+	if code > 0 {
 		res = &LinkResponse{
 			Status: StatusFailure,
 			Code:   code,
-			Result: err.Error(),
+			Result: result,
 		}
-		return
 	}
 
-	err = db.SaveCollection(col)
-	if err != nil {
-		res = &LinkResponse{
-			Status: StatusFailure,
-			Code:   CodeDynamoError,
-			Result: err.Error(),
+	if sqch != nil && !ch {
+		if rev {
+			<-sqch
+		} else {
+			sqch <- -1
 		}
 	}
 }
