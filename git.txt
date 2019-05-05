@@ -1,4 +1,5 @@
 git add appl/*.go
+git add apql/*.go
 git add es/*.go
 git add json/*.go
 git add lambda/appl/*.go
