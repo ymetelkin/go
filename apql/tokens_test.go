@@ -21,4 +21,12 @@ func TestTokens(t *testing.T) {
 	} else {
 		fmt.Printf("%v\n", toks)
 	}
+
+	s = "(@a = b AND @c=d) (@e = f AND @x=1)"
+	toks, err = tokenize(s)
+	if err != nil {
+		t.Error(err.Error())
+	} else {
+		fmt.Printf("%v\n", toks)
+	}
 }

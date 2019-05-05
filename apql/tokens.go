@@ -141,7 +141,7 @@ func tokenizeRunes(runes []rune, size int, i int) ([]token, int, error) {
 			case tokenOpenParen:
 				sp = false
 				tokens, sb = addToken(tokens, sb)
-				toks, idx, err := tokenizeRunes(runes, size, i)
+				toks, idx, err := tokenizeRunes(runes, size, i+1)
 				if err != nil {
 					return nil, idx, err
 				}
