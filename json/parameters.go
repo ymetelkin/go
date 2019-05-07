@@ -261,19 +261,19 @@ func parsePropertyNameWithParameters(runes []rune, size int, index int) (Paramet
 	start := index
 	pstart := 0
 	pdef := 0
-	r := tokenNull
+	r := runeNull
 
 	var params []Parameter
 
 	for index < size {
 		r = runes[index]
 
-		if r == tokenQuote {
+		if r == runeQuote {
 			end := index
 
 			index++
 			r, index = skipWhitespace(runes, size, index)
-			if r == tokenColon {
+			if r == runeColon {
 				value := string(runes[start:end])
 				parameterized := params != nil
 				ps := ParameterizedString{Value: value, IsParameterized: parameterized, Parameters: params}
@@ -300,29 +300,29 @@ func parseTextValueWithParameters(runes []rune, size int, index int) (Parameteri
 	for index < size {
 		r := runes[index]
 
-		if r == tokenBackslash {
+		if r == runeBackslash {
 			index++
 			if index < size {
 				test := runes[index]
-				if test == tokenR {
-					sb.WriteRune(tokenCR)
-				} else if test == tokenN {
-					sb.WriteRune(tokenLF)
-				} else if test == tokenT {
-					sb.WriteRune(tokenHT)
-				} else if test == tokenB {
-					sb.WriteRune(tokenBS)
-				} else if test == tokenF {
-					sb.WriteRune(tokenFF)
-				} else if test == tokenA {
-					sb.WriteRune(tokenBL)
-				} else if test == tokenV {
-					sb.WriteRune(tokenVT)
-				} else if test == tokenQuote {
-					sb.WriteRune(tokenQuote)
+				if test == runeR {
+					sb.WriteRune(runeCR)
+				} else if test == runeN {
+					sb.WriteRune(runeLF)
+				} else if test == runeT {
+					sb.WriteRune(runeHT)
+				} else if test == runeB {
+					sb.WriteRune(runeBS)
+				} else if test == runeF {
+					sb.WriteRune(runeFF)
+				} else if test == runeA {
+					sb.WriteRune(runeBL)
+				} else if test == runeV {
+					sb.WriteRune(runeVT)
+				} else if test == runeQuote {
+					sb.WriteRune(runeQuote)
 				}
 			}
-		} else if r == tokenQuote {
+		} else if r == runeQuote {
 			value := string(runes[start:index])
 			parameterized := params != nil
 			ps := ParameterizedString{Value: value, IsParameterized: parameterized, Parameters: params}
@@ -338,20 +338,20 @@ func parseTextValueWithParameters(runes []rune, size int, index int) (Parameteri
 }
 
 func parseParameters(runes []rune, index int, r rune, start int, pstart int, pdef int, params []Parameter) (int, int, []Parameter) {
-	if r == tokenDollar {
+	if r == runeDollar {
 		pstart = index + 1
 		pdef = 0
-	} else if r == tokenLeftCurly {
+	} else if r == runeLeftCurly {
 		if pstart != index {
 			pstart = 0
 		} else {
 			pstart = index + 1
 		}
-	} else if r == tokenQuestion {
+	} else if r == runeQuestion {
 		if pstart > 1 {
 			pdef = index + 1
 		}
-	} else if r == tokenRightCurly {
+	} else if r == runeRightCurly {
 		if pstart > 1 {
 			end := index
 			def := ""

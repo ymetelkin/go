@@ -281,39 +281,39 @@ func (jv *value) ToString(pretty bool, level int) string {
 		if ok {
 			runes := []rune(s)
 			var sb strings.Builder
-			sb.WriteRune(tokenQuote)
+			sb.WriteRune(runeQuote)
 
 			for _, r := range runes {
 				switch r {
-				case tokenQuote:
-					sb.WriteRune(tokenBackslash)
-					sb.WriteRune(tokenQuote)
-				case tokenBackslash:
-					sb.WriteRune(tokenBackslash)
-					sb.WriteRune(tokenBackslash)
-				case tokenCR:
-					sb.WriteRune(tokenBackslash)
-					sb.WriteRune(tokenR)
-				case tokenLF:
-					sb.WriteRune(tokenBackslash)
-					sb.WriteRune(tokenN)
-				case tokenHT:
-					sb.WriteRune(tokenBackslash)
-					sb.WriteRune(tokenT)
-				case tokenBS:
-					sb.WriteRune(tokenBackslash)
-					sb.WriteRune(tokenB)
-				case tokenFF:
-					sb.WriteRune(tokenBackslash)
-					sb.WriteRune(tokenF)
-				case tokenVT:
-					sb.WriteRune(tokenSpace)
+				case runeQuote:
+					sb.WriteRune(runeBackslash)
+					sb.WriteRune(runeQuote)
+				case runeBackslash:
+					sb.WriteRune(runeBackslash)
+					sb.WriteRune(runeBackslash)
+				case runeCR:
+					sb.WriteRune(runeBackslash)
+					sb.WriteRune(runeR)
+				case runeLF:
+					sb.WriteRune(runeBackslash)
+					sb.WriteRune(runeN)
+				case runeHT:
+					sb.WriteRune(runeBackslash)
+					sb.WriteRune(runeT)
+				case runeBS:
+					sb.WriteRune(runeBackslash)
+					sb.WriteRune(runeB)
+				case runeFF:
+					sb.WriteRune(runeBackslash)
+					sb.WriteRune(runeF)
+				case runeVT:
+					sb.WriteRune(runeSpace)
 				default:
 					sb.WriteRune(r)
 				}
 			}
 
-			sb.WriteRune(tokenQuote)
+			sb.WriteRune(runeQuote)
 			return sb.String()
 		}
 	case jsonInt:
