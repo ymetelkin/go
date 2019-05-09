@@ -38,7 +38,7 @@ func TestNewslines(t *testing.T) {
 		</EntityClassification>
 	</DescriptiveMetadata>
 </Publication>`
-	doc, _ := parseXML(s)
+	doc, _ := parseXML([]byte(s))
 	jo := json.Object{}
 
 	err := doc.ParseIdentification(&jo)
@@ -63,5 +63,5 @@ func TestNewslines(t *testing.T) {
 		t.Error("[persons] is expected")
 	}
 
-	fmt.Printf("%s\n", jo.ToString())
+	fmt.Printf("%s\n", jo.String())
 }

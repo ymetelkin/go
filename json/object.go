@@ -264,13 +264,13 @@ func (jo *Object) IsEmpty() bool {
 	return false
 }
 
-//ToString returns pretty serialization
-func (jo *Object) ToString() string {
+//String returns pretty serialization
+func (jo *Object) String() string {
 	return jo.toString(true, 0)
 }
 
-//ToInlineString returns condensed serialization
-func (jo *Object) ToInlineString() string {
+//InlineString returns condensed serialization
+func (jo *Object) InlineString() string {
 	return jo.toString(false, 0)
 }
 

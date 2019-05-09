@@ -33,7 +33,7 @@ func execute(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: status,
-		Body:       jo.ToString(),
+		Body:       jo.String(),
 		Headers:    headers,
 	}, nil
 }

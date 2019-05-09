@@ -60,7 +60,7 @@ func TestManagement(t *testing.T) {
 	 </PublicationManagement>   
 </Publication>
 `
-	doc, _ := parseXML(s)
+	doc, _ := parseXML([]byte(s))
 	jo := json.Object{}
 
 	err := doc.ParsePublicationManagement(&jo)
@@ -68,7 +68,7 @@ func TestManagement(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	fmt.Printf("%s\n", jo.ToString())
+	fmt.Printf("%s\n", jo.String())
 
 	if string(doc.PubStatus) != "usable" {
 		t.Error("[pubstatus:usable] is expected")

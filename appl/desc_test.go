@@ -121,7 +121,7 @@ func TestDescriptions(t *testing.T) {
 		</AudienceClassification>
 	</DescriptiveMetadata>
 </Publication>`
-	doc, _ := parseXML(s)
+	doc, _ := parseXML([]byte(s))
 	jo := json.Object{}
 
 	err := doc.ParseDescriptiveMetadata(&jo)
@@ -161,7 +161,7 @@ func TestDescriptions(t *testing.T) {
 		t.Error("[organizations] is expected")
 	}
 
-	fmt.Printf("%s\n", jo.ToString())
+	fmt.Printf("%s\n", jo.String())
 }
 
 func TestServices(t *testing.T) {
@@ -188,7 +188,7 @@ func TestServices(t *testing.T) {
 		<Comment>Strange</Comment>
 	</DescriptiveMetadata>
 </Publication>`
-	doc, _ := parseXML(s)
+	doc, _ := parseXML([]byte(s))
 	jo := json.Object{}
 
 	err := doc.ParseDescriptiveMetadata(&jo)
@@ -200,7 +200,7 @@ func TestServices(t *testing.T) {
 		t.Error("[services] is expected")
 	}
 
-	fmt.Printf("%s\n", jo.ToString())
+	fmt.Printf("%s\n", jo.String())
 }
 
 func TestThirdParties(t *testing.T) {
@@ -227,7 +227,7 @@ func TestThirdParties(t *testing.T) {
 		</ThirdPartyMeta>
 	</DescriptiveMetadata>
 </Publication>`
-	doc, _ := parseXML(s)
+	doc, _ := parseXML([]byte(s))
 	jo := json.Object{}
 
 	err := doc.ParseDescriptiveMetadata(&jo)
@@ -248,7 +248,7 @@ func TestThirdParties(t *testing.T) {
 		t.Error("[thirdpartymeta.name] is expected")
 	}
 
-	fmt.Printf("%s\n", jo.ToString())
+	fmt.Printf("%s\n", jo.String())
 }
 
 func TestAudences(t *testing.T) {
@@ -298,7 +298,7 @@ func TestAudences(t *testing.T) {
 		<Category>n</Category>
     </FilingMetadata>
 </Publication>`
-	doc, _ := parseXML(s)
+	doc, _ := parseXML([]byte(s))
 	jo := json.Object{}
 
 	err := doc.ParseDescriptiveMetadata(&jo)
@@ -310,7 +310,7 @@ func TestAudences(t *testing.T) {
 		t.Error("[audiences] is expected")
 	}
 
-	fmt.Printf("%s\n", jo.ToString())
+	fmt.Printf("%s\n", jo.String())
 
 	s = `
 <Publication>
@@ -338,7 +338,7 @@ func TestAudences(t *testing.T) {
 		<Category>n</Category>
     </FilingMetadata>
 </Publication>`
-	doc, _ = parseXML(s)
+	doc, _ = parseXML([]byte(s))
 	jo = json.Object{}
 
 	err = doc.ParseDescriptiveMetadata(&jo)
@@ -350,5 +350,5 @@ func TestAudences(t *testing.T) {
 		t.Error("[audiences] is expected")
 	}
 
-	fmt.Printf("%s\n", jo.ToString())
+	fmt.Printf("%s\n", jo.String())
 }

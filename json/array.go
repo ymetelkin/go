@@ -372,13 +372,13 @@ func (ja *Array) Length() int {
 	return len(ja.Values)
 }
 
-//ToString transforms JSON array to pretty string
-func (ja *Array) ToString() string {
+//String transforms JSON array to pretty string
+func (ja *Array) String() string {
 	return ja.toString(true, 0)
 }
 
-//ToInlineString transforms JSON array into inline string
-func (ja *Array) ToInlineString() string {
+//InlineString transforms JSON array into inline string
+func (ja *Array) InlineString() string {
 	return ja.toString(false, 0)
 }
 

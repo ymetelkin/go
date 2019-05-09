@@ -61,7 +61,7 @@ func TestAdmin(t *testing.T) {
 		<Property Name="EAI:ELVIS_WORKFLOW_ID"></Property>
 	</AdministrativeMetadata>
 </Publication>`
-	doc, _ := parseXML(s)
+	doc, _ := parseXML([]byte(s))
 	jo := json.Object{}
 
 	err := doc.ParsePublicationManagement(&jo)
@@ -118,6 +118,6 @@ func TestAdmin(t *testing.T) {
 		t.Error("[inpackages] is expected")
 	}
 
-	fmt.Printf("%s\n", jo.ToString())
+	fmt.Printf("%s\n", jo.String())
 
 }

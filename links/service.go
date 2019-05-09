@@ -459,8 +459,8 @@ func getFailureResponse(code int, result string, col Collection, docs json.Array
 	}
 }
 
-//ToString JSON serializes GetCollectionResponse
-func (res *GetCollectionResponse) ToString() string {
+//String JSON serializes GetCollectionResponse
+func (res *GetCollectionResponse) String() string {
 	jo := json.Object{}
 	jo.AddInt("status", res.Status)
 	jo.AddInt("code", res.Code)
@@ -485,5 +485,5 @@ func (res *GetCollectionResponse) ToString() string {
 
 	jo.AddArray("docs", res.Documents)
 
-	return jo.ToString()
+	return jo.String()
 }

@@ -51,7 +51,7 @@ func TestVideos(t *testing.T) {
 		</VideoContentItem>
 	</PublicationComponent>
 </Publication>`
-	doc, _ := parseXML(s)
+	doc, _ := parseXML([]byte(s))
 	jo := json.Object{}
 
 	doc.ParsePublicationComponents(&jo)
@@ -60,5 +60,5 @@ func TestVideos(t *testing.T) {
 		t.Error("[renditions] is expected")
 	}
 
-	fmt.Printf("%s\n", jo.ToString())
+	fmt.Printf("%s\n", jo.String())
 }

@@ -43,7 +43,7 @@ func TestArrayAdd(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		fmt.Printf("%d\t%s\n", i, o.ToInlineString())
+		fmt.Printf("%d\t%s\n", i, o.InlineString())
 	}
 
 	fmt.Printf("Is empty: %t\n", ja.IsEmpty())
@@ -51,7 +51,7 @@ func TestArrayAdd(t *testing.T) {
 		t.Error("Must not be empty")
 	}
 
-	s = ja.ToString()
+	s = ja.String()
 	fmt.Printf("%s\n", s)
 }
 
@@ -66,7 +66,7 @@ func TestObjectArray(t *testing.T) {
 		ja.AddObject(jo)
 	}
 
-	fmt.Println(ja.ToString())
+	fmt.Println(ja.String())
 }
 
 func TestArrayRemove(t *testing.T) {
@@ -81,6 +81,6 @@ func TestArrayRemove(t *testing.T) {
 		t.Error("Must have size 2")
 	}
 
-	s := ja.ToString()
+	s := ja.String()
 	fmt.Printf("%s\n", s)
 }

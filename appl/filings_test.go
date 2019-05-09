@@ -71,7 +71,7 @@ func TestFilings(t *testing.T) {
 		<BreakingNews>Breaking</BreakingNews>
 	</FilingMetadata>
 </Publication>`
-	doc, _ := parseXML(s)
+	doc, _ := parseXML([]byte(s))
 	jo := json.Object{}
 
 	filings := json.Array{}
@@ -84,5 +84,5 @@ func TestFilings(t *testing.T) {
 		t.Error("[filings] is expected")
 	}
 
-	fmt.Printf("%s\n", jo.ToString())
+	fmt.Printf("%s\n", jo.String())
 }

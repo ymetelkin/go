@@ -21,14 +21,14 @@ func TestParsing(t *testing.T) {
 			}
 		}
 
-		fmt.Printf("%s\n", jo.ToString())
+		fmt.Printf("%s\n", jo.String())
 
 		jo.SetString("name", "SV")
 		jo.SetInt("id", 2)
-		fmt.Printf("%s\n", jo.ToString())
+		fmt.Printf("%s\n", jo.String())
 
 		jo.Remove("name")
-		fmt.Printf("%s\n", jo.ToString())
+		fmt.Printf("%s\n", jo.String())
 	}
 
 	s = `{"test":3.14E+12}`
@@ -36,11 +36,11 @@ func TestParsing(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		test := jo.ToInlineString()
+		test := jo.InlineString()
 		if test != s {
 			t.Error("Parsing failed")
 		}
-		fmt.Printf("%s\n", jo.ToString())
+		fmt.Printf("%s\n", jo.String())
 	}
 
 	s = `{"test":3140000000000}`
@@ -48,11 +48,11 @@ func TestParsing(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		test := jo.ToInlineString()
+		test := jo.InlineString()
 		if test != s {
 			t.Error("Parsing failed")
 		}
-		fmt.Printf("%s\n", jo.ToString())
+		fmt.Printf("%s\n", jo.String())
 	}
 
 	s = `{"id":1,"name":"YM","success":true,"grades":[{"subject":"Math","grade":5},{"subject":"English","grade":3.74},5,3140000000000,"xyz"],"params":{"query":"test","size":100}}`
@@ -60,11 +60,11 @@ func TestParsing(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		test := jo.ToInlineString()
+		test := jo.InlineString()
 		if test != s {
 			t.Error("Parsing failed")
 		}
-		fmt.Printf("%s\n", jo.ToString())
+		fmt.Printf("%s\n", jo.String())
 	}
 
 	s = `{"query":{"bool":{"must":{"match":{"headline":"test"}},"filter":[{"term":{"type":"text"}},{"terms":{"filings.products":[1,2,3]}}]}},"size":100}`
@@ -72,10 +72,10 @@ func TestParsing(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		test := jo.ToInlineString()
+		test := jo.InlineString()
 		if test != s {
 			t.Error("Parsing failed")
 		}
-		fmt.Printf("%s\n", jo.ToString())
+		fmt.Printf("%s\n", jo.String())
 	}
 }

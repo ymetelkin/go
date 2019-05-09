@@ -167,7 +167,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		fmt.Printf("%s\n", jo.ToString())
+		fmt.Printf("%s\n", jo.String())
 	}
 
 	s = `{"id":"${id}", "name":"${name}","params":{"name":"YM"}}`
@@ -175,7 +175,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		fmt.Printf("%s\n", jo.ToString())
+		fmt.Printf("%s\n", jo.String())
 	}
 
 	s = `{"id":"${id}","name":"${name}", "child":{"name":"${name}", "age":"${age}","${extra_field}":"${extra_value}"}, "params":{"id":1,"name":"YM","age":13,"extra_field":"nick","extra_value":"Gusyonok"}}`
@@ -183,7 +183,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		fmt.Printf("%s\n", jo.ToString())
+		fmt.Printf("%s\n", jo.String())
 	}
 
 	s = `{"id":"${id}","name":"${name}", "child":{"age":"${age}"}, "params":{"id":1,"name":"YM"}}`
@@ -191,7 +191,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		fmt.Printf("%s\n", jo.ToString())
+		fmt.Printf("%s\n", jo.String())
 	}
 
 	s = `{"${id_prefix}_id":"${id}","name":"${name}", "child":{"name":"${name} Jr.", "age":"${age}"}, "params":{"id_prefix":"user","id":1,"name":"YM"}}`
@@ -199,7 +199,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		fmt.Printf("%s\n", jo.ToString())
+		fmt.Printf("%s\n", jo.String())
 	}
 
 	s = `{"${id_prefix}_id":"${id}","name":"${name}", "child":{"name":"${name} Jr.", "age":"${age}"}, "params":{"id_prefix1":"user","id":1,"name":"YM"}}`
@@ -207,7 +207,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		fmt.Printf("%s\n", jo.ToString())
+		fmt.Printf("%s\n", jo.String())
 	}
 
 	s = `{"template":{"query":{"query_string":{"query":"${query}","fields":"${fields}"}}},"params":{"query":"test","fields":["head","body"]}}`
@@ -215,7 +215,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		fmt.Printf("%s\n", jo.ToString())
+		fmt.Printf("%s\n", jo.String())
 	}
 
 	s = `{"template":{"_source":["headline","${field1}","${field2}","${field3}"],"params":{"field1":"type","field2":"date"}}}`
@@ -223,7 +223,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		fmt.Printf("%s\n", jo.ToString())
+		fmt.Printf("%s\n", jo.String())
 	}
 
 	s = `{"first_name":"${first_name?Yuri}","last_name":"${last_name?Metelkine}","params":{"last_name":"Metelkin"}}`
@@ -231,7 +231,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		fmt.Printf("%s\n", jo.ToString())
+		fmt.Printf("%s\n", jo.String())
 	}
 
 	s = `{"name":"${first_name?Yuri} ${last_name?Metelkine}","params":{"last_name":"Metelkin"}}`
@@ -239,7 +239,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		fmt.Printf("%s\n", jo.ToString())
+		fmt.Printf("%s\n", jo.String())
 	}
 
 	s = `{"template":{"_source":["headline","${field1}","${field2}","${field3?test}"],"params":{"field1":"type","field2":"date"}}}`
@@ -247,6 +247,6 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		fmt.Printf("%s\n", jo.ToString())
+		fmt.Printf("%s\n", jo.String())
 	}
 }
