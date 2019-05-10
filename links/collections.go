@@ -7,14 +7,15 @@ import (
 //Collection struct
 type Collection struct {
 	ID      string
+	Href    string
 	Links   []Link
 	Updated UpdateHistory
 }
 
 //Append new link to collection
-func (col *Collection) Append(id string, by string) (int, error) {
+func (col *Collection) Append(id string, href string, by string) (int, error) {
 	if col.Links == nil {
-		link := NewLink(id, 0, by)
+		link := NewLink(id, 0, href, by)
 		col.Links = []Link{link}
 		return 0, nil
 	}
@@ -29,7 +30,7 @@ func (col *Collection) Append(id string, by string) (int, error) {
 		}
 	}
 
-	link := NewLink(id, size, by)
+	link := NewLink(id, size, href, by)
 	col.Updated = link.Updated
 	col.Links = append(col.Links, link)
 
@@ -37,10 +38,10 @@ func (col *Collection) Append(id string, by string) (int, error) {
 }
 
 //Insert new link into the collection at specified position
-func (col *Collection) Insert(id string, pos int, by string) error {
+func (col *Collection) Insert(id string, pos int, href string, by string) error {
 	if col.Links == nil {
 		if pos == 0 {
-			link := NewLink(id, 0, by)
+			link := NewLink(id, 0, href, by)
 			col.Links = []Link{link}
 			return nil
 		}
@@ -60,7 +61,7 @@ func (col *Collection) Insert(id string, pos int, by string) error {
 			links[i] = link
 		} else {
 			if i == pos {
-				links[i] = NewLink(id, pos, by)
+				links[i] = NewLink(id, pos, href, by)
 			}
 			link.Seq++
 			links[i+1] = link
@@ -106,34 +107,46 @@ func (col *Collection) Move(id string, pos int, by string) ([]Link, error) {
 	links := make([]Link, size)
 	moved := []Link{}
 
-	var lnk Link
+	var lnk, mv Link
 
 	for i, link := range col.Links {
-		if i == pos {
-			lnk = Link{ID: id, Seq: pos}
-		} else {
-			if pos < cur { //moving left
-				if i < pos || i > cur {
-					links[i] = link
-					continue
-				} else {
-					lnk = col.Links[i-1]
-				}
-			} else { //moving right
-				if i < cur || i > pos {
-					links[i] = link
-					continue
-				} else {
-					lnk = col.Links[i+1]
-				}
+		if link.ID == id {
+			mv = Link{
+				ID:      id,
+				Seq:     pos,
+				Href:    link.Href,
+				Updated: NewUpdateHistory(by),
 			}
-			lnk.Seq = i
-			lnk.Updated = NewUpdateHistory(by)
 		}
+
+		if i == pos {
+			continue
+		}
+
+		if pos < cur { //moving left
+			if i < pos || i > cur {
+				links[i] = link
+				continue
+			} else {
+				lnk = col.Links[i-1]
+			}
+		} else if pos > cur { //moving right
+			if i < cur || i > pos {
+				links[i] = link
+				continue
+			} else {
+				lnk = col.Links[i+1]
+			}
+		}
+		lnk.Seq = i
+		lnk.Updated = NewUpdateHistory(by)
 
 		links[i] = lnk
 		moved = append(moved, lnk)
 	}
+
+	links[pos] = mv
+	moved = append(moved, mv)
 
 	col.Updated = NewUpdateHistory(by)
 	col.Links = links
@@ -182,13 +195,13 @@ func (col *Collection) Remove(id string, by string) (int, error) {
 }
 
 //AddReversed adds new entry to reverse collection
-func (col *Collection) AddReversed(id string, seq int, by string) (int, error) {
+func (col *Collection) AddReversed(id string, seq int, href string, by string) (int, error) {
 	var (
 		size, i     int
 		add, resize bool
 	)
 
-	new := NewLink(id, seq, by)
+	new := NewLink(id, seq, href, by)
 
 	if col.Links != nil {
 		size = len(col.Links)

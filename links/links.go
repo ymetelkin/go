@@ -8,6 +8,7 @@ import (
 type Link struct {
 	ID      string
 	Seq     int
+	Href    string
 	Updated UpdateHistory
 }
 
@@ -24,10 +25,18 @@ func (upd *UpdateHistory) DateTime() string {
 
 //NewUpdateHistory constructs new update history
 func NewUpdateHistory(id string) UpdateHistory {
-	return UpdateHistory{ID: id, Unix: time.Now().Unix()}
+	return UpdateHistory{
+		ID:   id,
+		Unix: time.Now().Unix(),
+	}
 }
 
 //NewLink constructs new link
-func NewLink(id string, seq int, by string) Link {
-	return Link{ID: id, Seq: seq, Updated: NewUpdateHistory(by)}
+func NewLink(id string, seq int, href string, by string) Link {
+	return Link{
+		ID:      id,
+		Seq:     seq,
+		Href:    href,
+		Updated: NewUpdateHistory(by),
+	}
 }

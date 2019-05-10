@@ -122,7 +122,7 @@ func collection(req events.APIGatewayProxyRequest, svc links.Service) events.API
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: rs.Status,
-		Body:       rs.ToString(),
+		Body:       rs.String(),
 	}
 }
 

@@ -1,6 +1,7 @@
 package es
 
 import (
+	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -49,6 +50,7 @@ func (appl *ApplService) GetDocuments(ids []string, fields []string) (json.Array
 	sb.WriteString("]}}}}}")
 
 	query := sb.String()
+	fmt.Println(query)
 
 	sr := newSearchRequest("appl")
 	sr.SetQuery(query)
