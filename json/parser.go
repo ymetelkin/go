@@ -72,25 +72,15 @@ func parseJSONValue(s string, parameterize bool) (value, error) {
 		return value{}, errors.New("Invalid string input")
 	}
 
-<<<<<<< HEAD
-	if r == tokenLeftCurly {
+	if r == runeLeftCurly {
 		jo, _, err := parseObject(runes, size, i, parameterize)
-=======
-	if runes[0] == runeLeftCurly {
-		jo, _, err := parseObject(runes, size, 0, parameterize)
->>>>>>> 5f47947789048c5e033d95409fb25ea7dbbfa033
 
 		if err != nil {
 			return value{}, err
 		}
 		return newObject(jo), nil
-<<<<<<< HEAD
-	} else if runes[0] == tokenLeftSquare {
-		ja, _, err := parseArray(runes, size, i, false)
-=======
 	} else if runes[0] == runeLeftSquare {
-		ja, _, err := parseArray(runes, size, 0, false)
->>>>>>> 5f47947789048c5e033d95409fb25ea7dbbfa033
+		ja, _, err := parseArray(runes, size, i, false)
 
 		if err != nil {
 			return value{}, err

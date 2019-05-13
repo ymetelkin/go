@@ -264,18 +264,13 @@ func (jo *Object) IsEmpty() bool {
 	return false
 }
 
-<<<<<<< HEAD
 //Names returns all field names
 func (jo *Object) Names() []string {
 	return jo.names
 }
 
 //ToString returns pretty serialization
-func (jo *Object) ToString() string {
-=======
-//String returns pretty serialization
 func (jo *Object) String() string {
->>>>>>> 5f47947789048c5e033d95409fb25ea7dbbfa033
 	return jo.toString(true, 0)
 }
 

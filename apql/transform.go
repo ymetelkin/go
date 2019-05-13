@@ -68,12 +68,12 @@ func (tr *Transform) queryToJSON(q query) json.Object {
 				switch e.Type {
 				case "text":
 					txt = true
-					qs.AddObject(textQueryJSON(e.Name, v, false))
+					qs.AddObject(textQueryJSON(e.Name, v, false, q.Phrase))
 				case "keyword":
 					if m {
 						qs.AddObject(textsQueryJSON(e.Name, strings.Split(v, " "), true))
 					} else {
-						qs.AddObject(textQueryJSON(e.Name, v, true))
+						qs.AddObject(textQueryJSON(e.Name, v, true, q.Phrase))
 					}
 				case "integer":
 					if m {
@@ -121,7 +121,7 @@ func (tr *Transform) queryToJSON(q query) json.Object {
 					test, err := qs.GetObject(0)
 					if err == nil {
 						bl := json.Object{}
-						fr := textQueryJSON(es.And.Field, es.And.Value, true)
+						fr := textQueryJSON(es.And.Field, es.And.Value, true, false)
 
 						if txt {
 							bl.AddObject("must", test)
@@ -153,21 +153,27 @@ func (tr *Transform) queryToJSON(q query) json.Object {
 
 	if q.Value == "" {
 		return textsQueryJSON(f, q.Values, false)
-	} else {
-		return textQueryJSON(f, q.Value, false)
 	}
+	return textQueryJSON(f, q.Value, false, q.Phrase)
 }
 
 func (tr *Transform) setToJSON(st set) json.Object {
 	query := json.Object{}
 
 	qs := json.Array{}
+	nots := json.Array{}
+
+	//st.flattenQueries()
 
 	if st.Queries != nil && len(st.Queries) > 0 {
 		for _, q := range st.Queries {
 			jo := tr.queryToJSON(q)
 			if !jo.IsEmpty() {
-				qs.AddObject(jo)
+				if st.And && q.Operator == "!=" {
+					nots.AddObject(jo)
+				} else {
+					qs.AddObject(jo)
+				}
 			}
 		}
 	}
@@ -187,9 +193,30 @@ func (tr *Transform) setToJSON(st set) json.Object {
 		return json.Object{}
 	} else if size == 1 {
 		test, _ := qs.GetObject(0)
-		return test
+
+		bl := json.Object{}
+		switch nots.Length() {
+		case 0:
+			return test
+		case 1:
+			not, _ := nots.GetObject(0)
+			bl.AddObject("must_not", not)
+		default:
+			bl.AddArray("must_not", nots)
+		}
+		bl.AddObject("must", test)
+		query.AddObject("bool", bl)
 	} else {
 		bl := json.Object{}
+
+		switch nots.Length() {
+		case 1:
+			not, _ := nots.GetObject(0)
+			bl.AddObject("must_not", not)
+		default:
+			bl.AddArray("must_not", nots)
+		}
+
 		if st.And {
 			bl.AddArray("must", qs)
 		} else {
@@ -203,4 +230,52 @@ func (tr *Transform) setToJSON(st set) json.Object {
 	}
 
 	return query
+}
+
+func (st *set) flattenQueries() {
+	if st.And || st.Not || st.Queries == nil || len(st.Queries) == 0 {
+		return
+	}
+
+	qs := make([]query, 0)
+	fs := make(map[string]query)
+
+	for _, q := range st.Queries {
+		if q.Phrase || q.Operator == "!=" {
+			qs = append(qs, q)
+			continue
+		}
+
+		t, ok := fs[q.Field]
+		if ok {
+			var vs []string
+
+			if t.Value != "" {
+				vs = []string{t.Value}
+			} else {
+				vs = t.Values
+			}
+
+			if q.Value != "" {
+				vs = append(vs, q.Value)
+			} else {
+				for _, v := range q.Values {
+					vs = append(vs, v)
+				}
+			}
+
+			t.Values = vs
+			t.Value = ""
+		} else {
+			t = q
+		}
+
+		fs[q.Field] = t
+	}
+
+	for _, q := range fs {
+		qs = append(qs, q)
+	}
+
+	st.Queries = qs
 }

@@ -229,7 +229,7 @@ func getFields() map[string]field {
 		}}
 
 	fs["consumerready"] = field{
-		Replace: textQueryJSON("signals", "newscontent", true)}
+		Replace: textQueryJSON("signals", "newscontent", true, false)}
 
 	fs["content"] = field{
 		Fields: []es{
@@ -455,7 +455,7 @@ func getFields() map[string]field {
 		}}
 
 	fs["explicitwarning"] = field{
-		Replace: textQueryJSON("signals", "explicitcontent", true)}
+		Replace: textQueryJSON("signals", "explicitcontent", true, false)}
 
 	fs["filingcategory"] = field{
 		Fields: []es{
@@ -608,7 +608,7 @@ func getFields() map[string]field {
 		}}
 
 	fs["isdigitized"] = field{
-		Replace: not(textQueryJSON("signals", "isnotdigitized", true))}
+		Replace: not(textQueryJSON("signals", "isnotdigitized", true, false))}
 
 	fs["itemcontenttype"] = field{
 		Fields: []es{

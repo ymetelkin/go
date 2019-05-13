@@ -14,51 +14,20 @@ const (
 )
 
 const (
-	tokenNull        rune = 0
-	tokenBL          rune = 7
-	tokenBS          rune = 8
-	tokenHT          rune = 9
-	tokenLF          rune = 10
-	tokenVT          rune = 11
-	tokenFF          rune = 12
-	tokenCR          rune = 13
-	tokenSpace       rune = 32
-	tokenQuote       rune = 34
-	tokenDollar      rune = 36
-	tokenOpenParen   rune = 40
-	tokenCloseParen  rune = 41
-	tokenComma       rune = 44
-	tokenMinus       rune = 45
-	tokenPeriod      rune = 46
-	token0           rune = 48
-	token9           rune = 57
-	tokenColon       rune = 58
-	tokenLT          rune = 60
-	tokenEQ          rune = 61
-	tokenGT          rune = 62
-	tokenQuestion    rune = 63
-	tokenEUpper      rune = 69
-	tokenLeftSquare  rune = 91
-	tokenBackslash   rune = 92
-	tokenRightSquare rune = 93
-	tokenA           rune = 97
-	tokenB           rune = 98
-	tokenE           rune = 101
-	tokenF           rune = 102
-	tokenL           rune = 108
-	tokenN           rune = 110
-	tokenR           rune = 114
-	tokenS           rune = 115
-	tokenT           rune = 116
-	tokenU           rune = 117
-	tokenV           rune = 118
-	tokenLeftCurly   rune = 123
-	tokenRightCurly  rune = 125
+	runeSpace      rune = 32
+	runeNE         rune = 33
+	runeQuote      rune = 34
+	runeOpenParen  rune = 40
+	runeCloseParen rune = 41
+	runeLT         rune = 60
+	runeEQ         rune = 61
+	runeGT         rune = 62
 )
 
 type token struct {
 	Type   int
 	Text   string
+	Phrase bool
 	Tokens []token
 }
 
@@ -91,28 +60,29 @@ func tokenizeRunes(runes []rune, size int, i int) ([]token, int, error) {
 		r := runes[i]
 
 		if qt {
-			if r == tokenQuote {
+			if r == runeQuote {
 				qt = false
-				sb.WriteRune(r)
-				tokens, sb = addToken(tokens, sb)
+				tokens, sb = addToken(tokens, sb, true)
 				i++
 				continue
 			}
 		} else {
 			switch r {
-			case tokenQuote:
+			case runeQuote:
 				qt = true
 				sp = false
-				tokens, sb = addToken(tokens, sb)
-			case tokenSpace:
+				tokens, sb = addToken(tokens, sb, false)
+				i++
+				continue
+			case runeSpace:
 				if !sp {
 					sp = true
-					tokens, sb = addToken(tokens, sb)
+					tokens, sb = addToken(tokens, sb, false)
 				}
 				i++
 				continue
-			case tokenEQ:
-				tokens, sb = addToken(tokens, sb)
+			case runeEQ:
+				tokens, sb = addToken(tokens, sb, false)
 				tok := token{
 					Text: "=",
 					Type: tokenOperator,
@@ -120,8 +90,17 @@ func tokenizeRunes(runes []rune, size int, i int) ([]token, int, error) {
 				tokens = append(tokens, tok)
 				i++
 				continue
-			case tokenGT:
-				tokens, sb = addToken(tokens, sb)
+			case runeNE:
+				tokens, sb = addToken(tokens, sb, false)
+				tok := token{
+					Text: "!",
+					Type: tokenOperator,
+				}
+				tokens = append(tokens, tok)
+				i++
+				continue
+			case runeGT:
+				tokens, sb = addToken(tokens, sb, false)
 				tok := token{
 					Text: ">",
 					Type: tokenOperator,
@@ -129,8 +108,8 @@ func tokenizeRunes(runes []rune, size int, i int) ([]token, int, error) {
 				tokens = append(tokens, tok)
 				i++
 				continue
-			case tokenLT:
-				tokens, sb = addToken(tokens, sb)
+			case runeLT:
+				tokens, sb = addToken(tokens, sb, false)
 				tok := token{
 					Text: "<",
 					Type: tokenOperator,
@@ -138,14 +117,14 @@ func tokenizeRunes(runes []rune, size int, i int) ([]token, int, error) {
 				tokens = append(tokens, tok)
 				i++
 				continue
-			case tokenOpenParen:
+			case runeOpenParen:
 				sp = false
-				tokens, sb = addToken(tokens, sb)
+				tokens, sb = addToken(tokens, sb, false)
 				toks, idx, err := tokenizeRunes(runes, size, i+1)
 				if err != nil {
 					return nil, idx, err
 				}
-				if runes[idx] != tokenCloseParen {
+				if runes[idx] != runeCloseParen {
 					return nil, idx, fmt.Errorf("Expected ')', found '%v'", runes[idx])
 				}
 				if toks != nil && len(toks) > 0 {
@@ -157,13 +136,13 @@ func tokenizeRunes(runes []rune, size int, i int) ([]token, int, error) {
 				}
 				i = idx + 1
 				continue
-			case tokenCloseParen:
-				tokens, _ = addToken(tokens, sb)
+			case runeCloseParen:
+				tokens, _ = addToken(tokens, sb, false)
 				return tokens, i, nil
 			default:
 				if sp {
 					sp = false
-					tokens, sb = addToken(tokens, sb)
+					tokens, sb = addToken(tokens, sb, false)
 				}
 			}
 		}
@@ -172,12 +151,12 @@ func tokenizeRunes(runes []rune, size int, i int) ([]token, int, error) {
 		i++
 	}
 
-	tokens, _ = addToken(tokens, sb)
+	tokens, _ = addToken(tokens, sb, false)
 
 	return tokens, i, nil
 }
 
-func addToken(tokens []token, sb strings.Builder) ([]token, strings.Builder) {
+func addToken(tokens []token, sb strings.Builder, phrase bool) ([]token, strings.Builder) {
 	if sb.Len() > 0 {
 		text := sb.String()
 
@@ -186,6 +165,9 @@ func addToken(tokens []token, sb strings.Builder) ([]token, strings.Builder) {
 		switch text {
 		case "OR", "AND", "NOT":
 			tp = tokenBool
+		case "or", "and", "not":
+			tp = tokenBool
+			text = strings.ToUpper(text)
 		case "=", "HAS":
 			tp = tokenOperator
 		default:
@@ -193,8 +175,9 @@ func addToken(tokens []token, sb strings.Builder) ([]token, strings.Builder) {
 		}
 
 		tok := token{
-			Text: text,
-			Type: tp,
+			Text:   text,
+			Type:   tp,
+			Phrase: phrase,
 		}
 		tokens = append(tokens, tok)
 		sb = strings.Builder{}

@@ -18,6 +18,7 @@ type query struct {
 	Operator string
 	Value    string
 	Values   []string
+	Phrase   bool
 }
 
 type bools struct {
@@ -52,6 +53,7 @@ func booleanize(tokens []token) (set, error) {
 						Field:    txt,
 						Operator: op,
 						Value:    tok.Text,
+						Phrase:   tok.Phrase,
 					}
 					queries[idx] = q
 					idx++
@@ -62,6 +64,7 @@ func booleanize(tokens []token) (set, error) {
 						Field:    "_all",
 						Operator: "=",
 						Value:    txt,
+						Phrase:   tok.Phrase,
 					}
 					queries[idx] = q
 					idx++
@@ -71,7 +74,7 @@ func booleanize(tokens []token) (set, error) {
 				txt = tok.Text
 			}
 		case tokenOperator:
-			if op == ">" || op == "<" {
+			if op == "!" || op == ">" || op == "<" {
 				if tok.Text == "=" {
 					op += "="
 				} else {
@@ -140,7 +143,7 @@ func booleanize(tokens []token) (set, error) {
 				txt = ""
 			}
 
-			size := len(queries)
+			size := len(queries) + len(sets)
 			asz := len(ands)
 			osz := len(ors)
 			nsz := len(nots)
@@ -296,7 +299,11 @@ func getValues(tokens []token) ([]string, error) {
 
 	for _, tok := range tokens {
 		if tok.Type == tokenText {
-			vals = append(vals, tok.Text)
+			txt := tok.Text
+			if tok.Phrase {
+				txt = fmt.Sprintf("\"%s\"", txt)
+			}
+			vals = append(vals, txt)
 		} else {
 			return nil, fmt.Errorf("Expected text, found '%s'", tok.Text)
 		}
