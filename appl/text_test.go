@@ -116,7 +116,7 @@ func TestTexts(t *testing.T) {
 		</TextContentItem>
 	</PublicationComponent>
 </Publication>`
-	doc, _ := parseXML(s)
+	doc, _ := parseXML([]byte(s))
 	jo := json.Object{}
 	txts := texts{}
 
@@ -142,7 +142,7 @@ func TestTexts(t *testing.T) {
 		t.Error("[main] is expected")
 	}
 
-	fmt.Printf("%s\n", jo.ToString())
+	fmt.Printf("%s\n", jo.String())
 
 	s = `
 <Publication>
@@ -187,7 +187,7 @@ func TestTexts(t *testing.T) {
 		</TextContentItem>
 	</PublicationComponent>
 </Publication>`
-	doc, _ = parseXML(s)
+	doc, _ = parseXML([]byte(s))
 	jo = json.Object{}
 	txts = texts{}
 
@@ -200,5 +200,5 @@ func TestTexts(t *testing.T) {
 
 	txts.AddProperties(&jo)
 
-	fmt.Printf("%s\n", jo.ToString())
+	fmt.Printf("%s\n", jo.String())
 }

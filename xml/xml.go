@@ -75,7 +75,7 @@ func New(b []byte) (Node, error) {
 		case xml.EndElement:
 			if se.Name.Local == parent.Name && parent.parent != nil {
 				if parent.parent.Text != "" {
-					s, _ := parent.ToInlineString()
+					s, _ := parent.InlineString()
 					parent.parent.Text += s
 				} else if parent.parent.Nodes == nil {
 					parent.parent.Nodes = []Node{*parent}
@@ -114,13 +114,13 @@ func (nd *Node) GetAttribute(name string) string {
 	return ""
 }
 
-//ToString method serializes Node into pretty XML string
-func (nd *Node) ToString() string {
+//String method serializes Node into pretty XML string
+func (nd *Node) String() string {
 	return nd.toString(0)
 }
 
-//ToInlineString method serializes Node into condenced XML string
-func (nd *Node) ToInlineString() (string, bool) {
+//InlineString method serializes Node into condenced XML string
+func (nd *Node) InlineString() (string, bool) {
 	var (
 		sb strings.Builder
 		f  bool
@@ -146,7 +146,7 @@ func (nd *Node) ToInlineString() (string, bool) {
 		sb.WriteString(">")
 		if nd.Nodes != nil {
 			for _, n := range nd.Nodes {
-				s, t := n.ToInlineString()
+				s, t := n.InlineString()
 				sb.WriteString(s)
 				if t {
 					f = true

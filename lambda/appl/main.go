@@ -19,7 +19,7 @@ func execute(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		jo     json.Object
 	)
 
-	jo, err := appl.XMLToJSON(req.Body)
+	jo, err := appl.XMLToJSON([]byte(req.Body))
 	if err != nil {
 		status = http.StatusBadRequest
 		jo = json.Object{}
@@ -33,7 +33,7 @@ func execute(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: status,
-		Body:       jo.ToString(),
+		Body:       jo.String(),
 		Headers:    headers,
 	}, nil
 }

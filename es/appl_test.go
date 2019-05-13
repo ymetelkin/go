@@ -28,5 +28,5 @@ func TestApplGetDocuments(t *testing.T) {
 	}
 
 	fmt.Println("\nDocuments:")
-	fmt.Println(docs.ToString())
+	fmt.Println(docs.String())
 }

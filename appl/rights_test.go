@@ -48,7 +48,7 @@ func TestRights(t *testing.T) {
 		</UsageRights>
 	</RightsMetadata>
 </Publication>`
-	doc, _ := parseXML(s)
+	doc, _ := parseXML([]byte(s))
 	jo := json.Object{}
 
 	err := doc.ParsePublicationManagement(&jo)
@@ -66,7 +66,7 @@ func TestRights(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	fmt.Printf("%s\n", jo.ToString())
+	fmt.Printf("%s\n", jo.String())
 
 	if _, err := jo.GetString("copyrightnotice"); err != nil {
 		t.Error("[copyrightnotice] is expected")

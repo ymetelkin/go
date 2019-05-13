@@ -41,7 +41,7 @@ func TestCompanies(t *testing.T) {
 		</EntityClassification>
 	</DescriptiveMetadata>
 </Publication>`
-	doc, _ := parseXML(s)
+	doc, _ := parseXML([]byte(s))
 	jo := json.Object{}
 
 	err := doc.ParseDescriptiveMetadata(&jo)
@@ -53,6 +53,6 @@ func TestCompanies(t *testing.T) {
 		t.Error("[companies] is expected")
 	}
 
-	fmt.Printf("%s\n", jo.ToString())
+	fmt.Printf("%s\n", jo.String())
 
 }

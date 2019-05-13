@@ -21,7 +21,7 @@ func TestPhotos(t *testing.T) {
 		</PhotoContentItem>
 	</PublicationComponent>
 </Publication>`
-	doc, _ := parseXML(s)
+	doc, _ := parseXML([]byte(s))
 	jo := json.Object{}
 
 	doc.ParsePublicationComponents(&jo)
@@ -30,5 +30,5 @@ func TestPhotos(t *testing.T) {
 		t.Error("[renditions] is expected")
 	}
 
-	fmt.Printf("%s\n", jo.ToString())
+	fmt.Printf("%s\n", jo.String())
 }

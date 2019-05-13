@@ -23,7 +23,7 @@ func TestIdentification(t *testing.T) {
 		<FriendlyKey>18212677756771</FriendlyKey>
 	</Identification>
 </Publication>`
-	doc, _ := parseXML(s)
+	doc, _ := parseXML([]byte(s))
 	jo := json.Object{}
 
 	err := doc.ParseIdentification(&jo)
@@ -41,7 +41,7 @@ func TestIdentification(t *testing.T) {
 		t.Error("[language:en] is expected")
 	}
 
-	fmt.Printf("%s\n", jo.ToString())
+	fmt.Printf("%s\n", jo.String())
 }
 
 func TestIdentificationReferenceId(t *testing.T) {
@@ -56,7 +56,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<FriendlyKey>xyz</FriendlyKey>
 	</Identification>
 </Publication>`
-	doc, _ := parseXML(s)
+	doc, _ := parseXML([]byte(s))
 	jo := json.Object{}
 
 	err := doc.ParseIdentification(&jo)
@@ -79,7 +79,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<MediaType>Photo</MediaType>
 	</Identification>
 </Publication>`
-	doc, _ = parseXML(s)
+	doc, _ = parseXML([]byte(s))
 	jo = json.Object{}
 
 	err = doc.ParseIdentification(&jo)
@@ -105,7 +105,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<Title>xyz</Title>
 	</NewsLines> 
 </Publication>`
-	doc, _ = parseXML(s)
+	doc, _ = parseXML([]byte(s))
 	jo = json.Object{}
 
 	err = doc.ParseIdentification(&jo)
@@ -132,7 +132,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<MediaType>ComplexData</MediaType>
 	</Identification>
 </Publication>`
-	doc, _ = parseXML(s)
+	doc, _ = parseXML([]byte(s))
 	jo = json.Object{}
 
 	err = doc.ParseIdentification(&jo)
@@ -158,7 +158,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<Title>xyz</Title>
 	</NewsLines> 
 </Publication>`
-	doc, _ = parseXML(s)
+	doc, _ = parseXML([]byte(s))
 	jo = json.Object{}
 
 	err = doc.ParseIdentification(&jo)
@@ -185,7 +185,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<MediaType>Text</MediaType>
 	</Identification>
 </Publication>`
-	doc, _ = parseXML(s)
+	doc, _ = parseXML([]byte(s))
 	jo = json.Object{}
 
 	err = doc.ParseIdentification(&jo)
@@ -211,7 +211,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<EditorialId>xyz</EditorialId>
 	</PublicationManagement> 
 </Publication>`
-	doc, _ = parseXML(s)
+	doc, _ = parseXML([]byte(s))
 	jo = json.Object{}
 
 	err = doc.ParseIdentification(&jo)
@@ -238,7 +238,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<MediaType>Video</MediaType>
 	</Identification>
 </Publication>`
-	doc, _ = parseXML(s)
+	doc, _ = parseXML([]byte(s))
 	jo = json.Object{}
 
 	err = doc.ParseIdentification(&jo)

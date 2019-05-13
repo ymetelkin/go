@@ -23,7 +23,7 @@ func newDb(table string) db {
 	return db{ID: "ID", Table: table, svc: svc}
 }
 
-func (db *db) SaveCollection(col Collection) error {
+func (db *db) SaveCollection(col collection) error {
 	item, err := dynamodbattribute.MarshalMap(col)
 	if err != nil {
 		return err
@@ -42,8 +42,8 @@ func (db *db) SaveCollection(col Collection) error {
 	return nil
 }
 
-func (db *db) GetCollection(id string) (Collection, error) {
-	col := Collection{}
+func (db *db) GetCollection(id string) (collection, error) {
+	col := collection{}
 
 	result, err := db.svc.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(db.Table),

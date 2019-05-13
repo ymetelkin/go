@@ -60,7 +60,7 @@ func TestEvents(t *testing.T) {
 		</EntityClassification>
 	</DescriptiveMetadata>
 </Publication>`
-	doc, _ := parseXML(s)
+	doc, _ := parseXML([]byte(s))
 	jo := json.Object{}
 
 	err := doc.ParseDescriptiveMetadata(&jo)
@@ -72,5 +72,5 @@ func TestEvents(t *testing.T) {
 		t.Error("[events] is expected")
 	}
 
-	fmt.Printf("%s\n", jo.ToString())
+	fmt.Printf("%s\n", jo.String())
 }

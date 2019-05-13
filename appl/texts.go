@@ -35,7 +35,7 @@ func (txts *texts) ParseTextComponent(pc pubcomponent) error {
 					add bool
 				)
 				for _, p := range b.Nodes {
-					s, b := p.ToInlineString()
+					s, b := p.InlineString()
 					if b {
 						add = true
 					}

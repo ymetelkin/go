@@ -18,16 +18,41 @@ func (jo *Object) PathString(path string) (string, error) {
 
 //PathStrings returns string values from path
 func (jo *Object) PathStrings(path string) ([]string, error) {
-	var s []string
+	var ss []string
 
 	v, e := walk(*jo, strings.Split(path, "."))
 	if e == nil {
 		a, e := v.GetArray()
 		if e == nil {
-			s, e = a.GetStrings()
+			ss, e = a.GetStrings()
 		}
 	}
-	return s, e
+	return ss, e
+}
+
+//PathObject returns JSON object value from path
+func (jo *Object) PathObject(path string) (Object, error) {
+	var o Object
+
+	v, e := walk(*jo, strings.Split(path, "."))
+	if e == nil {
+		o, e = v.GetObject()
+	}
+	return o, e
+}
+
+//PathObjects returns JSON object values from path
+func (jo *Object) PathObjects(path string) ([]Object, error) {
+	var os []Object
+
+	v, e := walk(*jo, strings.Split(path, "."))
+	if e == nil {
+		a, e := v.GetArray()
+		if e == nil {
+			os, e = a.GetObjects()
+		}
+	}
+	return os, e
 }
 
 func walk(jo Object, toks []string) (value, error) {

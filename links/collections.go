@@ -4,18 +4,21 @@ import (
 	"fmt"
 )
 
-//Collection struct
-type Collection struct {
+type collection struct {
 	ID      string
-	Links   []Link
-	Updated UpdateHistory
+	Href    string
+	Links   []link
+	Updated audit
 }
 
-//Append new link to collection
-func (col *Collection) Append(id string, by string) (int, error) {
+func (col *collection) append(id string, href string, by string) (int, error) {
+	var lnk link
+
+	audit := newAudit(by)
+
 	if col.Links == nil {
-		link := NewLink(id, 0, by)
-		col.Links = []Link{link}
+		lnk = newLink(id, 0, href, audit)
+		col.Links = []link{lnk}
 		return 0, nil
 	}
 
@@ -29,19 +32,22 @@ func (col *Collection) Append(id string, by string) (int, error) {
 		}
 	}
 
-	link := NewLink(id, size, by)
-	col.Updated = link.Updated
-	col.Links = append(col.Links, link)
+	lnk = newLink(id, size, href, audit)
+	col.Updated = lnk.Updated
+	col.Links = append(col.Links, lnk)
 
 	return size, nil
 }
 
-//Insert new link into the collection at specified position
-func (col *Collection) Insert(id string, pos int, by string) error {
+func (col *collection) insert(id string, pos int, href string, by string) error {
+	var lnk link
+
+	audit := newAudit(by)
+
 	if col.Links == nil {
 		if pos == 0 {
-			link := NewLink(id, 0, by)
-			col.Links = []Link{link}
+			lnk = newLink(id, 0, href, audit)
+			col.Links = []link{lnk}
 			return nil
 		}
 		return invalidPositionError(pos, col)
@@ -53,28 +59,27 @@ func (col *Collection) Insert(id string, pos int, by string) error {
 	}
 
 	size++
-	links := make([]Link, size)
+	links := make([]link, size)
 
-	for i, link := range col.Links {
+	for i, lnk := range col.Links {
 		if i < pos {
-			links[i] = link
+			links[i] = lnk
 		} else {
 			if i == pos {
-				links[i] = NewLink(id, pos, by)
+				links[i] = newLink(id, pos, href, audit)
 			}
-			link.Seq++
-			links[i+1] = link
+			lnk.Seq++
+			links[i+1] = lnk
 		}
 	}
 
-	col.Updated = NewUpdateHistory(by)
+	col.Updated = newAudit(by)
 	col.Links = links
 
 	return nil
 }
 
-//Move existing link into new position
-func (col *Collection) Move(id string, pos int, by string) ([]Link, error) {
+func (col *collection) move(id string, pos int, by string) ([]link, error) {
 	if col.Links == nil {
 		return nil, invalidLinkError(id, col)
 	}
@@ -103,13 +108,18 @@ func (col *Collection) Move(id string, pos int, by string) ([]Link, error) {
 		return nil, nil
 	}
 
-	links := make([]Link, size)
-	moved := []Link{}
+	links := make([]link, size)
+	moved := []link{}
 
-	var lnk Link
+	var lnk, mv link
 
-	for i, link := range col.Links {
+	for i, l := range col.Links {
+		if l.ID == id {
+			mv = newLink(id, pos, l.Href, newAudit(by))
+		}
+
 		if i == pos {
+<<<<<<< HEAD
 			lnk = Link{
 				ID:      id,
 				Seq:     pos,
@@ -130,23 +140,43 @@ func (col *Collection) Move(id string, pos int, by string) ([]Link, error) {
 				} else {
 					lnk = col.Links[i+1]
 				}
-			}
-			lnk.Seq = i
-			lnk.Updated = NewUpdateHistory(by)
+=======
+			continue
 		}
+
+		if pos < cur { //moving left
+			if i < pos || i > cur {
+				links[i] = l
+				continue
+			} else {
+				lnk = col.Links[i-1]
+			}
+		} else if pos > cur { //moving right
+			if i < cur || i > pos {
+				links[i] = l
+				continue
+			} else {
+				lnk = col.Links[i+1]
+>>>>>>> 5f47947789048c5e033d95409fb25ea7dbbfa033
+			}
+		}
+		lnk.Seq = i
+		lnk.Updated = newAudit(by)
 
 		links[i] = lnk
 		moved = append(moved, lnk)
 	}
 
-	col.Updated = NewUpdateHistory(by)
+	links[pos] = mv
+	moved = append(moved, mv)
+
+	col.Updated = newAudit(by)
 	col.Links = links
 
 	return moved, nil
 }
 
-//Remove link from collection
-func (col *Collection) Remove(id string, by string) (int, error) {
+func (col *collection) remove(id string, by string) (int, error) {
 	if col.Links == nil {
 		return 0, invalidLinkError(id, col)
 	}
@@ -167,54 +197,53 @@ func (col *Collection) Remove(id string, by string) (int, error) {
 		return 0, invalidLinkError(id, col)
 	}
 
-	links := make([]Link, size-1)
+	links := make([]link, size-1)
 
-	for i, link := range col.Links {
+	for i, l := range col.Links {
 		if i != cur {
 			idx := i
 			if i > cur {
-				link.Seq--
+				l.Seq--
 				idx--
 			}
-			links[idx] = link
+			links[idx] = l
 		}
 	}
 
-	col.Updated = NewUpdateHistory(by)
+	col.Updated = newAudit(by)
 	col.Links = links
 	return cur, nil
 }
 
-//AddReversed adds new entry to reverse collection
-func (col *Collection) AddReversed(id string, seq int, by string) (int, error) {
+func (col *collection) addReversed(id string, seq int, href string, by string) (int, error) {
 	var (
 		size, i     int
 		add, resize bool
 	)
 
-	new := NewLink(id, seq, by)
+	new := newLink(id, seq, href, newAudit(by))
 
 	if col.Links != nil {
 		size = len(col.Links)
 	}
 
 	if size == 0 {
-		col.Links = []Link{new}
+		col.Links = []link{new}
 		return 0, nil
 	}
 
-	links := make([]Link, size+1)
+	links := make([]link, size+1)
 
-	for _, link := range col.Links {
-		if link.ID == id {
+	for _, l := range col.Links {
+		if l.ID == id {
 			resize = true
 		} else {
-			if !add && (link.Seq > seq || (link.Seq == seq && link.Updated.Unix <= new.Updated.Unix)) {
+			if !add && (l.Seq > seq || (l.Seq == seq && l.Updated.Timestamp <= new.Updated.Timestamp)) {
 				links[i] = new
 				add = true
 				i++
 			}
-			links[i] = link
+			links[i] = l
 			i++
 		}
 	}
@@ -236,8 +265,7 @@ func (col *Collection) AddReversed(id string, seq int, by string) (int, error) {
 	return len(links), nil
 }
 
-//RemoveReversed removes entry from reverse collection
-func (col *Collection) RemoveReversed(id string, by string) (int, error) {
+func (col *collection) removeReversed(id string, by string) (int, error) {
 	if col.Links == nil {
 		return 0, invalidLinkError(id, col)
 	}
@@ -248,8 +276,8 @@ func (col *Collection) RemoveReversed(id string, by string) (int, error) {
 	}
 
 	cur := -1
-	for i, link := range col.Links {
-		if link.ID == id {
+	for i, l := range col.Links {
+		if l.ID == id {
 			cur = i
 			break
 		}
@@ -259,15 +287,15 @@ func (col *Collection) RemoveReversed(id string, by string) (int, error) {
 	}
 
 	col.Links = append(col.Links[:cur], col.Links[cur+1:]...)
-	col.Updated = NewUpdateHistory(by)
+	col.Updated = newAudit(by)
 
 	return len(col.Links), nil
 }
 
-func invalidLinkError(id string, col *Collection) error {
+func invalidLinkError(id string, col *collection) error {
 	return fmt.Errorf("Link [%s] does not exists in [%s] collection", id, col.ID)
 }
 
-func invalidPositionError(pos int, col *Collection) error {
+func invalidPositionError(pos int, col *collection) error {
 	return fmt.Errorf("Invalid position [%d] in [%s] collection", pos, col.ID)
 }

@@ -167,8 +167,8 @@ func TestFile(t *testing.T) {
   </PublicationComponent>
 </Publication>
   `
-	jo, _ := XMLToJSON(s)
+	jo, _ := XMLToJSON([]byte(s))
 
-	fmt.Printf("%s\n", jo.ToString())
+	fmt.Printf("%s\n", jo.String())
 
 }

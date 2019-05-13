@@ -4,30 +4,29 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/ymetelkin/go/es"
 	"github.com/ymetelkin/go/json"
 )
 
 //Statuses and Codes
 const (
-	StatusSuccess             int = 200
-	StatusFailure             int = 400
-	CodeDynamoError           int = 40001
-	CodeLinkAddError          int = 40002
-	CodeLinkAddReverseError   int = 40003
-	CodeLinkRemoveError       int = 40004
-	CodeLinRemoveReverseError int = 40005
-	CodeNoCollectionError     int = 40006
-	CodeNoLinkError           int = 40007
-	CodeElasticsearchError    int = 40008
+	StatusSuccess              int = 200
+	StatusFailure              int = 400
+	CodeDynamoError            int = 40001
+	CodeLinkAddError           int = 40002
+	CodeLinkAddReverseError    int = 40003
+	CodeLinkMoveError          int = 40004
+	CodeLinkRemoveError        int = 40005
+	CodeLinkRemoveReverseError int = 40006
+	CodeNoCollectionError      int = 40007
+	CodeNoLinkError            int = 40008
+	CodeElasticsearchError     int = 40009
 )
 
-//LinkRequest link CRUD request
+//LinkRequest link request
 type LinkRequest struct {
-	CollectionID string `json:"doc_id"`
-	LinkID       string `json:"link_id"`
-	UserID       string `json:"user_id"`
-	Seq          int    `json:"seq"`
+	Collection doc    `json:"doc"`
+	Link       doc    `json:"link"`
+	UserID     string `json:"user_id"`
 }
 
 //LinkResponse link crud response
@@ -37,46 +36,46 @@ type LinkResponse struct {
 	Result string `json:"result"`
 }
 
+//MoveRequest move request
+type MoveRequest struct {
+	CollectionID string `json:"doc_id"`
+	LinkID       string `json:"link_id"`
+	Seq          int    `json:"seq"`
+	UserID       string `json:"user_id"`
+}
+
 //ResetRequest to reset links for col
 type ResetRequest struct {
-	CollectionID string   `json:"doc_id"`
-	LinkIDs      []string `json:"link_ids"`
-	UserID       string   `json:"user_id"`
+	Collection doc    `json:"doc"`
+	Links      []doc  `json:"links"`
+	UserID     string `json:"user_id"`
 }
 
-//GetCollectionRequest get collection from db and es request
-type GetCollectionRequest struct {
-	CollectionID string   `json:"doc_id"`
-	Fields       []string `json:"fields"`
-	UserID       string   `json:"user_id"`
+//CollectionRequest get collection from db and es request
+type CollectionRequest struct {
+	CollectionID string `json:"doc_id"`
+	UserID       string `json:"user_id"`
 }
 
-//GetCollectionResponse get collection from db and es response
-type GetCollectionResponse struct {
+//CollectionResponse get collection from db and es response
+type CollectionResponse struct {
 	Status     int
 	Code       int
 	Result     string
-	Collection Collection
-	Documents  json.Array
+	Collection collection
 }
 
 //Service is links facade
 type Service struct {
-	db   db
-	rd   db
-	appl es.ApplService
+	db db
+	rd db
 }
 
 //New is shortcut constructor for Service
-func New(elasticseachClusterURL string) (Service, error) {
-	appl, err := es.NewApplService(elasticseachClusterURL)
-	if err != nil {
-		return Service{}, err
-	}
+func New() (Service, error) {
 	return Service{
-		db:   newDb("LinkCollections"),
-		rd:   newDb("LinkReversedCollections"),
-		appl: appl,
+		db: newDb("LinkCollections"),
+		rd: newDb("LinkReversedCollections"),
 	}, nil
 }
 
@@ -91,8 +90,8 @@ func (svc *Service) AddLink(req LinkRequest) LinkResponse {
 
 	seq := make(chan int)
 
-	go addLink(req.LinkID, req.CollectionID, req.UserID, seq, 0, svc.db, false, &res, &wg)
-	go addLink(req.CollectionID, req.LinkID, req.UserID, seq, 0, svc.rd, true, &res, &wg)
+	go addLink(req.Link.ID, req.Collection.ID, req.Link.Href, req.Collection.Href, req.UserID, seq, 0, svc.db, false, &res, &wg)
+	go addLink(req.Collection.ID, req.Link.ID, req.Collection.Href, req.Link.Href, req.UserID, seq, 0, svc.rd, true, &res, &wg)
 
 	wg.Wait()
 
@@ -109,7 +108,7 @@ func (svc *Service) AddLink(req LinkRequest) LinkResponse {
 
 //ResetLinks reset links in collection
 func (svc *Service) ResetLinks(req ResetRequest) LinkResponse {
-	col, err := svc.db.GetCollection(req.CollectionID)
+	col, err := svc.db.GetCollection(req.Collection.ID)
 	if err != nil {
 		return LinkResponse{
 			Status: StatusFailure,
@@ -118,12 +117,12 @@ func (svc *Service) ResetLinks(req ResetRequest) LinkResponse {
 		}
 	}
 
-	rms := []Link{}
+	rms := []link{}
 	if col.Links != nil && len(col.Links) > 0 {
 		for _, lnk := range col.Links {
 			var exists bool
-			for _, id := range req.LinkIDs {
-				if lnk.ID == id {
+			for _, l := range req.Links {
+				if lnk.ID == l.ID {
 					exists = true
 					break
 				}
@@ -135,19 +134,16 @@ func (svc *Service) ResetLinks(req ResetRequest) LinkResponse {
 	}
 
 	c1 := len(rms)
-	c2 := len(req.LinkIDs)
+	c2 := len(req.Links)
 
-	upd := NewUpdateHistory(req.UserID)
-	links := make([]Link, c2)
-	for i, id := range req.LinkIDs {
-		links[i] = Link{
-			ID:      id,
-			Seq:     i,
-			Updated: upd,
-		}
+	upd := newAudit(req.UserID)
+	links := make([]link, c2)
+	for i, l := range req.Links {
+		links[i] = newLink(l.ID, i, l.Href, upd)
 	}
-	col = Collection{
-		ID:      req.CollectionID,
+	col = collection{
+		ID:      req.Collection.ID,
+		Href:    req.Collection.Href,
 		Links:   links,
 		Updated: upd,
 	}
@@ -171,13 +167,13 @@ func (svc *Service) ResetLinks(req ResetRequest) LinkResponse {
 
 		if c1 > 0 {
 			for _, lnk := range rms {
-				go removeLink(req.CollectionID, lnk.ID, req.UserID, svc.rd, true, &res, &wg)
+				go removeLink(req.Collection.ID, lnk.ID, req.UserID, svc.rd, true, &res, &wg)
 			}
 		}
 
 		if c2 > 0 {
 			for _, lnk := range links {
-				go addLink(req.CollectionID, lnk.ID, req.UserID, nil, lnk.Seq, svc.rd, true, &res, &wg)
+				go addLink(req.Collection.ID, lnk.ID, req.Collection.Href, lnk.Href, req.UserID, nil, lnk.Seq, svc.rd, true, &res, &wg)
 			}
 		}
 
@@ -195,8 +191,8 @@ func (svc *Service) ResetLinks(req ResetRequest) LinkResponse {
 	}
 }
 
-//MoveLink moves link in collection
-func (svc *Service) MoveLink(req LinkRequest) LinkResponse {
+//MoveLink moves link in Collection
+func (svc *Service) MoveLink(req MoveRequest) LinkResponse {
 	col, err := svc.db.GetCollection(req.CollectionID)
 	if err != nil {
 		return LinkResponse{
@@ -207,10 +203,14 @@ func (svc *Service) MoveLink(req LinkRequest) LinkResponse {
 	}
 
 	if col.ID == "" {
-		col.ID = req.CollectionID
+		return LinkResponse{
+			Status: StatusFailure,
+			Code:   CodeLinkMoveError,
+			Result: fmt.Sprintf("Collection [%s] not found", req.CollectionID),
+		}
 	}
 
-	mv, err := col.Move(req.LinkID, req.Seq, req.UserID)
+	mv, err := col.move(req.LinkID, req.Seq, req.UserID)
 	if err != nil {
 		return LinkResponse{
 			Status: StatusFailure,
@@ -237,7 +237,7 @@ func (svc *Service) MoveLink(req LinkRequest) LinkResponse {
 		wg.Add(len(mv))
 
 		for _, lnk := range mv {
-			go addLink(req.CollectionID, lnk.ID, req.UserID, nil, lnk.Seq, svc.rd, true, &res, &wg)
+			go addLink(col.ID, lnk.ID, col.Href, lnk.Href, req.UserID, nil, lnk.Seq, svc.rd, true, &res, &wg)
 		}
 
 		if res.Status > 0 {
@@ -252,8 +252,8 @@ func (svc *Service) MoveLink(req LinkRequest) LinkResponse {
 	}
 }
 
-//RemoveLink removes link from collection using goroutines
-func (svc *Service) RemoveLink(req LinkRequest) LinkResponse {
+//RemoveLink removes link from Collection using goroutines
+func (svc *Service) RemoveLink(req MoveRequest) LinkResponse {
 	var (
 		wg  sync.WaitGroup
 		res LinkResponse
@@ -277,7 +277,7 @@ func (svc *Service) RemoveLink(req LinkRequest) LinkResponse {
 	}
 }
 
-func addLink(id string, cid string, uid string, sqch chan int, seq int, db db, rev bool, res *LinkResponse, wg *sync.WaitGroup) {
+func addLink(id string, cid string, href string, chref string, uid string, sqch chan int, seq int, db db, rev bool, res *LinkResponse, wg *sync.WaitGroup) {
 	var (
 		code, pos int
 		result    string
@@ -293,6 +293,7 @@ func addLink(id string, cid string, uid string, sqch chan int, seq int, db db, r
 	} else {
 		if col.ID == "" {
 			col.ID = cid
+			col.Href = chref
 		}
 
 		if rev {
@@ -306,14 +307,14 @@ func addLink(id string, cid string, uid string, sqch chan int, seq int, db db, r
 				code = CodeLinkAddReverseError
 				result = fmt.Sprintf("Invalid sequence: [%d]", pos)
 			} else {
-				_, err = col.AddReversed(id, pos, uid)
+				_, err = col.addReversed(id, pos, href, uid)
 				if err != nil {
 					code = CodeLinkAddReverseError
 					result = err.Error()
 				}
 			}
 		} else {
-			i, err := col.Append(id, uid)
+			i, err := col.append(id, href, uid)
 			if sqch != nil {
 				sqch <- i
 				ch = true
@@ -373,9 +374,9 @@ func removeLink(id string, cid string, uid string, db db, rev bool, res *LinkRes
 	}
 
 	if rev {
-		_, err = col.RemoveReversed(id, uid)
+		_, err = col.removeReversed(id, uid)
 	} else {
-		_, err = col.Remove(id, uid)
+		_, err = col.remove(id, uid)
 	}
 
 	if err != nil {
@@ -397,26 +398,25 @@ func removeLink(id string, cid string, uid string, db db, rev bool, res *LinkRes
 	}
 }
 
-//GetCollection gets collection by its ID
-func (svc *Service) GetCollection(req GetCollectionRequest) GetCollectionResponse {
-	return getCollection(req, svc.db, svc.appl)
+//GetCollection gets Collection by its ID
+func (svc *Service) GetCollection(req CollectionRequest) CollectionResponse {
+	return getCollection(req, svc.db)
 }
 
-//GetReversedCollection gets reverese collection by its ID
-func (svc *Service) GetReversedCollection(req GetCollectionRequest) GetCollectionResponse {
-	return getCollection(req, svc.rd, svc.appl)
+//GetReversedCollection gets reverese Collection by its ID
+func (svc *Service) GetReversedCollection(req CollectionRequest) CollectionResponse {
+	return getCollection(req, svc.rd)
 }
 
-func getCollection(req GetCollectionRequest, db db, appl es.ApplService) GetCollectionResponse {
+func getCollection(req CollectionRequest, db db) CollectionResponse {
 	var (
 		size int
 		ids  []string
-		docs json.Array
 	)
 
 	col, err := db.GetCollection(req.CollectionID)
 	if err != nil {
-		return getFailureResponse(CodeDynamoError, err.Error(), col, docs)
+		return getFailureResponse(CodeDynamoError, err.Error(), col)
 	}
 
 	if col.Links != nil {
@@ -424,7 +424,7 @@ func getCollection(req GetCollectionRequest, db db, appl es.ApplService) GetColl
 	}
 
 	if size == 0 {
-		return getSuccessResponse("Empty collection", col, docs)
+		return getSuccessResponse("Empty Collection", col)
 	}
 
 	ids = make([]string, size)
@@ -432,39 +432,34 @@ func getCollection(req GetCollectionRequest, db db, appl es.ApplService) GetColl
 		ids[i] = link.ID
 	}
 
-	docs, err = appl.GetDocuments(ids, req.Fields)
-	if err != nil {
-		return getFailureResponse(CodeElasticsearchError, err.Error(), col, docs)
-	}
-	return getSuccessResponse("Collection", col, docs)
+	return getSuccessResponse("Collection", col)
 }
 
-func getSuccessResponse(result string, col Collection, docs json.Array) GetCollectionResponse {
-	return GetCollectionResponse{
+func getSuccessResponse(result string, col collection) CollectionResponse {
+	return CollectionResponse{
 		Status:     StatusSuccess,
 		Code:       StatusSuccess,
 		Result:     result,
 		Collection: col,
-		Documents:  docs,
 	}
 }
 
-func getFailureResponse(code int, result string, col Collection, docs json.Array) GetCollectionResponse {
-	return GetCollectionResponse{
+func getFailureResponse(code int, result string, col collection) CollectionResponse {
+	return CollectionResponse{
 		Status:     StatusFailure,
 		Code:       code,
 		Result:     result,
 		Collection: col,
-		Documents:  docs,
 	}
 }
 
-//ToString JSON serializes GetCollectionResponse
-func (res *GetCollectionResponse) ToString() string {
+//String JSON serializes CollectionResponse
+func (res *CollectionResponse) String() string {
 	jo := json.Object{}
 	jo.AddInt("status", res.Status)
 	jo.AddInt("code", res.Code)
 	jo.AddString("result", res.Result)
+	jo.AddString("href", res.Collection.Href)
 
 	ja := json.Array{}
 	if res.Collection.Links != nil {
@@ -472,10 +467,11 @@ func (res *GetCollectionResponse) ToString() string {
 			l := json.Object{}
 			l.AddInt("seq", link.Seq)
 			l.AddString("id", link.ID)
+			l.AddString("href", link.Href)
 
 			upd := json.Object{}
 			upd.AddString("by", link.Updated.ID)
-			upd.AddString("ts", link.Updated.DateTime())
+			upd.AddString("ts", link.Updated.DateTime)
 			l.AddObject("linked", upd)
 
 			ja.AddObject(l)
@@ -483,7 +479,5 @@ func (res *GetCollectionResponse) ToString() string {
 	}
 	jo.AddArray("links", ja)
 
-	jo.AddArray("docs", res.Documents)
-
-	return jo.ToString()
+	return jo.String()
 }
