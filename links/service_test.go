@@ -13,22 +13,30 @@ func TestService(t *testing.T) {
 
 	id := "A"
 	req := LinkRequest{
-		CollectionID:   id,
-		CollectionHref: "/doc",
-		LinkID:         "0",
-		LinkHref:       "/test",
-		UserID:         "YM",
+		Collection: Link{
+			ID:   id,
+			Href: "/doc",
+		},
+		Link: Link{
+			ID:   "0",
+			Href: "/test",
+		},
+		UserID: "YM",
 	}
 	res := svc.AddLink(req)
 	if res.Status != StatusSuccess {
 		t.Error(res.Result)
 	}
 	req = LinkRequest{
-		CollectionID:   id,
-		CollectionHref: "/doc",
-		LinkID:         "1",
-		LinkHref:       "/test",
-		UserID:         "YM",
+		Collection: Link{
+			ID:   id,
+			Href: "/doc",
+		},
+		Link: Link{
+			ID:   "1",
+			Href: "/test",
+		},
+		UserID: "YM",
 	}
 	res = svc.AddLink(req)
 	if res.Status != StatusSuccess {
@@ -43,22 +51,30 @@ func TestService(t *testing.T) {
 
 	id = "B"
 	req = LinkRequest{
-		CollectionID:   id,
-		CollectionHref: "/doc",
-		LinkID:         "0",
-		LinkHref:       "/test",
-		UserID:         "YM",
+		Collection: Link{
+			ID:   id,
+			Href: "/doc",
+		},
+		Link: Link{
+			ID:   "0",
+			Href: "/test",
+		},
+		UserID: "YM",
 	}
 	res = svc.AddLink(req)
 	if res.Status != StatusSuccess {
 		t.Error(res.Result)
 	}
 	req = LinkRequest{
-		CollectionID:   id,
-		CollectionHref: "/doc",
-		LinkID:         "1",
-		LinkHref:       "/link",
-		UserID:         "YM",
+		Collection: Link{
+			ID:   id,
+			Href: "/doc",
+		},
+		Link: Link{
+			ID:   "1",
+			Href: "/test",
+		},
+		UserID: "YM",
 	}
 	res = svc.AddLink(req)
 	if res.Status != StatusSuccess {
@@ -78,8 +94,8 @@ func TestService(t *testing.T) {
 	}
 	fmt.Printf("\n%s should be linked to 2 docs\n", id)
 	fmt.Println(col.String())
-	req = LinkRequest{CollectionID: "A", LinkID: "0", UserID: "YM"}
-	res = svc.MoveLink(req)
+	mreq := MoveRequest{CollectionID: "A", LinkID: "0", UserID: "YM"}
+	res = svc.MoveLink(mreq)
 	if res.Status != StatusSuccess {
 		t.Error(res.Result)
 	}
@@ -99,13 +115,13 @@ func TestService(t *testing.T) {
 	fmt.Println(col.String())
 
 	id = "A"
-	req = LinkRequest{CollectionID: id, LinkID: "0", UserID: "YM"}
-	res = svc.RemoveLink(req)
+	mreq = MoveRequest{CollectionID: id, LinkID: "0", UserID: "YM"}
+	res = svc.RemoveLink(mreq)
 	if res.Status != StatusSuccess {
 		t.Error(res.Result)
 	}
-	req = LinkRequest{CollectionID: id, LinkID: "1", UserID: "YM"}
-	res = svc.RemoveLink(req)
+	mreq = MoveRequest{CollectionID: id, LinkID: "1", UserID: "YM"}
+	res = svc.RemoveLink(mreq)
 	if res.Status != StatusSuccess {
 		t.Error(res.Result)
 	}
@@ -115,13 +131,13 @@ func TestService(t *testing.T) {
 	}
 
 	id = "B"
-	req = LinkRequest{CollectionID: id, LinkID: "0", UserID: "YM"}
-	res = svc.RemoveLink(req)
+	mreq = MoveRequest{CollectionID: id, LinkID: "0", UserID: "YM"}
+	res = svc.RemoveLink(mreq)
 	if res.Status != StatusSuccess {
 		t.Error(res.Result)
 	}
-	req = LinkRequest{CollectionID: id, LinkID: "1", UserID: "YM"}
-	res = svc.RemoveLink(req)
+	mreq = MoveRequest{CollectionID: id, LinkID: "1", UserID: "YM"}
+	res = svc.RemoveLink(mreq)
 	if res.Status != StatusSuccess {
 		t.Error(res.Result)
 	}

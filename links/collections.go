@@ -218,7 +218,7 @@ func (col *Collection) AddReversed(id string, seq int, href string, by string) (
 		if link.ID == id {
 			resize = true
 		} else {
-			if !add && (link.Seq > seq || (link.Seq == seq && link.Updated.Unix <= new.Updated.Unix)) {
+			if !add && (link.Seq > seq || (link.Seq == seq && link.Updated.Timestamp <= new.Updated.Timestamp)) {
 				links[i] = new
 				add = true
 				i++

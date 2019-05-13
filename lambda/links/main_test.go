@@ -3,19 +3,22 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/aws/aws-lambda-go/events"
 )
 
 func Test(t *testing.T) {
-	os.Setenv("ES", "http://proteus-int-all-esclient.aptechdevlab.com:9200")
-
 	body := `
 	{
-		"doc_id": "9b2ca4c1f974e97ae156cd85d26cdea8",
-		"link_id": "a237bc351d894948a00c8da9bcb7fe1e",
+		"doc": {
+			"id": "c37efb6311d54ffa88546ea543a8835b",
+			"href": "http://proteus-searchapi-us-east-1.aptechdevlab.com/api/appl/c37efb6311d54ffa88546ea543a8835b"
+		},
+		"link":{
+			"id": "ec13ae10caca4760a75ce66f00b970e7",
+			"href":"http://proteus-searchapi-us-east-1.aptechdevlab.com/api/appl/ec13ae10caca4760a75ce66f00b970e7"
+		},
 		"user_id": "YM",
 		"seq": 0
 	}`
@@ -30,14 +33,10 @@ func Test(t *testing.T) {
 	bytes, _ := json.MarshalIndent(res, "", "   ")
 	fmt.Println(string(bytes))
 
-	query := make(map[string]string)
-	query["fields"] = "headline,type"
-	query["uid"] = "YM"
 	req = events.APIGatewayProxyRequest{
-		Path:                  "/links/9b2ca4c1f974e97ae156cd85d26cdea8?fields=headline,type&uid=YM",
-		QueryStringParameters: query,
-		HTTPMethod:            "GET",
-		Body:                  body,
+		Path:       "/links/c37efb6311d54ffa88546ea543a8835b",
+		HTTPMethod: "GET",
+		Body:       body,
 	}
 	res, _ = execute(req)
 	fmt.Printf("Status: %v\n", res.StatusCode)
@@ -45,15 +44,22 @@ func Test(t *testing.T) {
 	fmt.Println(string(bytes))
 
 	req = events.APIGatewayProxyRequest{
-		Path:                  "/docs/a237bc351d894948a00c8da9bcb7fe1e?fields=headline,type&uid=YM",
-		QueryStringParameters: query,
-		HTTPMethod:            "GET",
-		Body:                  body,
+		Path:       "/docs/ec13ae10caca4760a75ce66f00b970e7",
+		HTTPMethod: "GET",
+		Body:       body,
 	}
 	res, _ = execute(req)
 	fmt.Printf("Status: %v\n", res.StatusCode)
 	bytes, _ = json.MarshalIndent(res, "", "   ")
 	fmt.Println(string(bytes))
+
+	body = `
+	{
+		"doc_id": "c37efb6311d54ffa88546ea543a8835b",
+		"link_id": "ec13ae10caca4760a75ce66f00b970e7",
+		"user_id": "YM",
+		"seq": 0
+	}`
 
 	req = events.APIGatewayProxyRequest{
 		Path:       "/",
@@ -77,16 +83,22 @@ func Test(t *testing.T) {
 }
 
 func TestReset(t *testing.T) {
-	os.Setenv("ES", "http://proteus-qa-uno-esdata.aptechlab.com:9200")
-
 	body := `
 	{
-		"doc_id": "abe581385c7443de917d8f2ef7ee1cef",
-		"link_ids": [
-		  "7746855033714479a111497686165925",
-		  "94f5a70a66f14a96922dcb0dcc1731f4",
-		  "af71008d5e4b40698c5dc5ad7ad62c3c",
-		  "ede46c4c9a204da3aa0ff1e5bfa28e49"],    
+		"doc": {
+			"id": "c37efb6311d54ffa88546ea543a8835b",
+			"href": "http://proteus-searchapi-us-east-1.aptechdevlab.com/api/appl/c37efb6311d54ffa88546ea543a8835b"
+		},
+		"links": [
+			{ 
+				"id": "256817da7fee4afbae5dedbaa3991d33",
+				"href":"http://proteus-searchapi-us-east-1.aptechdevlab.com/api/appl/256817da7fee4afbae5dedbaa3991d33"
+			},
+			{ 
+				"id": "ec13ae10caca4760a75ce66f00b970e7",
+				"href":"http://proteus-searchapi-us-east-1.aptechdevlab.com/api/appl/ec13ae10caca4760a75ce66f00b970e7"
+			}
+		],    
 		"user_id": "YM"
 	  }`
 

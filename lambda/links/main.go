@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -17,7 +16,7 @@ func main() {
 }
 
 func execute(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	svc, err := links.New(os.Getenv("ES"))
+	svc, err := links.New()
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,
@@ -40,29 +39,28 @@ func execute(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 
 func link(req events.APIGatewayProxyRequest, svc links.Service) events.APIGatewayProxyResponse {
 	var (
-		rq links.LinkRequest
 		rs links.LinkResponse
+		e  string
 	)
-
-	bytes := []byte(req.Body)
-	if err := json.Unmarshal(bytes, &rq); err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusBadRequest,
-			Body:       fmt.Sprintf("Invalid link request [%s]: %s", req.Body, err.Error()),
-		}
-	}
 
 	switch req.HTTPMethod {
 	case "PUT":
-		rs = svc.AddLink(rq)
+		rs, e = add(req, svc)
 	case "POST":
-		rs = svc.MoveLink(rq)
+		rs, e = move(req, svc, false)
 	case "DELETE":
-		rs = svc.RemoveLink(rq)
+		rs, e = move(req, svc, true)
 	default:
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusMethodNotAllowed,
 			Body:       fmt.Sprintf("Method [%s] is not allowed on [%s]", req.HTTPMethod, req.Path),
+		}
+	}
+
+	if e != "" {
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusBadRequest,
+			Body:       e,
 		}
 	}
 
@@ -78,6 +76,32 @@ func link(req events.APIGatewayProxyRequest, svc links.Service) events.APIGatewa
 		StatusCode: rs.Status,
 		Body:       string(body),
 	}
+}
+
+func add(req events.APIGatewayProxyRequest, svc links.Service) (links.LinkResponse, string) {
+	var rq links.LinkRequest
+
+	bytes := []byte(req.Body)
+	if err := json.Unmarshal(bytes, &rq); err != nil {
+		return links.LinkResponse{}, fmt.Sprintf("Invalid link add request [%s]: %s", req.Body, err.Error())
+	}
+
+	return svc.AddLink(rq), ""
+}
+
+func move(req events.APIGatewayProxyRequest, svc links.Service, rm bool) (links.LinkResponse, string) {
+	var rq links.MoveRequest
+
+	bytes := []byte(req.Body)
+	if err := json.Unmarshal(bytes, &rq); err != nil {
+		return links.LinkResponse{}, fmt.Sprintf("Invalid link move request [%s]: %s", req.Body, err.Error())
+	}
+
+	if rm {
+		return svc.RemoveLink(rq), ""
+	}
+
+	return svc.MoveLink(rq), ""
 }
 
 func collection(req events.APIGatewayProxyRequest, svc links.Service) events.APIGatewayProxyResponse {
@@ -102,11 +126,6 @@ func collection(req events.APIGatewayProxyRequest, svc links.Service) events.API
 		}
 	}
 	rq.CollectionID = id
-
-	fields, _ := req.QueryStringParameters["fields"]
-	if fields != "" {
-		rq.Fields = strings.Split(fields, ",")
-	}
 
 	uid, _ := req.QueryStringParameters["uid"]
 	if uid == "" {

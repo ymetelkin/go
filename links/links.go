@@ -6,28 +6,29 @@ import (
 
 //Link struct
 type Link struct {
-	ID      string
-	Seq     int
-	Href    string
+	ID      string `json:"id"`
+	Href    string `json:"href"`
+	Seq     int    `json:"seq"`
 	Updated UpdateHistory
 }
 
 //UpdateHistory struct
 type UpdateHistory struct {
-	ID   string
-	Unix int64
-}
-
-//DateTime returns formatted update time
-func (upd *UpdateHistory) DateTime() string {
-	return time.Unix(upd.Unix, 0).UTC().Format("2006-01-02T15:04:05.000")
+	ID        string `json:"id"`
+	Timestamp int64  `json:"ts"`
+	DateTime  string `json:"dt"`
 }
 
 //NewUpdateHistory constructs new update history
 func NewUpdateHistory(id string) UpdateHistory {
+	now := time.Now()
+	ts := now.Unix()
+	dt := now.UTC().Format("2006-01-02T15:04:05.000")
+
 	return UpdateHistory{
-		ID:   id,
-		Unix: time.Now().Unix(),
+		ID:        id,
+		Timestamp: ts,
+		DateTime:  dt,
 	}
 }
 
