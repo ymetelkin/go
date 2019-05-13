@@ -24,8 +24,8 @@ const (
 
 //LinkRequest link request
 type LinkRequest struct {
-	Collection Link   `json:"doc"`
-	Link       Link   `json:"link"`
+	Collection doc    `json:"doc"`
+	Link       doc    `json:"link"`
 	UserID     string `json:"user_id"`
 }
 
@@ -46,23 +46,23 @@ type MoveRequest struct {
 
 //ResetRequest to reset links for col
 type ResetRequest struct {
-	Collection Link   `json:"doc"`
-	Links      []Link `json:"links"`
+	Collection doc    `json:"doc"`
+	Links      []doc  `json:"links"`
 	UserID     string `json:"user_id"`
 }
 
-//GetCollectionRequest get collection from db and es request
-type GetCollectionRequest struct {
+//CollectionRequest get collection from db and es request
+type CollectionRequest struct {
 	CollectionID string `json:"doc_id"`
 	UserID       string `json:"user_id"`
 }
 
-//GetCollectionResponse get collection from db and es response
-type GetCollectionResponse struct {
+//CollectionResponse get collection from db and es response
+type CollectionResponse struct {
 	Status     int
 	Code       int
 	Result     string
-	Collection Collection
+	Collection collection
 }
 
 //Service is links facade
@@ -117,7 +117,7 @@ func (svc *Service) ResetLinks(req ResetRequest) LinkResponse {
 		}
 	}
 
-	rms := []Link{}
+	rms := []link{}
 	if col.Links != nil && len(col.Links) > 0 {
 		for _, lnk := range col.Links {
 			var exists bool
@@ -136,17 +136,12 @@ func (svc *Service) ResetLinks(req ResetRequest) LinkResponse {
 	c1 := len(rms)
 	c2 := len(req.Links)
 
-	upd := NewUpdateHistory(req.UserID)
-	links := make([]Link, c2)
+	upd := newAudit(req.UserID)
+	links := make([]link, c2)
 	for i, l := range req.Links {
-		links[i] = Link{
-			ID:      l.ID,
-			Href:    l.Href,
-			Seq:     i,
-			Updated: upd,
-		}
+		links[i] = newLink(l.ID, i, l.Href, upd)
 	}
-	col = Collection{
+	col = collection{
 		ID:      req.Collection.ID,
 		Href:    req.Collection.Href,
 		Links:   links,
@@ -196,7 +191,7 @@ func (svc *Service) ResetLinks(req ResetRequest) LinkResponse {
 	}
 }
 
-//MoveLink moves link in collection
+//MoveLink moves link in Collection
 func (svc *Service) MoveLink(req MoveRequest) LinkResponse {
 	col, err := svc.db.GetCollection(req.CollectionID)
 	if err != nil {
@@ -215,7 +210,7 @@ func (svc *Service) MoveLink(req MoveRequest) LinkResponse {
 		}
 	}
 
-	mv, err := col.Move(req.LinkID, req.Seq, req.UserID)
+	mv, err := col.move(req.LinkID, req.Seq, req.UserID)
 	if err != nil {
 		return LinkResponse{
 			Status: StatusFailure,
@@ -257,7 +252,7 @@ func (svc *Service) MoveLink(req MoveRequest) LinkResponse {
 	}
 }
 
-//RemoveLink removes link from collection using goroutines
+//RemoveLink removes link from Collection using goroutines
 func (svc *Service) RemoveLink(req MoveRequest) LinkResponse {
 	var (
 		wg  sync.WaitGroup
@@ -312,14 +307,14 @@ func addLink(id string, cid string, href string, chref string, uid string, sqch 
 				code = CodeLinkAddReverseError
 				result = fmt.Sprintf("Invalid sequence: [%d]", pos)
 			} else {
-				_, err = col.AddReversed(id, pos, href, uid)
+				_, err = col.addReversed(id, pos, href, uid)
 				if err != nil {
 					code = CodeLinkAddReverseError
 					result = err.Error()
 				}
 			}
 		} else {
-			i, err := col.Append(id, href, uid)
+			i, err := col.append(id, href, uid)
 			if sqch != nil {
 				sqch <- i
 				ch = true
@@ -379,9 +374,9 @@ func removeLink(id string, cid string, uid string, db db, rev bool, res *LinkRes
 	}
 
 	if rev {
-		_, err = col.RemoveReversed(id, uid)
+		_, err = col.removeReversed(id, uid)
 	} else {
-		_, err = col.Remove(id, uid)
+		_, err = col.remove(id, uid)
 	}
 
 	if err != nil {
@@ -403,17 +398,17 @@ func removeLink(id string, cid string, uid string, db db, rev bool, res *LinkRes
 	}
 }
 
-//GetCollection gets collection by its ID
-func (svc *Service) GetCollection(req GetCollectionRequest) GetCollectionResponse {
+//GetCollection gets Collection by its ID
+func (svc *Service) GetCollection(req CollectionRequest) CollectionResponse {
 	return getCollection(req, svc.db)
 }
 
-//GetReversedCollection gets reverese collection by its ID
-func (svc *Service) GetReversedCollection(req GetCollectionRequest) GetCollectionResponse {
+//GetReversedCollection gets reverese Collection by its ID
+func (svc *Service) GetReversedCollection(req CollectionRequest) CollectionResponse {
 	return getCollection(req, svc.rd)
 }
 
-func getCollection(req GetCollectionRequest, db db) GetCollectionResponse {
+func getCollection(req CollectionRequest, db db) CollectionResponse {
 	var (
 		size int
 		ids  []string
@@ -429,7 +424,7 @@ func getCollection(req GetCollectionRequest, db db) GetCollectionResponse {
 	}
 
 	if size == 0 {
-		return getSuccessResponse("Empty collection", col)
+		return getSuccessResponse("Empty Collection", col)
 	}
 
 	ids = make([]string, size)
@@ -440,8 +435,8 @@ func getCollection(req GetCollectionRequest, db db) GetCollectionResponse {
 	return getSuccessResponse("Collection", col)
 }
 
-func getSuccessResponse(result string, col Collection) GetCollectionResponse {
-	return GetCollectionResponse{
+func getSuccessResponse(result string, col collection) CollectionResponse {
+	return CollectionResponse{
 		Status:     StatusSuccess,
 		Code:       StatusSuccess,
 		Result:     result,
@@ -449,8 +444,8 @@ func getSuccessResponse(result string, col Collection) GetCollectionResponse {
 	}
 }
 
-func getFailureResponse(code int, result string, col Collection) GetCollectionResponse {
-	return GetCollectionResponse{
+func getFailureResponse(code int, result string, col collection) CollectionResponse {
+	return CollectionResponse{
 		Status:     StatusFailure,
 		Code:       code,
 		Result:     result,
@@ -458,8 +453,8 @@ func getFailureResponse(code int, result string, col Collection) GetCollectionRe
 	}
 }
 
-//String JSON serializes GetCollectionResponse
-func (res *GetCollectionResponse) String() string {
+//String JSON serializes CollectionResponse
+func (res *CollectionResponse) String() string {
 	jo := json.Object{}
 	jo.AddInt("status", res.Status)
 	jo.AddInt("code", res.Code)

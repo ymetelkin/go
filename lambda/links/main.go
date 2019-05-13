@@ -107,8 +107,8 @@ func move(req events.APIGatewayProxyRequest, svc links.Service, rm bool) (links.
 func collection(req events.APIGatewayProxyRequest, svc links.Service) events.APIGatewayProxyResponse {
 	var (
 		action, id string
-		rq         links.GetCollectionRequest
-		rs         links.GetCollectionResponse
+		rq         links.CollectionRequest
+		rs         links.CollectionResponse
 	)
 
 	tokens := strings.Split(req.Path, "?")

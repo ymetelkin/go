@@ -13,11 +13,11 @@ func TestService(t *testing.T) {
 
 	id := "A"
 	req := LinkRequest{
-		Collection: Link{
+		Collection: doc{
 			ID:   id,
 			Href: "/doc",
 		},
-		Link: Link{
+		Link: doc{
 			ID:   "0",
 			Href: "/test",
 		},
@@ -28,11 +28,11 @@ func TestService(t *testing.T) {
 		t.Error(res.Result)
 	}
 	req = LinkRequest{
-		Collection: Link{
+		Collection: doc{
 			ID:   id,
 			Href: "/doc",
 		},
-		Link: Link{
+		Link: doc{
 			ID:   "1",
 			Href: "/test",
 		},
@@ -42,7 +42,7 @@ func TestService(t *testing.T) {
 	if res.Status != StatusSuccess {
 		t.Error(res.Result)
 	}
-	col := svc.GetCollection(GetCollectionRequest{CollectionID: id})
+	col := svc.GetCollection(CollectionRequest{CollectionID: id})
 	if res.Status != StatusSuccess {
 		t.Error(res.Result)
 	}
@@ -51,11 +51,11 @@ func TestService(t *testing.T) {
 
 	id = "B"
 	req = LinkRequest{
-		Collection: Link{
+		Collection: doc{
 			ID:   id,
 			Href: "/doc",
 		},
-		Link: Link{
+		Link: doc{
 			ID:   "0",
 			Href: "/test",
 		},
@@ -66,11 +66,11 @@ func TestService(t *testing.T) {
 		t.Error(res.Result)
 	}
 	req = LinkRequest{
-		Collection: Link{
+		Collection: doc{
 			ID:   id,
 			Href: "/doc",
 		},
-		Link: Link{
+		Link: doc{
 			ID:   "1",
 			Href: "/test",
 		},
@@ -80,7 +80,7 @@ func TestService(t *testing.T) {
 	if res.Status != StatusSuccess {
 		t.Error(res.Result)
 	}
-	col = svc.GetCollection(GetCollectionRequest{CollectionID: id})
+	col = svc.GetCollection(CollectionRequest{CollectionID: id})
 	if res.Status != StatusSuccess {
 		t.Error(res.Result)
 	}
@@ -88,7 +88,7 @@ func TestService(t *testing.T) {
 	fmt.Println(col.String())
 
 	id = "0"
-	col = svc.GetReversedCollection(GetCollectionRequest{CollectionID: id})
+	col = svc.GetReversedCollection(CollectionRequest{CollectionID: id})
 	if res.Status != StatusSuccess {
 		t.Error(res.Result)
 	}
@@ -99,7 +99,7 @@ func TestService(t *testing.T) {
 	if res.Status != StatusSuccess {
 		t.Error(res.Result)
 	}
-	col = svc.GetReversedCollection(GetCollectionRequest{CollectionID: id})
+	col = svc.GetReversedCollection(CollectionRequest{CollectionID: id})
 	if res.Status != StatusSuccess {
 		t.Error(res.Result)
 	}
@@ -107,7 +107,7 @@ func TestService(t *testing.T) {
 	fmt.Println(col.String())
 
 	id = "1"
-	col = svc.GetReversedCollection(GetCollectionRequest{CollectionID: id})
+	col = svc.GetReversedCollection(CollectionRequest{CollectionID: id})
 	if res.Status != StatusSuccess {
 		t.Error(res.Result)
 	}
@@ -125,7 +125,7 @@ func TestService(t *testing.T) {
 	if res.Status != StatusSuccess {
 		t.Error(res.Result)
 	}
-	col = svc.GetReversedCollection(GetCollectionRequest{CollectionID: id})
+	col = svc.GetReversedCollection(CollectionRequest{CollectionID: id})
 	if res.Status != StatusSuccess {
 		t.Error(res.Result)
 	}
@@ -141,7 +141,7 @@ func TestService(t *testing.T) {
 	if res.Status != StatusSuccess {
 		t.Error(res.Result)
 	}
-	col = svc.GetReversedCollection(GetCollectionRequest{CollectionID: id})
+	col = svc.GetReversedCollection(CollectionRequest{CollectionID: id})
 	if res.Status != StatusSuccess {
 		t.Error(res.Result)
 	}
