@@ -110,7 +110,11 @@ func (col *Collection) Move(id string, pos int, by string) ([]Link, error) {
 
 	for i, link := range col.Links {
 		if i == pos {
-			lnk = Link{ID: id, Seq: pos}
+			lnk = Link{
+				ID:      id,
+				Seq:     pos,
+				Updated: NewUpdateHistory(by),
+			}
 		} else {
 			if pos < cur { //moving left
 				if i < pos || i > cur {

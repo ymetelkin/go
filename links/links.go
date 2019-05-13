@@ -8,6 +8,7 @@ import (
 type Link struct {
 	ID      string
 	Seq     int
+	Href    string
 	Updated UpdateHistory
 }
 

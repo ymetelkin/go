@@ -264,6 +264,11 @@ func (jo *Object) IsEmpty() bool {
 	return false
 }
 
+//Names returns all field names
+func (jo *Object) Names() []string {
+	return jo.names
+}
+
 //ToString returns pretty serialization
 func (jo *Object) ToString() string {
 	return jo.toString(true, 0)

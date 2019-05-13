@@ -64,27 +64,23 @@ func ParseJSONArray(s string) (Array, error) {
 }
 
 func parseJSONValue(s string, parameterize bool) (value, error) {
-	s = strings.Trim(s, " ")
-	if s == "" {
-		return value{}, errors.New("Missing string input")
-	}
-
 	runes := []rune(s)
 	size := len(runes)
+	r, i := skipWhitespace(runes, size, 0)
 
 	if size < 2 {
 		return value{}, errors.New("Invalid string input")
 	}
 
-	if runes[0] == tokenLeftCurly {
-		jo, _, err := parseObject(runes, size, 0, parameterize)
+	if r == tokenLeftCurly {
+		jo, _, err := parseObject(runes, size, i, parameterize)
 
 		if err != nil {
 			return value{}, err
 		}
 		return newObject(jo), nil
 	} else if runes[0] == tokenLeftSquare {
-		ja, _, err := parseArray(runes, size, 0, false)
+		ja, _, err := parseArray(runes, size, i, false)
 
 		if err != nil {
 			return value{}, err
