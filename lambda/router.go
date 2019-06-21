@@ -7,7 +7,9 @@ import (
 )
 
 //Handler is a function used by lambda
-type Handler func(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error)
+type Handler interface {
+	Execute() (events.APIGatewayProxyResponse, error)
+}
 
 //ProxyRouter manages routes mapping ang matching
 type ProxyRouter struct {
@@ -15,18 +17,22 @@ type ProxyRouter struct {
 }
 
 //Add adds a handler mapped to HTTP method and path
-func (pr *ProxyRouter) Add(method string, path string, handler Handler) {
+func (pr *ProxyRouter) Add(path string, method string, handler Handler) {
 	if pr.routes == nil {
 		pr.routes = make(map[string]map[string]Handler)
 	}
 
-	hs, ok := pr.routes[method]
+	if !strings.HasPrefix(path, "/") {
+		path = "/" + path
+	}
+
+	hs, ok := pr.routes[path]
 	if !ok {
 		hs = make(map[string]Handler)
 	}
 
-	hs[path] = handler
-	pr.routes[method] = hs
+	hs[method] = handler
+	pr.routes[path] = hs
 }
 
 //GetHandler maps handler from router map
@@ -42,11 +48,6 @@ func (pr *ProxyRouter) GetHandler(req events.APIGatewayProxyRequest) (Handler, b
 		return h, ok
 	}
 
-	hs, ok = pr.routes[req.HTTPMethod]
-	if !ok {
-		return h, ok
-	}
-
 	if req.PathParameters != nil {
 		path, _ = req.PathParameters["proxy"]
 		if path != "" {
@@ -59,6 +60,11 @@ func (pr *ProxyRouter) GetHandler(req events.APIGatewayProxyRequest) (Handler, b
 		path = "/" + path
 	}
 
-	h, ok = hs[path]
+	hs, ok = pr.routes[path]
+	if !ok {
+		return h, ok
+	}
+
+	h, ok = hs[req.HTTPMethod]
 	return h, ok
 }
