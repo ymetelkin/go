@@ -163,7 +163,7 @@ func (tr *Transform) setToJSON(st set) json.Object {
 	qs := json.Array{}
 	nots := json.Array{}
 
-	//st.flattenQueries()
+	st.flattenQueries()
 
 	if st.Queries != nil && len(st.Queries) > 0 {
 		for _, q := range st.Queries {

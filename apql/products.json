@@ -1,0 +1,538 @@
+[
+  {
+    "_index": "products_20190513070037",
+    "_type": "queries",
+    "_id": "1",
+    "_score": null,
+    "_source": {
+      "product_query": {
+        "bool": {
+          "must_not": {
+            "term": {
+              "signals": "heartbeat"
+            }
+          },
+          "must": [
+            {
+              "exists": {
+                "field": "type"
+              }
+            },
+            {
+              "term": {
+                "transmissionsources": "notmemberfeed"
+              }
+            }
+          ]
+        }
+      },
+      "product_apql": "@mediatype=* AND @transmissionsource = NotMemberFeed AND @signal != Heartbeat"
+    },
+    "sort": [
+      1
+    ]
+  },
+  {
+    "_index": "products_20190513070037",
+    "_type": "queries",
+    "_id": "2",
+    "_score": null,
+    "_source": {
+      "product_query": {
+        "bool": {
+          "must_not": {
+            "term": {
+              "signals": "heartbeat"
+            }
+          },
+          "must": [
+            {
+              "term": {
+                "type": "photo"
+              }
+            },
+            {
+              "term": {
+                "transmissionsources": "notmemberfeed"
+              }
+            }
+          ]
+        }
+      },
+      "product_apql": "@mediatype=photo AND @transmissionsource = NotMemberFeed AND @signal != Heartbeat"
+    },
+    "sort": [
+      2
+    ]
+  },
+  {
+    "_index": "products_20190513070037",
+    "_type": "queries",
+    "_id": "3",
+    "_score": null,
+    "_source": {
+      "product_query": {
+        "bool": {
+          "must_not": {
+            "term": {
+              "signals": "heartbeat"
+            }
+          },
+          "must": [
+            {
+              "term": {
+                "type": "text"
+              }
+            },
+            {
+              "term": {
+                "transmissionsources": "notmemberfeed"
+              }
+            }
+          ]
+        }
+      },
+      "product_apql": "@mediatype=text AND @transmissionsource = NotMemberFeed AND @signal != Heartbeat"
+    },
+    "sort": [
+      3
+    ]
+  },
+  {
+    "_index": "products_20190513070037",
+    "_type": "queries",
+    "_id": "4",
+    "_score": null,
+    "_source": {
+      "product_query": {
+        "bool": {
+          "must_not": {
+            "term": {
+              "signals": "heartbeat"
+            }
+          },
+          "must": [
+            {
+              "term": {
+                "type": "graphic"
+              }
+            },
+            {
+              "term": {
+                "transmissionsources": "notmemberfeed"
+              }
+            }
+          ]
+        }
+      },
+      "product_apql": "@mediatype=graphic AND @transmissionsource = NotMemberFeed AND @signal != Heartbeat"
+    },
+    "sort": [
+      4
+    ]
+  },
+  {
+    "_index": "products_20190513070037",
+    "_type": "queries",
+    "_id": "5",
+    "_score": null,
+    "_source": {
+      "product_query": {
+        "bool": {
+          "must_not": {
+            "term": {
+              "signals": "heartbeat"
+            }
+          },
+          "must": [
+            {
+              "term": {
+                "type": "audio"
+              }
+            },
+            {
+              "term": {
+                "transmissionsources": "notmemberfeed"
+              }
+            }
+          ]
+        }
+      },
+      "product_apql": "@mediatype=audio AND @transmissionsource = NotMemberFeed AND @signal != Heartbeat"
+    },
+    "sort": [
+      5
+    ]
+  },
+  {
+    "_index": "products_20190513070037",
+    "_type": "queries",
+    "_id": "6",
+    "_score": null,
+    "_source": {
+      "product_query": {
+        "bool": {
+          "must_not": {
+            "term": {
+              "signals": "heartbeat"
+            }
+          },
+          "must": [
+            {
+              "term": {
+                "type": "video"
+              }
+            },
+            {
+              "term": {
+                "transmissionsources": "notmemberfeed"
+              }
+            }
+          ]
+        }
+      },
+      "product_apql": "@mediatype=video AND @transmissionsource = NotMemberFeed AND @signal != Heartbeat"
+    },
+    "sort": [
+      6
+    ]
+  },
+  {
+    "_index": "products_20190513070037",
+    "_type": "queries",
+    "_id": "7",
+    "_score": null,
+    "_source": {
+      "product_query": {
+        "bool": {
+          "must_not": {
+            "term": {
+              "signals": "heartbeat"
+            }
+          },
+          "must": [
+            {
+              "term": {
+                "type": "complexdata"
+              }
+            },
+            {
+              "term": {
+                "transmissionsources": "interactives"
+              }
+            }
+          ]
+        }
+      },
+      "product_apql": "@mediaType=ComplexData and @transmissionsource = Interactives AND @signal != Heartbeat"
+    },
+    "sort": [
+      7
+    ]
+  },
+  {
+    "_index": "products_20190513070037",
+    "_type": "queries",
+    "_id": "10",
+    "_score": null,
+    "_source": {
+      "product_query": {
+        "bool": {
+          "must_not": [
+            {
+              "term": {
+                "filings.transmissionreference": "xgrbank"
+              }
+            },
+            {
+              "term": {
+                "transmissionsources": "memberfeed"
+              }
+            }
+          ],
+          "must": {
+            "terms": {
+              "transmissionsources": [
+                "livephoto",
+                "archivephoto"
+              ]
+            }
+          }
+        }
+      },
+      "product_apql": "(@transmissionsource=livephoto or @transmissionsource=archivephoto) AND @transref != xgrbank AND @transmissionsource != MemberFeed "
+    },
+    "sort": [
+      10
+    ]
+  },
+  {
+    "_index": "products_20190513070037",
+    "_type": "queries",
+    "_id": "8976",
+    "_score": null,
+    "_source": {
+      "product_query": {
+        "bool": {
+          "must_not": [
+            {
+              "term": {
+                "filings.filingsource": "atomizer"
+              }
+            },
+            {
+              "term": {
+                "signals": "heartbeat"
+              }
+            },
+            {
+              "term": {
+                "compositiontype": "standardbroadcastvideo"
+              }
+            },
+            {
+              "term": {
+                "transmissionsources": "restoredfromarchive"
+              }
+            }
+          ],
+          "must": [
+            {
+              "term": {
+                "type": "video"
+              }
+            },
+            {
+              "bool": {
+                "should": [
+                  {
+                    "match": {
+                      "sources.name": "aptn"
+                    }
+                  },
+                  {
+                    "match": {
+                      "sources.name": "pool"
+                    }
+                  },
+                  {
+                    "match": {
+                      "sources.name": "aptv"
+                    }
+                  },
+                  {
+                    "match": {
+                      "sources.name": "dod"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "sources.name": "Agency Common"
+                    }
+                  },
+                  {
+                    "match": {
+                      "sources.name": "nasa"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "sources.name": "Iraqi TV"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "sources.name": "US Coastguard"
+                    }
+                  },
+                  {
+                    "match": {
+                      "sources.name": "ap"
+                    }
+                  },
+                  {
+                    "match": {
+                      "sources.name": "wtn"
+                    }
+                  },
+                  {
+                    "match": {
+                      "sources.name": "pentagon"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "sources.name": "White House"
+                    }
+                  },
+                  {
+                    "match": {
+                      "sources.name": "usia"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "sources.name": "Universal Archives"
+                    }
+                  },
+                  {
+                    "match": {
+                      "sources.name": "fema"
+                    }
+                  },
+                  {
+                    "match": {
+                      "sources.name": "fbi"
+                    }
+                  },
+                  {
+                    "match": {
+                      "sources.name": "noaa"
+                    }
+                  },
+                  {
+                    "match": {
+                      "sources.name": "upi"
+                    }
+                  },
+                  {
+                    "match": {
+                      "sources.name": "upitn"
+                    }
+                  },
+                  {
+                    "match": {
+                      "sources.name": "dea"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "sources.name": "US National Archive"
+                    }
+                  },
+                  {
+                    "match": {
+                      "sources.name": "lib.ag"
+                    }
+                  },
+                  {
+                    "match": {
+                      "sources.name": "usaf"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "sources.name": "Iraqi Special Tribunal"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "sources.name": "Martin Himel"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "sources.name": "Department of Defense"
+                    }
+                  },
+                  {
+                    "match": {
+                      "sources.name": "nato"
+                    }
+                  },
+                  {
+                    "match": {
+                      "sources.name": "matched"
+                    }
+                  },
+                  {
+                    "match": {
+                      "sources.name": "jst"
+                    }
+                  },
+                  {
+                    "match": {
+                      "sources.name": "jvt"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "sources.name": "AP Television"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "sources.name": "AP Television News"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "sources.name": "AP Ents"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "sources.name": "AP Entertainment"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "sources.name": "ASSOCIATED PRESS"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "term": {
+                "transmissionsources": "notmemberfeed"
+              }
+            }
+          ]
+        }
+      },
+      "product_apql": "@mediatype = video AND (@source = APTN OR @source = POOL OR @source = APTV OR @source = DoD OR @source = \"Agency Common\" OR @source = NASA OR @source = \"Iraqi TV\" OR @source = \"US Coastguard\" OR @source = AP OR @source = WTN OR @source = Pentagon OR @source = \"White House\" OR @source = USIA OR @source = \"Universal Archives\" OR @source = FEMA OR @source = FBI OR @source = NOAA OR @source = UPI OR @source = UPITN OR @source = DEA OR @source = \"US National Archive\" OR @source = Lib.Ag OR @source = USAF OR @source = \"Iraqi Special Tribunal\" OR @source = \"Martin Himel\" OR @source = \"Department of Defense\" OR @source = NATO OR @source = Matched OR @source = JST OR @source = JVT OR @source = \"AP Television\" OR @source = \"AP Television News\" OR @source = \"AP Ents\" OR @source = \"AP Entertainment\" OR @source = \"ASSOCIATED PRESS\") AND @filingsource != atomizer AND @signal != Heartbeat AND @transmissionsource = NotMemberFeed AND @compositiontype !=StandardBroadcastVideo AND @transmissionsource != RestoredFromArchive"
+    },
+    "sort": [
+      8976
+    ]
+  },
+  {
+    "_index": "products_20190513070037",
+    "_type": "queries",
+    "_id": "8977",
+    "_score": null,
+    "_source": {
+      "product_query": {
+        "bool": {
+          "must_not": {
+            "term": {
+              "transmissionsources": "restoredfromarchive"
+            }
+          },
+          "must": [
+            {
+              "term": {
+                "type": "video"
+              }
+            },
+            {
+              "match": {
+                "sources.name": "ctv"
+              }
+            },
+            {
+              "term": {
+                "transmissionsources": "notmemberfeed"
+              }
+            }
+          ]
+        }
+      },
+      "product_apql": "@mediatype = video AND @source = CTV AND @transmissionsource = NotMemberFeed AND @transmissionsource != RestoredFromArchive"
+    },
+    "sort": [
+      8977
+    ]
+  }
+]
