@@ -13,40 +13,27 @@ type Handler interface {
 
 //ProxyRouter manages routes mapping ang matching
 type ProxyRouter struct {
-	routes map[string]map[string]Handler
+	routes *routeNode
 }
 
 //Add adds a handler mapped to HTTP method and path
-func (pr *ProxyRouter) Add(path string, method string, handler Handler) {
+func (pr *ProxyRouter) Add(pattern string, method string, handler Handler) error {
 	if pr.routes == nil {
-		pr.routes = make(map[string]map[string]Handler)
+		pr.routes = newRouteTree()
 	}
 
-	if !strings.HasPrefix(path, "/") {
-		path = "/" + path
-	}
-
-	hs, ok := pr.routes[path]
-	if !ok {
-		hs = make(map[string]Handler)
-	}
-
-	hs[method] = handler
-	pr.routes[path] = hs
+	return pr.routes.Add(pattern, method, handler)
 }
 
 //GetHandler maps handler from router map
-func (pr *ProxyRouter) GetHandler(req events.APIGatewayProxyRequest) (Handler, bool) {
+func (pr *ProxyRouter) GetHandler(req events.APIGatewayProxyRequest) (RouteMatch, bool) {
+	if pr.routes == nil {
+		return RouteMatch{}, false
+	}
+
 	var (
-		hs   map[string]Handler
-		h    Handler
-		ok   bool
 		path string
 	)
-
-	if pr.routes == nil {
-		return h, ok
-	}
 
 	if req.PathParameters != nil {
 		path, _ = req.PathParameters["proxy"]
@@ -56,15 +43,5 @@ func (pr *ProxyRouter) GetHandler(req events.APIGatewayProxyRequest) (Handler, b
 		}
 	}
 
-	if !strings.HasPrefix(path, "/") {
-		path = "/" + path
-	}
-
-	hs, ok = pr.routes[path]
-	if !ok {
-		return h, ok
-	}
-
-	h, ok = hs[req.HTTPMethod]
-	return h, ok
+	return pr.routes.Match(path, req.HTTPMethod)
 }
