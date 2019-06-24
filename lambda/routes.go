@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/aws/aws-lambda-go/events"
 )
 
 const (
@@ -27,16 +29,71 @@ type routeNode struct {
 	Nodes    []*routeNode
 }
 
-//RouteMatch contains handler and route parameters
-type RouteMatch struct {
-	Params  map[string]string
-	Handler Handler
+//Router manages routes mapping ang matching
+type Router struct {
+	routes *routeNode
+}
+
+//Handler function to execute by lambda
+type Handler func(req Request) (events.APIGatewayProxyResponse, error)
+
+//Request contains handler and route parameters
+type Request struct {
+	Method         string
+	Path           string
+	PathParameters map[string]string
+	Body           string
+	handler        Handler
+}
+
+//Execute executes handler
+func (req *Request) Execute() (events.APIGatewayProxyResponse, error) {
+	return req.handler(*req)
 }
 
 func newRouteTree() *routeNode {
 	return &routeNode{
 		Handlers: make(map[string]Handler),
 	}
+}
+
+//Add adds a handler mapped to HTTP method and path
+func (rt *Router) Add(pattern string, method string, handler Handler) error {
+	if rt.routes == nil {
+		rt.routes = newRouteTree()
+	}
+
+	return rt.routes.Add(pattern, method, handler)
+}
+
+//GetRequest maps lambda request from router map
+func (rt *Router) GetRequest(req events.APIGatewayProxyRequest, proxy bool) (Request, bool) {
+	if rt.routes == nil {
+		return Request{}, false
+	}
+
+	var (
+		path string
+	)
+
+	if proxy {
+		if req.PathParameters != nil {
+			path, _ = req.PathParameters["proxy"]
+			if path != "" {
+				toks := strings.Split(path, "?")
+				path = strings.TrimSuffix(toks[0], "/")
+			}
+		}
+	} else {
+		path = req.Path
+	}
+
+	r, ok := rt.routes.Match(path, req.HTTPMethod)
+	if ok {
+		r.Body = req.Body
+	}
+
+	return r, ok
 }
 
 func (tree *routeNode) Add(pattern string, method string, handler Handler) error {
@@ -117,14 +174,17 @@ func (tree *routeNode) Add(pattern string, method string, handler Handler) error
 	return nil
 }
 
-func (tree *routeNode) Match(path string, method string) (RouteMatch, bool) {
+func (tree *routeNode) Match(path string, method string) (Request, bool) {
 	var (
 		node   = tree
 		params = make(map[string]string)
+		toks   []string
 	)
 
 	for _, tok := range strings.Split(path, "/") {
 		if tok != "" {
+			toks = append(toks, tok)
+
 			var (
 				found bool
 			)
@@ -150,7 +210,7 @@ func (tree *routeNode) Match(path string, method string) (RouteMatch, bool) {
 			}
 
 			if !found {
-				return RouteMatch{}, false
+				return Request{}, false
 			}
 		}
 	}
@@ -166,13 +226,15 @@ func (tree *routeNode) Match(path string, method string) (RouteMatch, bool) {
 	}
 
 	if node.Handlers == nil {
-		return RouteMatch{}, false
+		return Request{}, false
 	}
 
 	h, ok := node.Handlers[method]
 
-	return RouteMatch{
-		Handler: h,
-		Params:  params,
+	return Request{
+		handler:        h,
+		Method:         method,
+		Path:           "/" + strings.Join(toks, "/"),
+		PathParameters: params,
 	}, ok
 }
