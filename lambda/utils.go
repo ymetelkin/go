@@ -19,8 +19,17 @@ type canary struct {
 	Error         error
 }
 
-//Fail returns response, error and logs ERROR
-func Fail(status int, err error, fatal bool) (events.APIGatewayProxyResponse, error) {
+//Success returns positive response
+func Success(body string) (events.APIGatewayProxyResponse, error) {
+	return events.APIGatewayProxyResponse{
+		Headers:    map[string]string{"content-type": "application/json"},
+		StatusCode: 200,
+		Body:       body,
+	}, nil
+}
+
+//Failure returns response, error and logs ERROR
+func Failure(status int, err error, fatal bool) (events.APIGatewayProxyResponse, error) {
 	var extra string
 
 	body := err.Error()

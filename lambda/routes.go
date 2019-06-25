@@ -2,6 +2,7 @@ package lambda
 
 import (
 	"fmt"
+	"log"
 	"sort"
 	"strings"
 
@@ -46,8 +47,9 @@ type Request struct {
 	handler        Handler
 }
 
-//Execute executes handler
+//Execute runs handler
 func (req *Request) Execute() (events.APIGatewayProxyResponse, error) {
+	log.Printf("%s: %s\n%s", req.Method, req.Path, req.Body)
 	return req.handler(*req)
 }
 
@@ -91,9 +93,36 @@ func (rt *Router) GetRequest(req events.APIGatewayProxyRequest, proxy bool) (Req
 	r, ok := rt.routes.Match(path, req.HTTPMethod)
 	if ok {
 		r.Body = req.Body
+	} else {
+		if !strings.HasPrefix(path, "/") {
+			path = "/" + path
+		}
+		r.Path = path
+	}
+
+	if req.QueryStringParameters != nil {
+		if r.PathParameters == nil {
+			r.PathParameters = req.QueryStringParameters
+		} else {
+			for k, v := range req.QueryStringParameters {
+				_, ok := r.PathParameters[k]
+				if !ok {
+					r.PathParameters[k] = v
+				}
+			}
+		}
 	}
 
 	return r, ok
+}
+
+//Execute executes lambda request
+func (rt *Router) Execute(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	rq, ok := rt.GetRequest(req, true)
+	if !ok {
+		return Failure(404, fmt.Errorf("Invalid endpoint: /%s", rq.Path), false)
+	}
+	return rq.Execute()
 }
 
 func (tree *routeNode) Add(pattern string, method string, handler Handler) error {

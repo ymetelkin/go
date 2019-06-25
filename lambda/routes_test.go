@@ -16,10 +16,7 @@ func f(params ...string) (events.APIGatewayProxyResponse, error) {
 		sb.WriteString(" ")
 	}
 
-	return events.APIGatewayProxyResponse{
-		StatusCode: 200,
-		Body:       sb.String(),
-	}, nil
+	return Success(sb.String())
 }
 
 func f0(req Request) (events.APIGatewayProxyResponse, error) {
