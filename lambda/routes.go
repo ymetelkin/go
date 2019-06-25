@@ -132,7 +132,7 @@ func (tree *routeNode) Add(pattern string, method string, handler Handler) error
 	for _, tok := range toks {
 		if tok != "" {
 			var (
-				tmp routeNode
+				tmp = &routeNode{}
 				ok  bool
 			)
 
@@ -168,7 +168,7 @@ func (tree *routeNode) Add(pattern string, method string, handler Handler) error
 
 			for _, nd := range node.Nodes {
 				if nd.Text == tmp.Text && nd.Type == tmp.Type {
-					tmp = *nd
+					tmp = nd
 					ok = true
 					break
 				}
@@ -176,17 +176,17 @@ func (tree *routeNode) Add(pattern string, method string, handler Handler) error
 
 			if !ok {
 				if len(node.Nodes) > 0 {
-					nodes := append(node.Nodes, &tmp)
+					nodes := append(node.Nodes, tmp)
 					sort.Slice(nodes, func(i, j int) bool {
 						return nodes[i].Type < nodes[j].Type
 					})
 					node.Nodes = nodes
 				} else {
-					node.Nodes = []*routeNode{&tmp}
+					node.Nodes = []*routeNode{tmp}
 				}
 			}
 
-			node = &tmp
+			node = tmp
 		}
 	}
 

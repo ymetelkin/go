@@ -35,6 +35,8 @@ func TestRoutes(t *testing.T) {
 	rt.Add("/crud", "DELETE", f0)
 	rt.Add("/links/{id}", "GET", f1)
 	rt.Add("/optional/{id?a}", "GET", f1)
+	rt.Add("/linking/crud", "DELETE", f0)
+	rt.Add("/linking/links/{id}", "GET", f1)
 
 	params := make(map[string]string)
 
