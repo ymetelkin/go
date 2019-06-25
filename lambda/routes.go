@@ -78,16 +78,15 @@ func (rt *Router) GetRequest(req events.APIGatewayProxyRequest, proxy bool) (Req
 		path string
 	)
 
-	if proxy {
-		if req.PathParameters != nil {
-			path, _ = req.PathParameters["proxy"]
-			if path != "" {
-				toks := strings.Split(path, "?")
-				path = strings.TrimSuffix(toks[0], "/")
-			}
-		}
+	if proxy && req.PathParameters != nil {
+		path, _ = req.PathParameters["proxy"]
 	} else {
 		path = req.Path
+	}
+
+	if path != "" {
+		toks := strings.Split(path, "?")
+		path = strings.TrimSuffix(toks[0], "/")
 	}
 
 	r, ok := rt.routes.Match(path, req.HTTPMethod)
