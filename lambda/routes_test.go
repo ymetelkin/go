@@ -24,7 +24,7 @@ func f0(req Request) (events.APIGatewayProxyResponse, error) {
 }
 
 func f1(req Request) (events.APIGatewayProxyResponse, error) {
-	return f(req.Method, req.Path, req.PathParameters["id"])
+	return f(req.Method, req.Path, req.Parameters["id"])
 }
 
 func TestRoutes(t *testing.T) {
@@ -93,7 +93,7 @@ func TestRoutes(t *testing.T) {
 		t.Error(errors.New("Expected GET /links/{id}"))
 	}
 
-	id, ok := rq.PathParameters["id"]
+	id, ok := rq.Parameters["id"]
 	if !ok || id != "a" {
 		t.Error(errors.New("Expected GET /links/a"))
 	}
@@ -109,7 +109,7 @@ func TestRoutes(t *testing.T) {
 		t.Error(errors.New("Expected GET /links/{id}"))
 	}
 
-	id, ok = rq.PathParameters["id"]
+	id, ok = rq.Parameters["id"]
 	if !ok || id != "a" {
 		t.Error(errors.New("Expected GET /links/a"))
 	}
@@ -126,7 +126,7 @@ func TestRoutes(t *testing.T) {
 		t.Error(errors.New("Expected GET /optional/{id?a}"))
 	}
 
-	id, ok = rq.PathParameters["id"]
+	id, ok = rq.Parameters["id"]
 	if !ok || id != "a" {
 		t.Error(errors.New("Expected GET /optional/a"))
 	}
@@ -143,7 +143,7 @@ func TestRoutes(t *testing.T) {
 		t.Error(errors.New("Expected GET /optional/{id?a}"))
 	}
 
-	id, ok = rq.PathParameters["id"]
+	id, ok = rq.Parameters["id"]
 	if !ok || id != "a" {
 		t.Error(errors.New("Expected GET /optional/a"))
 	}

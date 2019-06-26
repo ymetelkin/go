@@ -40,11 +40,11 @@ type Handler func(req Request) (events.APIGatewayProxyResponse, error)
 
 //Request contains handler and route parameters
 type Request struct {
-	Method         string
-	Path           string
-	PathParameters map[string]string
-	Body           string
-	handler        Handler
+	Method     string
+	Path       string
+	Parameters map[string]string
+	Body       string
+	handler    Handler
 }
 
 //Execute runs handler
@@ -100,13 +100,13 @@ func (rt *Router) GetRequest(req events.APIGatewayProxyRequest, proxy bool) (Req
 	}
 
 	if req.QueryStringParameters != nil {
-		if r.PathParameters == nil {
-			r.PathParameters = req.QueryStringParameters
+		if r.Parameters == nil {
+			r.Parameters = req.QueryStringParameters
 		} else {
 			for k, v := range req.QueryStringParameters {
-				_, ok := r.PathParameters[k]
+				_, ok := r.Parameters[k]
 				if !ok {
-					r.PathParameters[k] = v
+					r.Parameters[k] = v
 				}
 			}
 		}
@@ -260,9 +260,9 @@ func (tree *routeNode) Match(path string, method string) (Request, bool) {
 	h, ok := node.Handlers[method]
 
 	return Request{
-		handler:        h,
-		Method:         method,
-		Path:           "/" + strings.Join(toks, "/"),
-		PathParameters: params,
+		handler:    h,
+		Method:     method,
+		Path:       "/" + strings.Join(toks, "/"),
+		Parameters: params,
 	}, ok
 }
