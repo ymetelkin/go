@@ -41,11 +41,13 @@ func Failure(status int, err error, fatal bool) (events.APIGatewayProxyResponse,
 		}
 
 		if c.TestVersion != "" {
-			extra = fmt.Sprintf("AdditionalVersion:%s ActiveVersion: %s ", c.TestVersion, c.ActualVersion)
+			extra = fmt.Sprintf("AdditionalVersion:%s ActiveVersion:%s ", c.TestVersion, c.ActualVersion)
 		}
+	} else {
+		err = nil
 	}
 
-	log.Printf("ERROR %sError: \"%s\"\n", extra, strings.ReplaceAll(body, "\"", "\\\""))
+	log.Printf("ERROR %s%s\n", extra, strings.ReplaceAll(body, "\"", "\\\""))
 
 	return events.APIGatewayProxyResponse{
 		Headers:    map[string]string{"content-type": "application/json"},
