@@ -52,6 +52,7 @@ func TestRoutes(t *testing.T) {
 		t.Error(errors.New("Expected GET / "))
 	}
 
+	req.RequestContext.ResourcePath = "/{proxy+}"
 	params["proxy"] = "/health"
 	req.PathParameters = params
 	rq, ok = rt.GetRequest(req, true)
