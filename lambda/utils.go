@@ -101,3 +101,33 @@ func getCanary() canary {
 
 	return canary{}
 }
+
+func debugEnv(req events.APIGatewayProxyRequest) string {
+	var sb strings.Builder
+
+	sb.WriteString("PathParameters:\n")
+	for k, v := range req.PathParameters {
+		sb.WriteString(fmt.Sprintf("%s: %s\n", k, v))
+	}
+
+	sb.WriteString("Headers:\n")
+	for k, v := range req.Headers {
+		sb.WriteString(fmt.Sprintf("%s: %s\n", k, v))
+	}
+
+	sb.WriteString("MultiValueHeaders:\n")
+	for k, v := range req.MultiValueHeaders {
+		sb.WriteString(fmt.Sprintf("%s: %v\n", k, v))
+	}
+
+	sb.WriteString("StageVariables:\n")
+	for k, v := range req.StageVariables {
+		sb.WriteString(fmt.Sprintf("%s: %s\n", k, v))
+	}
+
+	sb.WriteString("RequestContext:\n")
+	sb.WriteString(fmt.Sprintf("Stage: %s\n", req.RequestContext.Stage))
+	sb.WriteString(fmt.Sprintf("ResourcePath: %s\n", req.RequestContext.ResourcePath))
+
+	return sb.String()
+}

@@ -119,7 +119,8 @@ func (rt *Router) GetRequest(req events.APIGatewayProxyRequest, proxy bool) (Req
 func (rt *Router) Execute(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	rq, ok := rt.GetRequest(req, true)
 	if !ok {
-		return Failure(404, fmt.Errorf("Invalid endpoint: %s", rq.Path), false)
+		env := debugEnv(req)
+		return Failure(404, fmt.Errorf("Invalid endpoint: %s\n%s", rq.Path, env), false)
 	}
 	return rq.Execute()
 }
