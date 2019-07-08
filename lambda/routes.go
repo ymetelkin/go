@@ -40,11 +40,14 @@ type Handler func(req Request) (events.APIGatewayProxyResponse, error)
 
 //Request contains handler and route parameters
 type Request struct {
-	Method     string
-	Path       string
-	Parameters map[string]string
-	Body       string
-	handler    Handler
+	Method       string
+	Stage        string
+	ResourcePath string
+	Proxy        string
+	Path         string
+	Parameters   map[string]string
+	Body         string
+	handler      Handler
 }
 
 //Execute runs handler
@@ -70,19 +73,25 @@ func (rt *Router) Add(pattern string, method string, handler Handler) error {
 
 //GetRequest maps lambda request from router map
 func (rt *Router) GetRequest(req events.APIGatewayProxyRequest, proxy bool) (Request, bool) {
-	if rt.routes == nil {
-		return Request{}, false
-	}
-
 	var (
 		path string
+		tmp  = Request{
+			Path:         req.Path,
+			Stage:        req.RequestContext.Stage,
+			ResourcePath: req.RequestContext.ResourcePath,
+		}
 	)
 
-	if req.RequestContext.ResourcePath == "/{proxy+}" && req.PathParameters != nil {
+	if rt.routes == nil {
+		return tmp, false
+	}
+
+	if tmp.ResourcePath == "/{proxy+}" && req.PathParameters != nil {
 		path, _ = req.PathParameters["proxy"]
+		tmp.Proxy = path
 	} else {
-		path = req.Path
-		if req.RequestContext.Stage != "" {
+		path = tmp.Path
+		if tmp.Stage != "" {
 			path = strings.Replace(path, req.RequestContext.Stage, "", 1)
 		}
 	}
@@ -100,6 +109,9 @@ func (rt *Router) GetRequest(req events.APIGatewayProxyRequest, proxy bool) (Req
 			path = "/" + path
 		}
 		r.Path = path
+		r.Stage = tmp.Stage
+		r.Proxy = tmp.Proxy
+		r.ResourcePath = tmp.ResourcePath
 	}
 
 	if req.QueryStringParameters != nil {
@@ -122,8 +134,7 @@ func (rt *Router) GetRequest(req events.APIGatewayProxyRequest, proxy bool) (Req
 func (rt *Router) Execute(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	rq, ok := rt.GetRequest(req, true)
 	if !ok {
-		env := debugEnv(req)
-		return Failure(404, fmt.Errorf("Invalid endpoint: %s\n%s", rq.Path, env), false)
+		return Failure(404, fmt.Errorf("Invalid endpoint: %s; Stage: %s; Resource Path: %s; Proxy: %s", rq.Path, rq.Stage, rq.ResourcePath, rq.Proxy), false)
 	}
 	return rq.Execute()
 }
