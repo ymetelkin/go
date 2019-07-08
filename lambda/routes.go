@@ -78,10 +78,13 @@ func (rt *Router) GetRequest(req events.APIGatewayProxyRequest, proxy bool) (Req
 		path string
 	)
 
-	if proxy && req.PathParameters != nil {
+	if req.RequestContext.ResourcePath == "/{proxy+}" && req.PathParameters != nil {
 		path, _ = req.PathParameters["proxy"]
 	} else {
 		path = req.Path
+		if req.RequestContext.Stage != "" {
+			path = strings.Replace(path, req.RequestContext.Stage, "", 1)
+		}
 	}
 
 	if path != "" {
