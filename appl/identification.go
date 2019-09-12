@@ -28,12 +28,11 @@ func (doc *document) ParseIdentification(jo *json.Object) error {
 			jo.AddString("compositiontype", nd.Text)
 		case "MediaType":
 			mt, err := getMediaType(nd.Text)
-			if err == nil {
-				doc.MediaType = mt
-				jo.AddString("type", string(mt))
-			} else {
+			if err != nil {
 				return err
 			}
+			doc.MediaType = mt
+			jo.AddString("type", string(mt))
 		case "Priority":
 			i, err := strconv.Atoi(nd.Text)
 			if err == nil {
@@ -115,8 +114,7 @@ func (doc *document) SetReferenceID(jo *json.Object) {
 	}
 }
 
-func getMediaType(s string) (mediaType, error) {
-	var mt mediaType
+func getMediaType(s string) (mt mediaType, err error) {
 	if strings.EqualFold(s, "text") {
 		mt = mediaTypeText
 	} else if strings.EqualFold(s, "photo") {
@@ -130,9 +128,9 @@ func getMediaType(s string) (mediaType, error) {
 	} else if strings.EqualFold(s, "complexdata") {
 		mt = mediaTypeComplexData
 	} else {
-		e := fmt.Sprintf("Invalid media type [%s]", s)
-		return mediaTypeUnknown, errors.New(e)
+		mt = mediaTypeUnknown
+		err = fmt.Errorf("Invalid media type [%s]", s)
 	}
 
-	return mt, nil
+	return
 }
