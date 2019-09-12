@@ -30,24 +30,24 @@ func (ps *places) Parse(nd xml.Node) {
 		return
 	}
 
-	system := nd.GetAttribute("System")
+	system := nd.Attribute("System")
 
 	for _, n := range nd.Nodes {
 		var code, name, match, pid, tp string
 
 		if n.Name == "Occurrence" && n.Attributes != nil {
-			for _, a := range n.Attributes {
-				switch a.Name {
+			for k, v := range n.Attributes {
+				switch k {
 				case "Id":
-					code = a.Value
+					code = v
 				case "Value":
-					name = a.Value
+					name = v
 				case "ActualMatch":
-					match = a.Value
+					match = v
 				case "ParentId":
-					pid = a.Value
+					pid = v
 				case "TopParent":
-					tp = a.Value
+					tp = v
 				}
 			}
 		}
@@ -90,14 +90,14 @@ func (ps *places) Parse(nd xml.Node) {
 				for _, p := range n.Nodes {
 					if p.Attributes != nil {
 						var id, n, v string
-						for _, a := range p.Attributes {
-							switch a.Name {
+						for k, v := range p.Attributes {
+							switch k {
 							case "Id":
-								id = a.Value
+								id = v
 							case "Name":
-								n = a.Value
+								n = v
 							case "Value":
-								v = a.Value
+								v = v
 							}
 						}
 

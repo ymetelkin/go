@@ -2,6 +2,7 @@ package appl
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/ymetelkin/go/json"
@@ -71,7 +72,7 @@ func TestFilings(t *testing.T) {
 		<BreakingNews>Breaking</BreakingNews>
 	</FilingMetadata>
 </Publication>`
-	doc, _ := parseXML([]byte(s))
+	doc, _ := parseXML(strings.NewReader(s))
 	jo := json.Object{}
 
 	filings := json.Array{}

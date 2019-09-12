@@ -21,18 +21,18 @@ func (rnds *renditions) GetRendition(title string, role string, mt mediaType, nd
 	jo.AddString("type", string(mt))
 
 	if nd.Attributes != nil {
-		for _, a := range nd.Attributes {
-			addAttribute(a, &jo)
+		for k, v := range nd.Attributes {
+			addAttribute(k, v, &jo)
 		}
 	}
 
 	if chars.Nodes != nil {
-		n := chars.GetNode("Scenes")
-		n = n.GetNode("Scene")
+		n := chars.Node("Scenes")
+		n = n.Node("Scene")
 		if n.Text != "" {
 			jo.AddString("scene", n.Text)
 		}
-		id := n.GetAttribute("Id")
+		id := n.Attribute("Id")
 		if id != "" {
 			jo.AddString("sceneid", id)
 		}
@@ -46,24 +46,24 @@ func (rnds *renditions) GetRendition(title string, role string, mt mediaType, nd
 	for _, n := range nd.Nodes {
 		switch n.Name {
 		case "Presentations":
-			p := n.GetNode("Presentation")
+			p := n.Node("Presentation")
 			if p.Attributes != nil || p.Nodes != nil {
-				system := p.GetAttribute("System")
+				system := p.Attribute("System")
 				if system != "" {
 					jo.AddString("presentationsystem", system)
 				}
 
-				ch := p.GetNode("Characteristics")
+				ch := p.Node("Characteristics")
 				if ch.Attributes != nil {
-					for _, a := range ch.Attributes {
-						switch a.Name {
+					for k, v := range ch.Attributes {
+						switch k {
 						case "Frame":
-							if a.Value != "" {
-								jo.AddString("presentationframe", a.Value)
+							if v != "" {
+								jo.AddString("presentationframe", v)
 							}
 						case "FrameLocation":
-							if a.Value != "" {
-								jo.AddString("presentationframelocation", a.Value)
+							if v != "" {
+								jo.AddString("presentationframelocation", v)
 							}
 						}
 					}
@@ -74,7 +74,7 @@ func (rnds *renditions) GetRendition(title string, role string, mt mediaType, nd
 				break
 			}
 		case "Property":
-			v := n.GetAttribute("Name")
+			v := n.Attribute("Name")
 			if v != "" && strings.HasPrefix(strings.ToLower(v), "broadcastformat") {
 				runes := []rune(v)
 				jo.AddString("broadcastformat", string(runes[16:]))
@@ -86,7 +86,7 @@ func (rnds *renditions) GetRendition(title string, role string, mt mediaType, nd
 			}
 		case "ForeignKeys":
 			if nd.Name == "VideoContentItem" && !tape {
-				system := n.GetAttribute("System")
+				system := n.Attribute("System")
 				if strings.EqualFold(system, "Tape") && n.Nodes != nil {
 					for _, k := range n.Nodes {
 						if k.Name == "Keys" && k.Attributes != nil {
@@ -94,12 +94,12 @@ func (rnds *renditions) GetRendition(title string, role string, mt mediaType, nd
 								ok bool
 								id string
 							)
-							for _, a := range k.Attributes {
-								switch a.Name {
+							for k, v := range k.Attributes {
+								switch k {
 								case "Field":
-									ok = strings.EqualFold(a.Value, "Number")
+									ok = strings.EqualFold(v, "Number")
 								case "Id":
-									id = a.Value
+									id = v
 								}
 							}
 							if ok && id != "" {
@@ -115,8 +115,8 @@ func (rnds *renditions) GetRendition(title string, role string, mt mediaType, nd
 	}
 
 	if chars.Attributes != nil {
-		for _, a := range chars.Attributes {
-			addAttribute(a, &jo)
+		for k, v := range chars.Attributes {
+			addAttribute(k, v, &jo)
 		}
 	}
 
@@ -161,21 +161,21 @@ func (rnds *renditions) AddRenditions(jo *json.Object) {
 	}
 }
 
-func addAttribute(a xml.Attribute, jo *json.Object) {
-	if a.Value != "" {
-		name := strings.ToLower(a.Name)
+func addAttribute(k string, v string, jo *json.Object) {
+	if v != "" {
+		name := strings.ToLower(k)
 		switch name {
 		case "id":
-			jo.AddString("code", strings.ToLower(a.Value))
+			jo.AddString("code", strings.ToLower(v))
 		case "mediatype":
-			jo.AddString("type", a.Value)
+			jo.AddString("type", v)
 		case "sizeinbytes":
-			i, err := strconv.Atoi(a.Value)
+			i, err := strconv.Atoi(v)
 			if err == nil && i > 0 {
 				jo.AddInt("sizeinbytes", i)
 			}
 		default:
-			jo.AddString(name, a.Value)
+			jo.AddString(name, v)
 		}
 	}
 }
@@ -204,7 +204,7 @@ func getBinaryName(nd xml.Node, ext string, dims bool) (string, string) {
 	var name, key strings.Builder
 
 	if ext == "" {
-		ext = nd.GetAttribute("FileExtension")
+		ext = nd.Attribute("FileExtension")
 	}
 
 	if ext != "" {

@@ -86,16 +86,16 @@ func parseFiling(nd xml.Node) filing {
 			if n.Attributes != nil {
 				var t, e, o string
 
-				for _, a := range n.Attributes {
-					switch a.Name {
+				for k, v := range n.Attributes {
+					switch k {
 					case "Type":
-						t = a.Value
+						t = v
 					case "Expanded":
-						if a.Value == "true" {
+						if v == "true" {
 							e = "expanded"
 						}
 					case "Outed":
-						if a.Value == "true" {
+						if v == "true" {
 							o = "out"
 						} else {
 							o = "add"

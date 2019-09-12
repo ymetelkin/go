@@ -5,10 +5,6 @@ import (
 )
 
 func (doc *document) ParseRightsMetadata(parent *json.Object) error {
-	//if doc.RightsMetadata.Nodes == nil {
-	//	return errors.New("RightsMetadata is missing")
-	//}
-
 	ja := json.Array{}
 
 	for _, nd := range doc.RightsMetadata.Nodes {
@@ -39,15 +35,15 @@ func (doc *document) ParseRightsMetadata(parent *json.Object) error {
 					case "Group":
 						g := json.Object{}
 						if n.Attributes != nil {
-							for _, a := range n.Attributes {
-								switch a.Name {
+							for k, v := range n.Attributes {
+								switch k {
 								case "Type":
-									if a.Value != "" {
-										g.AddString("type", a.Value)
+									if v != "" {
+										g.AddString("type", v)
 									}
 								case "Id":
-									if a.Value != "" {
-										g.AddString("code", a.Value)
+									if v != "" {
+										g.AddString("code", v)
 									}
 								}
 							}

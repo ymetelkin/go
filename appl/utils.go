@@ -163,17 +163,17 @@ func formatTime(ms int64) string {
 func getForeignKeys(nd xml.Node) []foreignkey {
 	var fks []foreignkey
 
-	system := nd.GetAttribute("System")
+	system := nd.Attribute("System")
 	if system != "" && nd.Nodes != nil {
 		for _, k := range nd.Nodes {
 			if k.Attributes != nil {
 				var id, fld string
-				for _, a := range k.Attributes {
-					switch a.Name {
+				for k, v := range k.Attributes {
+					switch k {
 					case "Id":
-						id = a.Value
+						id = v
 					case "Field":
-						fld = a.Value
+						fld = v
 					}
 				}
 				if id != "" && fld != "" {

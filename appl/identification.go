@@ -10,7 +10,7 @@ import (
 )
 
 func (doc *document) ParseIdentification(jo *json.Object) error {
-	if doc.Identification.Nodes == nil {
+	if doc.Identification == nil || doc.Identification.Nodes == nil || len(doc.Identification.Nodes) == 0 {
 		return errors.New("Identification is missing")
 	}
 

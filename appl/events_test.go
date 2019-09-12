@@ -2,6 +2,7 @@ package appl
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/ymetelkin/go/json"
@@ -60,7 +61,7 @@ func TestEvents(t *testing.T) {
 		</EntityClassification>
 	</DescriptiveMetadata>
 </Publication>`
-	doc, _ := parseXML([]byte(s))
+	doc, _ := parseXML(strings.NewReader(s))
 	jo := json.Object{}
 
 	err := doc.ParseDescriptiveMetadata(&jo)

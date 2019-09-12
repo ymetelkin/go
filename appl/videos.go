@@ -9,13 +9,13 @@ import (
 )
 
 func (rnds *renditions) ParseVideoComponent(pc pubcomponent) int64 {
-	chars := pc.Node.GetNode("Characteristics")
+	chars := pc.Node.Node("Characteristics")
 	if chars.Nodes == nil {
 		return 0
 	}
 
 	var duration int64
-	n := chars.GetNode("TotalDuration")
+	n := chars.Node("TotalDuration")
 	if n.Text != "" {
 		duration, _ = strconv.ParseInt(n.Text, 0, 64)
 	}
@@ -23,7 +23,7 @@ func (rnds *renditions) ParseVideoComponent(pc pubcomponent) int64 {
 	key := strings.ToLower(pc.Role)
 	switch key {
 	case "main":
-		ext := chars.GetAttribute("FileExtension")
+		ext := chars.Attribute("FileExtension")
 
 		if ext != "" {
 			ext = strings.ToUpper(ext)
@@ -32,7 +32,7 @@ func (rnds *renditions) ParseVideoComponent(pc pubcomponent) int64 {
 		if ext != "TXT" {
 			var file string
 
-			ofn := chars.GetAttribute("OriginalFileName")
+			ofn := chars.Attribute("OriginalFileName")
 			if ofn != "" {
 				toks := strings.Split(ofn, "_")
 				tmp := toks[len(toks)-1]
@@ -47,7 +47,7 @@ func (rnds *renditions) ParseVideoComponent(pc pubcomponent) int64 {
 			rnds.AddRendition(name, jo, true)
 		}
 	case "physicalmain":
-		pt := chars.GetNode("PhysicalType")
+		pt := chars.Node("PhysicalType")
 		if pt.Text != "" {
 			name := strings.ReplaceAll(pt.Text, "-", "")
 			name = strings.ReplaceAll(name, " ", "")
@@ -77,14 +77,14 @@ func (rnds *renditions) ParseWebPartomponent(pc pubcomponent, mt mediaType) {
 		return
 	}
 
-	chars := pc.Node.GetNode("Characteristics")
+	chars := pc.Node.Node("Characteristics")
 	if chars.Nodes == nil {
 		return
 	}
 
 	jo := rnds.GetRendition("Web", pc.Role, pc.MediaType, pc.Node, chars)
 
-	n := pc.Node.GetNode("ForeignKeys")
+	n := pc.Node.Node("ForeignKeys")
 	fks := getForeignKeys(n)
 	if fks != nil {
 		ja := json.Array{}

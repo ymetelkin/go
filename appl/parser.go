@@ -1,6 +1,8 @@
 package appl
 
 import (
+	"io"
+
 	"github.com/ymetelkin/go/json"
 	"github.com/ymetelkin/go/xml"
 )
@@ -27,12 +29,12 @@ const (
 )
 
 type document struct {
-	Identification         xml.Node
-	PublicationManagement  xml.Node
-	NewsLines              xml.Node
-	AdministrativeMetadata xml.Node
-	RightsMetadata         xml.Node
-	DescriptiveMetadata    xml.Node
+	Identification         *xml.Node
+	PublicationManagement  *xml.Node
+	NewsLines              *xml.Node
+	AdministrativeMetadata *xml.Node
+	RightsMetadata         *xml.Node
+	DescriptiveMetadata    *xml.Node
 	Filings                []filing
 	PublicationComponents  []pubcomponent
 	ItemID                 string
@@ -51,44 +53,43 @@ type document struct {
 }
 
 //XMLToJSON converts APPL XML to APPL JSON
-func XMLToJSON(bytes []byte) (json.Object, error) {
-	doc, err := parseXML(bytes)
+func XMLToJSON(scanner io.ByteScanner) (jo json.Object, err error) {
+	doc, err := parseXML(scanner)
 	if err != nil {
-		return json.Object{}, err
+		return
 	}
 
-	jo := json.Object{}
 	jo.AddString("representationversion", "1.0")
 	jo.AddString("representationtype", "full")
 
 	err = doc.ParseIdentification(&jo)
 	if err != nil {
-		return json.Object{}, err
+		return
 	}
 
 	err = doc.ParsePublicationManagement(&jo)
 	if err != nil {
-		return json.Object{}, err
+		return
 	}
 
 	err = doc.ParseNewsLines(&jo)
 	if err != nil {
-		return json.Object{}, err
+		return
 	}
 
 	err = doc.ParseAdministrativeMetadata(&jo)
 	if err != nil {
-		return json.Object{}, err
+		return
 	}
 
 	err = doc.ParseRightsMetadata(&jo)
 	if err != nil {
-		return json.Object{}, err
+		return
 	}
 
 	err = doc.ParseDescriptiveMetadata(&jo)
 	if err != nil {
-		return json.Object{}, err
+		return
 	}
 
 	if doc.Filings != nil {
@@ -104,13 +105,13 @@ func XMLToJSON(bytes []byte) (json.Object, error) {
 	doc.SetReferenceID(&jo)
 	doc.SetHeadline(&jo)
 
-	return jo, nil
+	return
 }
 
-func parseXML(b []byte) (document, error) {
-	root, err := xml.New(b)
+func parseXML(scanner io.ByteScanner) (doc document, err error) {
+	root, err := xml.New(scanner)
 	if err != nil {
-		return document{}, err
+		return
 	}
 
 	//fmt.Println(root.ToString())
@@ -118,23 +119,22 @@ func parseXML(b []byte) (document, error) {
 	var (
 		fs  []filing
 		pcs []pubcomponent
-		doc document
 	)
 
 	for _, nd := range root.Nodes {
 		switch nd.Name {
 		case "Identification":
-			doc.Identification = nd
+			doc.Identification = &nd
 		case "PublicationManagement":
-			doc.PublicationManagement = nd
+			doc.PublicationManagement = &nd
 		case "NewsLines":
-			doc.NewsLines = nd
+			doc.NewsLines = &nd
 		case "AdministrativeMetadata":
-			doc.AdministrativeMetadata = nd
+			doc.AdministrativeMetadata = &nd
 		case "RightsMetadata":
-			doc.RightsMetadata = nd
+			doc.RightsMetadata = &nd
 		case "DescriptiveMetadata":
-			doc.DescriptiveMetadata = nd
+			doc.DescriptiveMetadata = &nd
 		case "FilingMetadata":
 			f := parseFiling(nd)
 			if fs == nil {

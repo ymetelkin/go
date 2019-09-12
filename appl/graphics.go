@@ -7,18 +7,18 @@ import (
 
 func (rnds *renditions) ParseGraphicComponent(pc pubcomponent, mt mediaType) {
 	key := strings.ToLower(pc.Role)
-	chars := pc.Node.GetNode("Characteristics")
+	chars := pc.Node.Node("Characteristics")
 
 	switch key {
 	case "main":
 		if mt == mediaTypeComplexData {
 			var title string
-			nd := pc.Node.GetNode("Presentations")
+			nd := pc.Node.Node("Presentations")
 			if nd.Nodes != nil {
-				nd = nd.GetNode("Presentation")
+				nd = nd.Node("Presentation")
 				if nd.Nodes != nil {
-					nd = nd.GetNode("Characteristics")
-					title = nd.GetAttribute("FrameLocation")
+					nd = nd.Node("Characteristics")
+					title = nd.Attribute("FrameLocation")
 				}
 			}
 
@@ -30,8 +30,8 @@ func (rnds *renditions) ParseGraphicComponent(pc pubcomponent, mt mediaType) {
 			jo := rnds.GetRendition(title, pc.Role, pc.MediaType, pc.Node, chars)
 			rnds.AddRendition("main"+k, jo, true)
 
-			nd := pc.Node.GetNode("RelatedBinaries")
-			a := nd.GetAttribute("Name")
+			nd := pc.Node.Node("RelatedBinaries")
+			a := nd.Attribute("Name")
 			if strings.EqualFold(a, "MatteFileName") {
 				title = fmt.Sprintf("Full Resolution Matte (%s)", n)
 				jo = rnds.GetRendition(title, pc.Role, pc.MediaType, pc.Node, chars)

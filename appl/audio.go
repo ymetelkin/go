@@ -9,7 +9,7 @@ func (rnds *renditions) ParseAudioComponent(pc pubcomponent) {
 	if !strings.EqualFold(pc.Role, "Main") {
 		return
 	}
-	chars := pc.Node.GetNode("Characteristics")
+	chars := pc.Node.Node("Characteristics")
 	if chars.Nodes == nil {
 		return
 	}

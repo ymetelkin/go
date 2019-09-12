@@ -27,24 +27,24 @@ func (sbjs *subjects) Parse(nd xml.Node) {
 		return
 	}
 
-	system := nd.GetAttribute("System")
+	system := nd.Attribute("System")
 
 	for _, n := range nd.Nodes {
 		if n.Name == "Occurrence" && n.Attributes != nil {
 			var code, name, match, pid, tp string
 
-			for _, a := range n.Attributes {
-				switch a.Name {
+			for k, v := range n.Attributes {
+				switch k {
 				case "Id":
-					code = a.Value
+					code = v
 				case "Value":
-					name = a.Value
+					name = v
 				case "ActualMatch":
-					match = a.Value
+					match = v
 				case "ParentId":
-					pid = a.Value
+					pid = v
 				case "TopParent":
-					tp = a.Value
+					tp = v
 				}
 			}
 

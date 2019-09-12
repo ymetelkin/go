@@ -2,6 +2,7 @@ package appl
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/ymetelkin/go/json"
@@ -116,7 +117,7 @@ func TestTexts(t *testing.T) {
 		</TextContentItem>
 	</PublicationComponent>
 </Publication>`
-	doc, _ := parseXML([]byte(s))
+	doc, _ := parseXML(strings.NewReader(s))
 	jo := json.Object{}
 	txts := texts{}
 
@@ -187,7 +188,7 @@ func TestTexts(t *testing.T) {
 		</TextContentItem>
 	</PublicationComponent>
 </Publication>`
-	doc, _ = parseXML([]byte(s))
+	doc, _ = parseXML(strings.NewReader(s))
 	jo = json.Object{}
 	txts = texts{}
 

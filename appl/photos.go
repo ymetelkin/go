@@ -10,7 +10,7 @@ import (
 
 func (rnds *renditions) ParsePhotoComponent(pc pubcomponent, mt mediaType) {
 	key := strings.ToLower(pc.Role)
-	chars := pc.Node.GetNode("Characteristics")
+	chars := pc.Node.Node("Characteristics")
 
 	switch key {
 	case "main":
@@ -50,7 +50,7 @@ func (rnds *renditions) ParsePhotoCollection(pc pubcomponent, duration int64) {
 		times    []int64
 	)
 
-	url := pc.Node.GetAttribute("BaseFileName")
+	url := pc.Node.Attribute("BaseFileName")
 	if url != "" {
 		runes := []rune(url)
 		i := len(runes) - 3
@@ -81,7 +81,7 @@ func (rnds *renditions) ParsePhotoCollection(pc pubcomponent, duration int64) {
 		sep = "/"
 	}
 
-	chars := pc.Node.GetNode("Characteristics")
+	chars := pc.Node.Node("Characteristics")
 	if chars.Nodes != nil {
 		for _, n := range chars.Nodes {
 			switch n.Name {
@@ -95,7 +95,7 @@ func (rnds *renditions) ParsePhotoCollection(pc pubcomponent, duration int64) {
 
 	for _, n := range pc.Node.Nodes {
 		if n.Name == "File" {
-			v := n.GetAttribute("TimeOffSetMilliseconds")
+			v := n.Attribute("TimeOffSetMilliseconds")
 			i, _ := strconv.ParseInt(v, 0, 64)
 			if times == nil {
 				times = []int64{i}

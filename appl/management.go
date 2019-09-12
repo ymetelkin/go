@@ -17,7 +17,7 @@ const (
 var acctXML, acctJSON []string
 
 func (doc *document) ParsePublicationManagement(jo *json.Object) error {
-	if doc.PublicationManagement.Nodes == nil {
+	if doc.PublicationManagement == nil || doc.PublicationManagement.Nodes == nil || len(doc.PublicationManagement.Nodes) == 0 {
 		return errors.New("PublicationManagement is missing")
 	}
 
@@ -71,7 +71,7 @@ func (doc *document) ParsePublicationManagement(jo *json.Object) error {
 		case "Instruction":
 			outs.AddString(nd.Text)
 		case "Editorial":
-			n := nd.GetNode("Type")
+			n := nd.Node("Type")
 			s := n.Text
 			if s != "" {
 				types.AddString(s)
@@ -194,15 +194,15 @@ func getFirstCreatedDate(nd xml.Node) (string, int, error) {
 		date, month, day, time string
 	)
 
-	for _, a := range nd.Attributes {
-		switch a.Name {
+	for k, v := range nd.Attributes {
+		switch k {
 		case "Year":
-			i, err := strconv.Atoi(a.Value)
+			i, err := strconv.Atoi(v)
 			if err == nil && i > 0 {
 				year = i
 			}
 		case "Month":
-			i, err := strconv.Atoi(a.Value)
+			i, err := strconv.Atoi(v)
 			if err == nil {
 				zero := ""
 				if i < 10 {
@@ -211,7 +211,7 @@ func getFirstCreatedDate(nd xml.Node) (string, int, error) {
 				month = fmt.Sprintf("%s%d", zero, i)
 			}
 		case "Day":
-			i, err := strconv.Atoi(a.Value)
+			i, err := strconv.Atoi(v)
 			if err == nil {
 				zero := ""
 				if i < 10 {
@@ -220,7 +220,7 @@ func getFirstCreatedDate(nd xml.Node) (string, int, error) {
 				day = fmt.Sprintf("%s%d", zero, i)
 			}
 		case "Time":
-			time = a.Value
+			time = v
 		}
 	}
 
@@ -273,7 +273,7 @@ func getAccountInfo(nd xml.Node, name string, parent *json.Object) {
 	)
 
 	for i, a := range acctXML {
-		s := nd.GetAttribute(a)
+		s := nd.Attribute(a)
 		if s != "" {
 			add = true
 			jo.AddString(acctJSON[i], s)
@@ -290,14 +290,14 @@ func getTimeRestriction(nd xml.Node) (string, bool) {
 		var (
 			system, zone, include string
 		)
-		for _, a := range nd.Attributes {
-			switch a.Name {
+		for k, v := range nd.Attributes {
+			switch k {
 			case "System":
-				system = a.Value
+				system = v
 			case "Zone":
-				zone = a.Value
+				zone = v
 			case "Include":
-				include = a.Value
+				include = v
 			}
 		}
 
@@ -339,7 +339,7 @@ func getAssociatedWith(ass []xml.Node, parent *json.Object) {
 			continue
 		}
 
-		ct := aw.GetAttribute("CompositionType")
+		ct := aw.Attribute("CompositionType")
 		if strings.EqualFold(ct, "StandardText") {
 			ct = "text"
 		} else if strings.EqualFold(ct, "StandardPrintPhoto") {

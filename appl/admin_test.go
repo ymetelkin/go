@@ -2,6 +2,7 @@ package appl
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/ymetelkin/go/json"
@@ -61,7 +62,7 @@ func TestAdmin(t *testing.T) {
 		<Property Name="EAI:ELVIS_WORKFLOW_ID"></Property>
 	</AdministrativeMetadata>
 </Publication>`
-	doc, _ := parseXML([]byte(s))
+	doc, _ := parseXML(strings.NewReader(s))
 	jo := json.Object{}
 
 	err := doc.ParsePublicationManagement(&jo)

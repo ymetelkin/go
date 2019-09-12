@@ -14,8 +14,8 @@ type texts struct {
 }
 
 func (txts *texts) ParseTextComponent(pc pubcomponent) error {
-	nd := pc.Node.GetNode("DataContent")
-	nd = nd.GetNode("nitf")
+	nd := pc.Node.Node("DataContent")
+	nd = nd.Node("nitf")
 	if nd.Nodes == nil {
 		return errors.New("[nitf] block is missing")
 	}
@@ -61,8 +61,8 @@ func (txts *texts) ParseTextComponent(pc pubcomponent) error {
 	jo := json.Object{}
 	jo.AddString("nitf", nitf)
 
-	nd = pc.Node.GetNode("Characteristics")
-	nd = nd.GetNode("Words")
+	nd = pc.Node.Node("Characteristics")
+	nd = nd.Node("Words")
 	i, err := strconv.Atoi(nd.Text)
 	if err == nil && i > 0 {
 		jo.AddInt("words", i)

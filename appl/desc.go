@@ -10,7 +10,7 @@ import (
 )
 
 func (doc *document) ParseDescriptiveMetadata(jo *json.Object) error {
-	if doc.DescriptiveMetadata.Nodes == nil {
+	if doc.DescriptiveMetadata == nil || doc.DescriptiveMetadata.Nodes == nil || len(doc.DescriptiveMetadata.Nodes) == 0 {
 		return errors.New("DescriptiveMetadata is missing")
 	}
 
@@ -242,35 +242,35 @@ func getThirdParty(nd xml.Node, ja *json.Array) {
 	jo := json.Object{}
 
 	if nd.Attributes != nil {
-		for _, a := range nd.Attributes {
-			switch a.Name {
+		for k, v := range nd.Attributes {
+			switch k {
 			case "System":
-				if a.Value != "" {
-					jo.AddString("creator", a.Value)
+				if v != "" {
+					jo.AddString("creator", v)
 				}
 			case "Vocabulary":
-				if a.Value != "" {
-					jo.AddString("vocabulary", a.Value)
+				if v != "" {
+					jo.AddString("vocabulary", v)
 				}
 			case "VocabularyOwner":
-				if a.Value != "" {
-					jo.AddString("vocabularyowner", a.Value)
+				if v != "" {
+					jo.AddString("vocabularyowner", v)
 				}
 			}
 		}
 	}
 
-	o := nd.GetNode("Occurrence")
+	o := nd.Node("Occurrence")
 	if o.Attributes != nil {
-		for _, a := range o.Attributes {
-			switch a.Name {
+		for k, v := range o.Attributes {
+			switch k {
 			case "Id":
-				if a.Value != "" {
-					jo.AddString("code", a.Value)
+				if v != "" {
+					jo.AddString("code", v)
 				}
 			case "Value":
-				if a.Value != "" {
-					jo.AddString("name", a.Value)
+				if v != "" {
+					jo.AddString("name", v)
 				}
 			}
 		}
@@ -291,12 +291,12 @@ func getAudences(nd xml.Node, ua *uniqueArray) bool {
 		geo          bool
 	)
 
-	for _, a := range nd.Attributes {
-		switch a.Name {
+	for k, v := range nd.Attributes {
+		switch k {
 		case "Authority":
-			auth = a.Value
+			auth = v
 		case "System":
-			system = a.Value
+			system = v
 		}
 	}
 
@@ -306,12 +306,12 @@ func getAudences(nd xml.Node, ua *uniqueArray) bool {
 				var id, value string
 
 				if o.Attributes != nil {
-					for _, a := range o.Attributes {
-						switch a.Name {
+					for k, v := range o.Attributes {
+						switch k {
 						case "Id":
-							id = a.Value
+							id = v
 						case "Value":
-							value = a.Value
+							value = v
 						}
 					}
 				}
@@ -321,8 +321,8 @@ func getAudences(nd xml.Node, ua *uniqueArray) bool {
 					jo.AddString("code", id)
 					jo.AddString("name", value)
 
-					p := o.GetNode("Property")
-					a := p.GetAttribute("Value")
+					p := o.Node("Property")
+					a := p.Attribute("Value")
 					if a != "" {
 						if strings.EqualFold(a, "AUDGEOGRAPHY") {
 							geo = true
@@ -340,12 +340,12 @@ func getAudences(nd xml.Node, ua *uniqueArray) bool {
 
 func getAuthorities(nd xml.Node) (string, string) {
 	var auth, av string
-	for _, a := range nd.Attributes {
-		switch a.Name {
+	for k, v := range nd.Attributes {
+		switch k {
 		case "Authority":
-			auth = a.Value
+			auth = v
 		case "AuthorityVersion":
-			av = a.Value
+			av = v
 		}
 	}
 	return auth, av
@@ -354,12 +354,12 @@ func getAuthorities(nd xml.Node) (string, string) {
 func getOccurrenceCodeName(nd xml.Node) (string, string) {
 	var code, name string
 	if nd.Name == "Occurrence" && nd.Attributes != nil {
-		for _, a := range nd.Attributes {
-			switch a.Name {
+		for k, v := range nd.Attributes {
+			switch k {
 			case "Id":
-				code = a.Value
+				code = v
 			case "Value":
-				name = a.Value
+				name = v
 			}
 		}
 	}

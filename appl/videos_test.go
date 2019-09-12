@@ -2,6 +2,7 @@ package appl
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/ymetelkin/go/json"
@@ -51,7 +52,7 @@ func TestVideos(t *testing.T) {
 		</VideoContentItem>
 	</PublicationComponent>
 </Publication>`
-	doc, _ := parseXML([]byte(s))
+	doc, _ := parseXML(strings.NewReader(s))
 	jo := json.Object{}
 
 	doc.ParsePublicationComponents(&jo)

@@ -10,7 +10,7 @@ import (
 )
 
 func (doc *document) ParseAdministrativeMetadata(jo *json.Object) error {
-	if doc.AdministrativeMetadata.Nodes == nil {
+	if doc.AdministrativeMetadata == nil || doc.AdministrativeMetadata.Nodes == nil || len(doc.AdministrativeMetadata.Nodes) == 0 {
 		return errors.New("AdministrativeMetadata is missing")
 	}
 
@@ -64,15 +64,15 @@ func (doc *document) ParseAdministrativeMetadata(jo *json.Object) error {
 		case "ItemContentType":
 			ict = json.Object{}
 			if nd.Attributes != nil {
-				for _, a := range nd.Attributes {
-					switch a.Name {
+				for k, v := range nd.Attributes {
+					switch k {
 					case "Id":
-						if a.Value != "" {
-							ict.AddString("code", a.Value)
+						if v != "" {
+							ict.AddString("code", v)
 						}
 					case "System":
-						if a.Value != "" {
-							ict.AddString("creator", a.Value)
+						if v != "" {
+							ict.AddString("creator", v)
 						}
 					}
 				}
@@ -91,7 +91,7 @@ func (doc *document) ParseAdministrativeMetadata(jo *json.Object) error {
 			}
 		case "Fixture":
 			fx = json.Object{}
-			id := nd.GetAttribute("Id")
+			id := nd.Attribute("Id")
 			if id != "" {
 				fx.AddString("code", id)
 			}
@@ -166,19 +166,19 @@ func getProvider(nd xml.Node, jo *json.Object) {
 	provider := json.Object{}
 
 	if nd.Attributes != nil {
-		for _, a := range nd.Attributes {
-			switch a.Name {
+		for k, v := range nd.Attributes {
+			switch k {
 			case "Id":
-				if a.Value != "" {
-					provider.AddString("code", a.Value)
+				if v != "" {
+					provider.AddString("code", v)
 				}
 			case "Type":
-				if a.Value != "" {
-					provider.AddString("type", a.Value)
+				if v != "" {
+					provider.AddString("type", v)
 				}
 			case "SubType":
-				if a.Value != "" {
-					provider.AddString("subtype", a.Value)
+				if v != "" {
+					provider.AddString("subtype", v)
 				}
 			}
 		}
@@ -204,39 +204,39 @@ func getSources(srcs []xml.Node, jo *json.Object) {
 		source := json.Object{}
 
 		if src.Attributes != nil {
-			for _, a := range src.Attributes {
-				switch a.Name {
+			for k, v := range src.Attributes {
+				switch k {
 				case "City":
-					if a.Value != "" {
-						source.AddString("city", a.Value)
+					if v != "" {
+						source.AddString("city", v)
 					}
 				case "Country":
-					if a.Value != "" {
-						source.AddString("country", a.Value)
+					if v != "" {
+						source.AddString("country", v)
 					}
 				case "County":
-					if a.Value != "" {
-						source.AddString("county", a.Value)
+					if v != "" {
+						source.AddString("county", v)
 					}
 				case "CountryArea":
-					if a.Value != "" {
-						source.AddString("countryarea", a.Value)
+					if v != "" {
+						source.AddString("countryarea", v)
 					}
 				case "Id":
-					if a.Value != "" {
-						source.AddString("code", a.Value)
+					if v != "" {
+						source.AddString("code", v)
 					}
 				case "Url":
-					if a.Value != "" {
-						source.AddString("url", a.Value)
+					if v != "" {
+						source.AddString("url", v)
 					}
 				case "Type":
-					if a.Value != "" {
-						source.AddString("type", a.Value)
+					if v != "" {
+						source.AddString("type", v)
 					}
 				case "SubType":
-					if a.Value != "" {
-						source.AddString("subtype", a.Value)
+					if v != "" {
+						source.AddString("subtype", v)
 					}
 				}
 			}
@@ -281,12 +281,12 @@ func getSourceMaterials(srcs []xml.Node, jo *json.Object) {
 		}
 
 		if src.Attributes != nil {
-			for _, a := range src.Attributes {
-				switch a.Name {
+			for k, v := range src.Attributes {
+				switch k {
 				case "Id":
-					id = a.Value
+					id = v
 				case "Name":
-					name = a.Value
+					name = v
 				}
 			}
 		}
@@ -333,11 +333,11 @@ func getRatings(rts []xml.Node, jo *json.Object) {
 					unit, rt, cr           string
 				)
 
-				for _, a := range r.Attributes {
-					switch a.Name {
+				for k, v := range r.Attributes {
+					switch k {
 					case "Value":
-						if a.Value != "" {
-							i, err := strconv.Atoi(a.Value)
+						if v != "" {
+							i, err := strconv.Atoi(v)
 							if err == nil {
 								rate = i
 							}
@@ -345,8 +345,8 @@ func getRatings(rts []xml.Node, jo *json.Object) {
 							rate = -1
 						}
 					case "ScaleMin":
-						if a.Value != "" {
-							i, err := strconv.Atoi(a.Value)
+						if v != "" {
+							i, err := strconv.Atoi(v)
 							if err == nil {
 								min = i
 							}
@@ -354,8 +354,8 @@ func getRatings(rts []xml.Node, jo *json.Object) {
 							min = -1
 						}
 					case "ScaleMax":
-						if a.Value != "" {
-							i, err := strconv.Atoi(a.Value)
+						if v != "" {
+							i, err := strconv.Atoi(v)
 							if err == nil {
 								max = i
 							}
@@ -363,10 +363,10 @@ func getRatings(rts []xml.Node, jo *json.Object) {
 							max = -1
 						}
 					case "ScaleUnit":
-						unit = a.Value
+						unit = v
 					case "Raters":
-						if a.Value != "" {
-							i, err := strconv.Atoi(a.Value)
+						if v != "" {
+							i, err := strconv.Atoi(v)
 							if err == nil {
 								raters = i
 							}
@@ -374,9 +374,9 @@ func getRatings(rts []xml.Node, jo *json.Object) {
 							raters = -1
 						}
 					case "RaterType":
-						rt = a.Value
+						rt = v
 					case "Creator":
-						cr = a.Value
+						cr = v
 					}
 				}
 

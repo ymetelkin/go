@@ -2,6 +2,7 @@ package appl
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -167,8 +168,7 @@ func TestFile(t *testing.T) {
   </PublicationComponent>
 </Publication>
   `
-	jo, _ := XMLToJSON([]byte(s))
+	jo, _ := XMLToJSON(strings.NewReader(s))
 
 	fmt.Printf("%s\n", jo.String())
-
 }

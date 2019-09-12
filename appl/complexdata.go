@@ -7,7 +7,7 @@ import (
 
 func (rnds *renditions) ParseComplexDataComponent(pc pubcomponent) {
 	key := strings.ToLower(pc.Role)
-	chars := pc.Node.GetNode("Characteristics")
+	chars := pc.Node.Node("Characteristics")
 
 	switch key {
 	case "main":

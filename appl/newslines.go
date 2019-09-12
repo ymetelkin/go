@@ -11,7 +11,7 @@ import (
 )
 
 func (doc *document) ParseNewsLines(jo *json.Object) error {
-	if doc.NewsLines.Nodes == nil {
+	if doc.NewsLines == nil || doc.NewsLines.Nodes == nil || len(doc.NewsLines.Nodes) == 0 {
 		return errors.New("NewsLines is missing")
 	}
 
@@ -53,7 +53,7 @@ func (doc *document) ParseNewsLines(jo *json.Object) error {
 			if nd.Text != "" {
 				jo.AddString("creditline", nd.Text)
 			}
-			id := nd.GetAttribute("Id")
+			id := nd.Attribute("Id")
 			if id != "" {
 				jo.AddString("creditlineid", id)
 			}
@@ -95,7 +95,7 @@ func (doc *document) ParseNewsLines(jo *json.Object) error {
 			if nd.Text != "" {
 				person := json.Object{}
 				person.AddString("name", nd.Text)
-				if strings.EqualFold(nd.GetAttribute("Parametric"), "PERSON_FEATURED") {
+				if strings.EqualFold(nd.Attribute("Parametric"), "PERSON_FEATURED") {
 					rel := json.Array{}
 					rel.AddString("personfeatured")
 					person.AddArray("rel", rel)
@@ -200,14 +200,14 @@ func (doc *document) SetCopyright(s string, jo *json.Object) {
 	)
 
 	rmd := doc.RightsMetadata
-	nd := rmd.GetNode("Copyright")
+	nd := rmd.Node("Copyright")
 	if nd.Attributes != nil {
-		for _, a := range nd.Attributes {
-			switch a.Name {
+		for k, v := range nd.Attributes {
+			switch k {
 			case "Holder":
-				holder = a.Value
+				holder = v
 			case "Date":
-				i, err := strconv.Atoi(a.Value)
+				i, err := strconv.Atoi(v)
 				if err == nil {
 					year = i
 				}
@@ -244,12 +244,12 @@ func getBylines(bys []xml.Node, byos []xml.Node, jo *json.Object) {
 			if blo.Text != "" {
 				byline := json.Object{}
 				byline.AddString("by", blo.Text)
-				title := blo.GetAttribute("Title")
+				title := blo.Attribute("Title")
 				if title != "" {
 					byline.AddString("title", title)
 				} else {
 					for _, bl := range bys {
-						title = bl.GetAttribute("Title")
+						title = bl.Attribute("Title")
 						if title != "" {
 							byline.AddString("title", title)
 							break
@@ -331,14 +331,14 @@ func getBylineAttributes(nd xml.Node) (string, string, string) {
 	var id, title, pm string
 
 	if nd.Attributes != nil {
-		for _, a := range nd.Attributes {
-			switch a.Name {
+		for k, v := range nd.Attributes {
+			switch k {
 			case "Id":
-				id = a.Value
+				id = v
 			case "Title":
-				title = a.Value
+				title = v
 			case "Parametric":
-				pm = a.Value
+				pm = v
 			}
 		}
 	}
@@ -357,7 +357,7 @@ func getPerson(ns []xml.Node, jo *json.Object) {
 			add = true
 			person := json.Object{}
 			person.AddString("name", n.Text)
-			if strings.EqualFold(n.GetAttribute("Parametric"), "PERSON_FEATURED") {
+			if strings.EqualFold(n.Attribute("Parametric"), "PERSON_FEATURED") {
 				rel := json.Array{}
 				rel.AddString("personfeatured")
 				person.AddArray("rel", rel)

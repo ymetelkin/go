@@ -18,7 +18,7 @@ func (es *events) Parse(nd xml.Node) {
 		return
 	}
 
-	system := nd.GetAttribute("System")
+	system := nd.Attribute("System")
 
 	for _, n := range nd.Nodes {
 		code, name := getOccurrenceCodeName(n)
@@ -46,12 +46,12 @@ func (es *events) Parse(nd xml.Node) {
 				for _, p := range n.Nodes {
 					if p.Attributes != nil {
 						var n, v string
-						for _, a := range p.Attributes {
-							switch a.Name {
+						for k, v := range p.Attributes {
+							switch k {
 							case "Name":
-								n = a.Value
+								n = v
 							case "Value":
-								v = a.Value
+								v = v
 							}
 						}
 

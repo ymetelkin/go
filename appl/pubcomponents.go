@@ -73,12 +73,12 @@ func parsePublicationComponent(nd xml.Node) pubcomponent {
 		mt   mediaType
 	)
 
-	for _, a := range nd.Attributes {
-		switch a.Name {
+	for k, v := range nd.Attributes {
+		switch k {
 		case "Role":
-			role = a.Value
+			role = v
 		case "MediaType":
-			mt, _ = getMediaType(a.Value)
+			mt, _ = getMediaType(v)
 		}
 	}
 

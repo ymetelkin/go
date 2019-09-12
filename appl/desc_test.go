@@ -3,6 +3,7 @@ package appl
 import (
 	"fmt"
 	"testing"
+	"strings"
 
 	"github.com/ymetelkin/go/json"
 )
@@ -121,7 +122,7 @@ func TestDescriptions(t *testing.T) {
 		</AudienceClassification>
 	</DescriptiveMetadata>
 </Publication>`
-	doc, _ := parseXML([]byte(s))
+	doc, _ := parseXML(strings.NewReader(s))
 	jo := json.Object{}
 
 	err := doc.ParseDescriptiveMetadata(&jo)
@@ -188,7 +189,7 @@ func TestServices(t *testing.T) {
 		<Comment>Strange</Comment>
 	</DescriptiveMetadata>
 </Publication>`
-	doc, _ := parseXML([]byte(s))
+	doc, _ := parseXML(strings.NewReader(s))
 	jo := json.Object{}
 
 	err := doc.ParseDescriptiveMetadata(&jo)
@@ -227,7 +228,7 @@ func TestThirdParties(t *testing.T) {
 		</ThirdPartyMeta>
 	</DescriptiveMetadata>
 </Publication>`
-	doc, _ := parseXML([]byte(s))
+	doc, _ := parseXML(strings.NewReader(s))
 	jo := json.Object{}
 
 	err := doc.ParseDescriptiveMetadata(&jo)
@@ -298,7 +299,7 @@ func TestAudences(t *testing.T) {
 		<Category>n</Category>
     </FilingMetadata>
 </Publication>`
-	doc, _ := parseXML([]byte(s))
+	doc, _ := parseXML(strings.NewReader(s))
 	jo := json.Object{}
 
 	err := doc.ParseDescriptiveMetadata(&jo)
@@ -338,7 +339,7 @@ func TestAudences(t *testing.T) {
 		<Category>n</Category>
     </FilingMetadata>
 </Publication>`
-	doc, _ = parseXML([]byte(s))
+	doc, _ = parseXML(strings.NewReader(s))
 	jo = json.Object{}
 
 	err = doc.ParseDescriptiveMetadata(&jo)
