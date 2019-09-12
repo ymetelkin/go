@@ -1,8 +1,7 @@
 package xml
 
 import (
-	"bytes"
-	"encoding/xml"
+	"errors"
 	"io"
 	"strings"
 )
@@ -10,7 +9,7 @@ import (
 //Node represents XML node with name, optional attributes, text and children nodes
 type Node struct {
 	Name       string
-	Attributes []Attribute
+	Attributes map[string]string
 	Nodes      []Node
 	Text       string
 	parent     *Node
@@ -22,76 +21,30 @@ type Attribute struct {
 	Value string
 }
 
-//New creates a new node from a string
-func New(b []byte) (Node, error) {
-	decoder := xml.NewDecoder(bytes.NewReader(b))
-
-	var parent *Node
-	var root *Node
-
-	for {
-		t, err := decoder.Token()
-		if err != nil && err != io.EOF {
-			return Node{}, err
-		}
-		if t == nil {
-			break
-		}
-
-		switch se := t.(type) {
-		case xml.StartElement:
-			nd := Node{Name: se.Name.Local, parent: parent}
-			parent = &nd
-			if root == nil {
-				root = &nd
-			}
-			if se.Attr != nil {
-				size := len(se.Attr)
-				if size > 0 {
-					attributes := make([]Attribute, size)
-					for i, attr := range se.Attr {
-						attributes[i] = Attribute{Name: attr.Name.Local, Value: attr.Value}
-					}
-					nd.Attributes = attributes
-				}
-			}
-		case xml.CharData:
-			if parent != nil {
-				if parent.Text == "" {
-					parent.Text = getText(se)
-				} else {
-					parent.Text += getText(se)
-				}
-			}
-		case xml.Comment:
-			if parent != nil {
-				tc := Node{Name: "!", Text: string(se), parent: parent}
-				if parent.Nodes == nil {
-					parent.Nodes = []Node{tc}
-				} else {
-					parent.Nodes = append(parent.Nodes, tc)
-				}
-			}
-		case xml.EndElement:
-			if se.Name.Local == parent.Name && parent.parent != nil {
-				if parent.parent.Text != "" {
-					s, _ := parent.InlineString()
-					parent.parent.Text += s
-				} else if parent.parent.Nodes == nil {
-					parent.parent.Nodes = []Node{*parent}
-				} else {
-					parent.parent.Nodes = append(parent.parent.Nodes, *parent)
-				}
-				parent = parent.parent
-			}
-		}
+//New creates a new node from a io.ByteScanner
+func New(scanner io.ByteScanner) (Node, error) {
+	xp := &xParser{
+		r: scanner,
 	}
 
-	return *root, nil
+	return xp.Parse()
 }
 
-//GetNode method finds child node and returns it if found
-func (nd *Node) GetNode(name string) Node {
+//NewFromString creates a new node from a string
+func NewFromString(xml string) (Node, error) {
+	if xml == "" {
+		return Node{}, errors.New("Missing input")
+	}
+
+	xp := &xParser{
+		r: strings.NewReader(xml),
+	}
+
+	return xp.Parse()
+}
+
+//Node method finds first child node
+func (nd *Node) Node(name string) Node {
 	if nd.Nodes != nil {
 		for _, n := range nd.Nodes {
 			if n.Name == name {
@@ -102,13 +55,12 @@ func (nd *Node) GetNode(name string) Node {
 	return Node{}
 }
 
-//GetAttribute method finds attribute and returns its value if found
-func (nd *Node) GetAttribute(name string) string {
+//Attribute method finds attribute by name
+func (nd *Node) Attribute(name string) string {
 	if nd.Attributes != nil {
-		for _, a := range nd.Attributes {
-			if a.Name == name {
-				return a.Value
-			}
+		v, ok := nd.Attributes[name]
+		if ok {
+			return v
 		}
 	}
 	return ""
@@ -135,11 +87,11 @@ func (nd *Node) InlineString() (string, bool) {
 	} else {
 		sb.WriteString(nd.Name)
 		if nd.Attributes != nil {
-			for _, a := range nd.Attributes {
+			for k, v := range nd.Attributes {
 				sb.WriteString(" ")
-				sb.WriteString(a.Name)
+				sb.WriteString(k)
 				sb.WriteString("=\"")
-				sb.WriteString(a.Value)
+				sb.WriteString(v)
 				sb.WriteString("\"")
 			}
 		}
@@ -183,11 +135,11 @@ func (nd *Node) toString(level int) string {
 	} else {
 		sb.WriteString(nd.Name)
 		if nd.Attributes != nil {
-			for _, a := range nd.Attributes {
+			for k, v := range nd.Attributes {
 				sb.WriteString(" ")
-				sb.WriteString(a.Name)
+				sb.WriteString(k)
 				sb.WriteString("=\"")
-				sb.WriteString(a.Value)
+				sb.WriteString(v)
 				sb.WriteString("\"")
 			}
 		}
