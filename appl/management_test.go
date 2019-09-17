@@ -136,7 +136,11 @@ func TestManagement(t *testing.T) {
 		"signals": [
 		  "explicitcontent",
 		  "isnotdigitized"
-		]
+		],
+		"newspowerdrivetimeatlantic": true,
+		"newspowerdrivetimeeastern": true,
+		"newspowerdrivetimecentral": true,
+		"newspowerdrivetimemountain": true
 	  }`
 
 	xml, err := xml.ParseString(input)

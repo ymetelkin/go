@@ -168,9 +168,6 @@ func (doc *Document) parsePublicationManagement(node xml.Node) {
 				for _, n := range nd.Nodes {
 					tr := newTimeRestriction(n)
 					doc.TimeRestrictions = append(doc.TimeRestrictions, tr)
-					if tr.ID != "" {
-						doc.JSON.AddBool(tr.ID, tr.Include)
-					}
 				}
 			}
 		case "ExplicitWarning":
@@ -215,6 +212,14 @@ func (doc *Document) parsePublicationManagement(node xml.Node) {
 		if len(asses) > 0 {
 			doc.Associations = asses
 			doc.JSON.SetArray("associations", ja)
+		}
+	}
+
+	if doc.TimeRestrictions != nil {
+		for _, tr := range doc.TimeRestrictions {
+			if tr.ID != "" {
+				doc.JSON.AddBool(tr.ID, tr.Include)
+			}
 		}
 	}
 }
@@ -331,9 +336,6 @@ func newUserAccount(nd xml.Node) (ua UserAccount, jo json.Object) {
 
 func newTimeRestriction(nd xml.Node) (tr TimeRestriction) {
 	if nd.Attributes != nil {
-		var (
-			system, zone string
-		)
 		for k, v := range nd.Attributes {
 			switch k {
 			case "System":
@@ -345,8 +347,8 @@ func newTimeRestriction(nd xml.Node) (tr TimeRestriction) {
 			}
 		}
 
-		if system != "" && zone != "" {
-			tr.ID = strings.ToLower(fmt.Sprintf("%s%s", system, zone))
+		if tr.System != "" && tr.Zone != "" {
+			tr.ID = strings.ToLower(fmt.Sprintf("%s%s", tr.System, tr.Zone))
 		}
 	}
 
