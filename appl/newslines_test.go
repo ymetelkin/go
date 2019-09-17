@@ -27,7 +27,30 @@ func TestNewslines(t *testing.T) {
 
 	expected := `
 	{
-	}`
+		"title": "FBN--Vikings-Free Agency",
+		"headline": "Vikings, Sage Rosenfels agree to 2-year contract",
+		"headline_extended": "Agent: Vikings, Rosenfels agree in principle to 2-year contract to give team veteran backup QB",
+		"dateline": "EDEN PRAIRIE, Minn.",
+		"copyrightnotice": "Copyright 2012 The Associated Press. All rights reserved. This material may not be published, broadcast, rewritten or redistributed.",
+		"keywordlines": [
+		  "Vikings-Free Agency"
+		],
+		"person": [
+		  {
+			"name": "Magdalena Neuner",
+			"rel": [
+			  "personfeatured"
+			],
+			"creator": "Editorial"
+		  }
+		],
+		"bylines": [
+		  {
+			"by": "By DAVE CAMPBELL",
+			"title": "AP Sports Writer"
+		  }
+		]
+	  }`
 
 	xml, err := xml.ParseString(input)
 	if err != nil {
