@@ -76,8 +76,31 @@ func (doc *Document) parsePublicationManagement(node xml.Node) {
 				doc.Status = status
 				doc.JSON.AddString("pubstatus", status)
 			}
+		case "ReleaseDateTime":
+			if nd.Text != "" {
+				ts, err := parseDate(nd.Text)
+				if err == nil {
+					doc.ReleaseDateTime = &ts
+					rdt = formatDate(ts)
+					doc.JSON.AddString("releasedatetime", rdt)
+				}
+			}
+		case "AssociatedWith":
+			asswith = append(asswith, nd)
+			doc.JSON.AddArray("associations", json.Array{})
+		case "RefersTo":
+			if !ref && nd.Text != "" {
+				doc.RefersTo = nd.Text
+				doc.JSON.AddString("refersto", nd.Text)
+				ref = true
+			}
 		case "Instruction":
 			outs.AddString(nd.Text)
+		case "SpecialInstructions":
+			if nd.Text != "" {
+				doc.SpecialInstructions = nd.Text
+				doc.JSON.AddString("specialinstructions", nd.Text)
+			}
 		case "Editorial":
 			n := nd.Node("Type")
 			s := n.Text
@@ -89,22 +112,6 @@ func (doc *Document) parsePublicationManagement(node xml.Node) {
 						embargo = true
 					}
 				}
-			}
-		case "AssociatedWith":
-			asswith = append(asswith, nd)
-		case "ReleaseDateTime":
-			if nd.Text != "" {
-				ts, err := parseDate(nd.Text)
-				if err == nil {
-					doc.ReleaseDateTime = &ts
-					rdt = formatDate(ts)
-					doc.JSON.AddString("releasedatetime", rdt)
-				}
-			}
-		case "SpecialInstructions":
-			if nd.Text != "" {
-				doc.SpecialInstructions = nd.Text
-				doc.JSON.AddString("specialinstructions", nd.Text)
 			}
 		case "EditorialId":
 			if nd.Text != "" {
@@ -166,12 +173,6 @@ func (doc *Document) parsePublicationManagement(node xml.Node) {
 					}
 				}
 			}
-		case "RefersTo":
-			if !ref && nd.Text != "" {
-				doc.RefersTo = nd.Text
-				doc.JSON.AddString("refersto", nd.Text)
-				ref = true
-			}
 		case "ExplicitWarning":
 			if nd.Text == "1" {
 				signals.AddString("explicitcontent")
@@ -213,7 +214,7 @@ func (doc *Document) parsePublicationManagement(node xml.Node) {
 		asses, ja := getAssociations(asswith)
 		if len(asses) > 0 {
 			doc.Associations = asses
-			doc.JSON.AddArray("associations", ja)
+			doc.JSON.SetArray("associations", ja)
 		}
 	}
 }
@@ -299,10 +300,10 @@ func newUserAccount(nd xml.Node) (ua UserAccount, jo json.Object) {
 			ua.System = v
 		case "ToolVersion":
 			ua.ToolVersion = v
-		case "UserLocation":
-			ua.Location = v
 		case "UserWorkgroup":
 			ua.Workgroup = v
+		case "UserLocation":
+			ua.Location = v
 		}
 	}
 
@@ -315,14 +316,14 @@ func newUserAccount(nd xml.Node) (ua UserAccount, jo json.Object) {
 	if ua.System != "" {
 		jo.AddString("useraccountsystem", ua.System)
 	}
-	if ua.Location != "" {
-		jo.AddString("userlocation", ua.Location)
+	if ua.ToolVersion != "" {
+		jo.AddString("toolversion", ua.ToolVersion)
 	}
 	if ua.Workgroup != "" {
 		jo.AddString("userworkgroup", ua.Workgroup)
 	}
-	if ua.ToolVersion != "" {
-		jo.AddString("toolversion", ua.ToolVersion)
+	if ua.Location != "" {
+		jo.AddString("userlocation", ua.Location)
 	}
 
 	return

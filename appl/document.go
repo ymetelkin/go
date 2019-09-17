@@ -59,8 +59,8 @@ type UserAccount struct {
 	Account     string
 	System      string
 	ToolVersion string
-	Location    string
 	Workgroup   string
+	Location    string
 }
 
 //FirstCreated struct

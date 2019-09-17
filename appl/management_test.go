@@ -72,9 +72,9 @@ func TestManagement(t *testing.T) {
 		  "username": "APGBL\\wweissert",
 		  "useraccount": "APGBL",
 		  "useraccountsystem": "APADS",
-		  "userlocation": "Austin, TX",
+		  "toolversion": "ELVIS 1.24.4.3",
 		  "userworkgroup": "USA Central",
-		  "toolversion": "ELVIS 1.24.4.3"
+		  "userlocation": "Austin, TX"
 		},
 		"lastmodifieddatetime": "2012-03-12T20:54:37Z",
 		"lastmodifier": {
@@ -86,21 +86,6 @@ func TestManagement(t *testing.T) {
 		"pubstatus": "usable",
 		"specialinstructions": "Eds:APNewsNow.Willbeupdated.",
 		"refersto": "YM",
-		"itemstartdatetime": "2012-03-12T20:54:44Z",
-		"itemstartdatetimeactual": "2012-03-12T20:54:44Z",
-		"embargoed": "2012-03-12T20:54:44Z",
-		"editorialtypes": [
-		  "Advance",
-		  "YM"
-		],
-		"outinginstructions": [
-		  "INTERNET",
-		  "MOBILE"
-		],
-		"signals": [
-		  "explicitcontent",
-		  "isnotdigitized"
-		],
 		"associations": [
 		  {
 			"type": "text",
@@ -136,6 +121,21 @@ func TestManagement(t *testing.T) {
 			"associationrank": 5,
 			"typerank": 1
 		  }
+		],
+		"itemstartdatetime": "2012-03-12T20:54:44Z",
+		"itemstartdatetimeactual": "2012-03-12T20:54:44Z",
+		"embargoed": "2012-03-12T20:54:44Z",
+		"editorialtypes": [
+		  "Advance",
+		  "YM"
+		],
+		"outinginstructions": [
+		  "INTERNET",
+		  "MOBILE"
+		],
+		"signals": [
+		  "explicitcontent",
+		  "isnotdigitized"
 		]
 	  }`
 
