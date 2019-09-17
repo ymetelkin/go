@@ -15,12 +15,6 @@ type Node struct {
 	parent     *Node
 }
 
-//Attribute represents XML attribute with name and value
-type Attribute struct {
-	Name  string
-	Value string
-}
-
 //New creates a new node from a io.ByteScanner
 func New(scanner io.ByteScanner) (Node, error) {
 	xp := &xParser{
