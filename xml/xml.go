@@ -78,24 +78,29 @@ func (nd *Node) InlineString() (string, bool) {
 		f  bool
 	)
 
-	sb.WriteString("<")
+	sb.WriteByte('<')
 	if nd.Name == "!" {
-		sb.WriteString("!--")
+		sb.WriteByte('!')
+		sb.WriteByte('-')
+		sb.WriteByte('-')
 		sb.WriteString(nd.Text)
-		sb.WriteString("-->")
+		sb.WriteByte('-')
+		sb.WriteByte('-')
+		sb.WriteByte('>')
 		f = true
 	} else {
 		sb.WriteString(nd.Name)
 		if nd.Attributes != nil {
 			for k, v := range nd.Attributes {
-				sb.WriteString(" ")
+				sb.WriteByte(' ')
 				sb.WriteString(k)
-				sb.WriteString("=\"")
+				sb.WriteByte('=')
+				sb.WriteByte('"')
 				sb.WriteString(v)
-				sb.WriteString("\"")
+				sb.WriteByte('"')
 			}
 		}
-		sb.WriteString(">")
+		sb.WriteByte('>')
 		if nd.Nodes != nil {
 			for _, n := range nd.Nodes {
 				s, t := n.InlineString()
@@ -109,9 +114,10 @@ func (nd *Node) InlineString() (string, bool) {
 			sb.WriteString(nd.Text)
 			f = true
 		}
-		sb.WriteString("</")
+		sb.WriteByte('<')
+		sb.WriteByte('/')
 		sb.WriteString(nd.Name)
-		sb.WriteString(">")
+		sb.WriteByte('>')
 	}
 
 	return sb.String(), f
@@ -122,38 +128,43 @@ func (nd *Node) toString(level int) string {
 	if level > 0 {
 		i := 0
 		for i <= level {
-			sb.WriteString("  ")
+			sb.WriteByte(' ')
 			i++
 		}
 	}
 
 	sb.WriteString("<")
 	if nd.Name == "!" {
-		sb.WriteString("!--")
+		sb.WriteByte('!')
+		sb.WriteByte('-')
+		sb.WriteByte('-')
 		sb.WriteString(nd.Text)
-		sb.WriteString("-->")
+		sb.WriteByte('-')
+		sb.WriteByte('-')
+		sb.WriteByte('>')
 	} else {
 		sb.WriteString(nd.Name)
 		if nd.Attributes != nil {
 			for k, v := range nd.Attributes {
-				sb.WriteString(" ")
+				sb.WriteByte(' ')
 				sb.WriteString(k)
-				sb.WriteString("=\"")
+				sb.WriteByte('=')
+				sb.WriteByte('"')
 				sb.WriteString(v)
-				sb.WriteString("\"")
+				sb.WriteByte('"')
 			}
 		}
 		sb.WriteString(">")
 		if nd.Nodes != nil {
 			for _, n := range nd.Nodes {
-				sb.WriteString("\n")
+				sb.WriteByte('\n')
 				sb.WriteString(n.toString(level + 1))
 			}
-			sb.WriteString("\n")
+			sb.WriteByte('\n')
 			if level > 0 {
 				i := 0
 				for i <= level {
-					sb.WriteString("  ")
+					sb.WriteByte(' ')
 					i++
 				}
 			}
@@ -161,33 +172,11 @@ func (nd *Node) toString(level int) string {
 		if nd.Text != "" {
 			sb.WriteString(nd.Text)
 		}
-		sb.WriteString("</")
+		sb.WriteByte('<')
+		sb.WriteByte('/')
 		sb.WriteString(nd.Name)
-		sb.WriteString(">")
+		sb.WriteByte('>')
 	}
 
 	return sb.String()
-}
-
-func getText(bytes []byte) string {
-	var ok bool
-	start := -1
-
-	for i, b := range bytes {
-		if b > 13 {
-			if start == -1 {
-				start = i
-			}
-			if b != 32 {
-				ok = true
-				break
-			}
-		}
-	}
-
-	if ok {
-		return string(bytes[start:])
-	}
-
-	return ""
 }
