@@ -99,7 +99,7 @@ type TimeRestriction struct {
 
 //New create new Document from byte stream
 func New(scanner io.ByteScanner) (doc Document, err error) {
-	xml, err := xml.New(scanner)
+	xml, err := xml.Parse(scanner)
 	if err != nil {
 		return
 	}

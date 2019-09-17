@@ -31,7 +31,7 @@ func TestXml(t *testing.T) {
 </Publication>`
 
 	start := time.Now()
-	nd, err := NewFromString(s)
+	nd, err := ParseString(s)
 	ts := time.Since(start)
 
 	if err != nil {

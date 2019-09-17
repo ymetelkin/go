@@ -15,8 +15,8 @@ type Node struct {
 	parent     *Node
 }
 
-//New creates a new node from a io.ByteScanner
-func New(scanner io.ByteScanner) (Node, error) {
+//Parse creates a new node from a io.ByteScanner
+func Parse(scanner io.ByteScanner) (Node, error) {
 	xp := &xParser{
 		r: scanner,
 	}
@@ -24,8 +24,8 @@ func New(scanner io.ByteScanner) (Node, error) {
 	return xp.Parse()
 }
 
-//NewFromString creates a new node from a string
-func NewFromString(xml string) (Node, error) {
+//ParseString creates a new node from a string
+func ParseString(xml string) (Node, error) {
 	if xml == "" {
 		return Node{}, errors.New("Missing input")
 	}

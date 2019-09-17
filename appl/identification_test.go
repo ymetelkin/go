@@ -2,7 +2,6 @@ package appl
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/ymetelkin/go/json"
@@ -41,7 +40,7 @@ func TestIdentification(t *testing.T) {
 		"referenceid": "c8f59c9cb3724b04b753ef957f6d885b"
 	  }`
 
-	xml, err := xml.New(strings.NewReader(input))
+	xml, err := xml.ParseString(input)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -75,7 +74,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<FriendlyKey>xyz</FriendlyKey>
 	</Identification>
 </Publication>`
-	x, err := xml.New(strings.NewReader(s))
+	x, err := xml.ParseString(s)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -100,7 +99,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<MediaType>Photo</MediaType>
 	</Identification>
 </Publication>`
-	x, err = xml.New(strings.NewReader(s))
+	x, err = xml.ParseString(s)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -129,7 +128,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 	</NewsLines>
 </Publication>`
 
-	x, err = xml.New(strings.NewReader(s))
+	x, err = xml.ParseString(s)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -154,7 +153,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<MediaType>ComplexData</MediaType>
 	</Identification>
 </Publication>`
-	x, err = xml.New(strings.NewReader(s))
+	x, err = xml.ParseString(s)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -182,7 +181,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<Title>xyz</Title>
 	</NewsLines>
 </Publication>`
-	x, err = xml.New(strings.NewReader(s))
+	x, err = xml.ParseString(s)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -207,7 +206,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<MediaType>Text</MediaType>
 	</Identification>
 </Publication>`
-	x, err = xml.New(strings.NewReader(s))
+	x, err = xml.ParseString(s)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -235,7 +234,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<EditorialId>xyz</EditorialId>
 	</PublicationManagement>
 </Publication>`
-	x, err = xml.New(strings.NewReader(s))
+	x, err = xml.ParseString(s)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -260,7 +259,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 		<MediaType>Video</MediaType>
 	</Identification>
 </Publication>`
-	x, err = xml.New(strings.NewReader(s))
+	x, err = xml.ParseString(s)
 	if err != nil {
 		t.Error(err.Error())
 	}

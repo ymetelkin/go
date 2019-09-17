@@ -2,7 +2,6 @@ package appl
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/ymetelkin/go/json"
@@ -140,7 +139,7 @@ func TestManagement(t *testing.T) {
 		]
 	  }`
 
-	xml, err := xml.New(strings.NewReader(input))
+	xml, err := xml.ParseString(input)
 	if err != nil {
 		t.Error(err.Error())
 	}

@@ -95,7 +95,7 @@ func XMLToJSON(scanner io.ByteScanner) (jo json.Object, err error) {
 }
 
 func parseXML(scanner io.ByteScanner) (doc document, err error) {
-	root, err := xml.New(scanner)
+	root, err := xml.Parse(scanner)
 	if err != nil {
 		return
 	}
