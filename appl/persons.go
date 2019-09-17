@@ -104,7 +104,7 @@ func (ps *persons) Parse(nd xml.Node) {
 	}
 }
 
-func (ps *persons) ToJSONProperty(namelines []json.Object) json.Property {
+func (ps *persons) JSONProperty(namelines []json.Object) json.Property {
 	ja := json.Array{}
 	var add bool
 
@@ -119,22 +119,22 @@ func (ps *persons) ToJSONProperty(namelines []json.Object) json.Property {
 				person.AddString("creator", p.Creator)
 			}
 			if !p.Rels.IsEmpty() {
-				person.AddProperty(p.Rels.ToJSONProperty("rels"))
+				person.AddProperty(p.Rels.JSONProperty("rels"))
 			}
 			if !p.Types.IsEmpty() {
-				person.AddProperty(p.Types.ToJSONProperty("types"))
+				person.AddProperty(p.Types.JSONProperty("types"))
 			}
 			if !p.Teams.IsEmpty() {
-				person.AddProperty(p.Teams.ToJSONProperty("teams"))
+				person.AddProperty(p.Teams.JSONProperty("teams"))
 			}
 			if !p.States.IsEmpty() {
-				person.AddProperty(p.States.ToJSONProperty("associatedstates"))
+				person.AddProperty(p.States.JSONProperty("associatedstates"))
 			}
 			if !p.Events.IsEmpty() {
-				person.AddProperty(p.Events.ToJSONProperty("associatedevents"))
+				person.AddProperty(p.Events.JSONProperty("associatedevents"))
 			}
 			if !p.Ids.IsEmpty() {
-				person.AddProperty(p.Ids.ToJSONProperty("extids"))
+				person.AddProperty(p.Ids.JSONProperty("extids"))
 			}
 
 			ja.AddObject(person)

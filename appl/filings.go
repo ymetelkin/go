@@ -124,7 +124,7 @@ func parseFiling(nd xml.Node) filing {
 					}
 
 					field := fmt.Sprintf("%s%s%ss", e, strings.ToLower(t), o)
-					rts.AddProperty(ua.ToJSONProperty(field))
+					rts.AddProperty(ua.JSONProperty(field))
 				}
 			}
 		case "SlugLine":
@@ -244,19 +244,19 @@ func parseFiling(nd xml.Node) filing {
 	}
 
 	if !fcs.IsEmpty() {
-		jo.AddProperty(fcs.ToJSONProperty("filingcountries"))
+		jo.AddProperty(fcs.JSONProperty("filingcountries"))
 	}
 
 	if !frs.IsEmpty() {
-		jo.AddProperty(fcs.ToJSONProperty("filingregions"))
+		jo.AddProperty(fcs.JSONProperty("filingregions"))
 	}
 
 	if !fss.IsEmpty() {
-		jo.AddProperty(fss.ToJSONProperty("filingsubjects"))
+		jo.AddProperty(fss.JSONProperty("filingsubjects"))
 	}
 
 	if !fts.IsEmpty() {
-		jo.AddProperty(fts.ToJSONProperty("filingtopics"))
+		jo.AddProperty(fts.JSONProperty("filingtopics"))
 	}
 
 	f.JSON = jo

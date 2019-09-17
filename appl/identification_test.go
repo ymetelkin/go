@@ -83,7 +83,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 	doc.JSON = new(json.Object)
 
 	doc.parseIdentification(x.Node("Identification"))
-	doc.SetReferenceID()
+	doc.setReferenceID()
 
 	if doc.ReferenceID != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
@@ -108,7 +108,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 	doc.JSON = new(json.Object)
 
 	doc.parseIdentification(x.Node("Identification"))
-	doc.SetReferenceID()
+	doc.setReferenceID()
 
 	if doc.ReferenceID != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")
@@ -137,7 +137,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 	doc.JSON = new(json.Object)
 
 	doc.parseIdentification(x.Node("Identification"))
-	doc.SetReferenceID()
+	doc.setReferenceID()
 
 	if doc.ReferenceID != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
@@ -162,7 +162,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 	doc.JSON = new(json.Object)
 
 	doc.parseIdentification(x.Node("Identification"))
-	doc.SetReferenceID()
+	doc.setReferenceID()
 
 	if doc.ReferenceID != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")
@@ -190,7 +190,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 	doc.JSON = new(json.Object)
 
 	doc.parseIdentification(x.Node("Identification"))
-	doc.SetReferenceID()
+	doc.setReferenceID()
 
 	if doc.ReferenceID != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
@@ -215,7 +215,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 	doc.JSON = new(json.Object)
 
 	doc.parseIdentification(x.Node("Identification"))
-	doc.SetReferenceID()
+	doc.setReferenceID()
 
 	if doc.ReferenceID != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")
@@ -243,7 +243,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 	doc.JSON = new(json.Object)
 
 	doc.parseIdentification(x.Node("Identification"))
-	doc.SetReferenceID()
+	doc.setReferenceID()
 
 	if doc.ReferenceID != "xyz" {
 		t.Error("[referenceid:xyz] is expected")
@@ -268,7 +268,7 @@ func TestIdentificationReferenceId(t *testing.T) {
 	doc.JSON = new(json.Object)
 
 	doc.parseIdentification(x.Node("Identification"))
-	doc.SetReferenceID()
+	doc.setReferenceID()
 
 	if doc.ReferenceID != "00000000000000000000000000000001" {
 		t.Error("[referenceid:00000000000000000000000000000001] is expected")

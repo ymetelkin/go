@@ -60,22 +60,22 @@ func (doc *document) ParseDescriptiveMetadata(jo *json.Object) error {
 		jo.AddObject("fixture", fix)
 	}
 
-	jo.AddProperty(desc.ToJSONProperty("descriptions"))
+	jo.AddProperty(desc.JSONProperty("descriptions"))
 
 	if !dll.IsEmpty() {
 		jo.AddObject("datelinelocation", dll)
 	}
 
-	jo.AddProperty(gens.ToJSONProperty("generators"))
-	jo.AddProperty(cats.ToJSONProperty("categories"))
-	jo.AddProperty(sups.ToJSONProperty("suppcategories"))
-	jo.AddProperty(alts.ToJSONProperty("alertcategories"))
-	jo.AddProperty(sbjs.ToJSONProperty("subjects"))
-	jo.AddProperty(prns.ToJSONProperty(doc.Namelines))
-	jo.AddProperty(orgs.ToJSONProperty("organizations"))
-	jo.AddProperty(cmps.ToJSONProperty())
-	jo.AddProperty(plcs.ToJSONProperty())
-	jo.AddProperty(evts.ToJSONProperty())
+	jo.AddProperty(gens.JSONProperty("generators"))
+	jo.AddProperty(cats.JSONProperty("categories"))
+	jo.AddProperty(sups.JSONProperty("suppcategories"))
+	jo.AddProperty(alts.JSONProperty("alertcategories"))
+	jo.AddProperty(sbjs.JSONProperty("subjects"))
+	jo.AddProperty(prns.JSONProperty(doc.Namelines))
+	jo.AddProperty(orgs.JSONProperty("organizations"))
+	jo.AddProperty(cmps.JSONProperty())
+	jo.AddProperty(plcs.JSONProperty())
+	jo.AddProperty(evts.JSONProperty())
 
 	if geo && doc.Filings != nil {
 		for _, f := range doc.Filings {
@@ -87,9 +87,9 @@ func (doc *document) ParseDescriptiveMetadata(jo *json.Object) error {
 			}
 		}
 	}
-	jo.AddProperty(auds.ToJSONProperty("audiences"))
+	jo.AddProperty(auds.JSONProperty("audiences"))
 
-	jo.AddProperty(svcs.ToJSONProperty("services"))
+	jo.AddProperty(svcs.JSONProperty("services"))
 
 	if !tpm.IsEmpty() {
 		jo.AddArray("thirdpartymeta", tpm)

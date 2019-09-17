@@ -22,6 +22,7 @@ func TestXml(t *testing.T) {
     <DefaultLanguage>en-us</DefaultLanguage>
     <RecordSequenceNumber>0</RecordSequenceNumber>
     <FriendlyKey>19120542327253</FriendlyKey>
+    <HeadLine>Vikings, Sage Rosenfels agree to 2-year contract</HeadLine>
   </Identification>
   <script>
    <![CDATA[
@@ -29,6 +30,8 @@ func TestXml(t *testing.T) {
    ]] >
 </script >
 </Publication>`
+
+	//s = `<Identification><HeadLine>Vikings, Sage Rosenfels agree to 2-year contract</HeadLine></Identification>`
 
 	start := time.Now()
 	nd, err := ParseString(s)

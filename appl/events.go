@@ -115,7 +115,7 @@ func (es *events) Parse(nd xml.Node) {
 	}
 }
 
-func (es *events) ToJSONProperty() json.Property {
+func (es *events) JSONProperty() json.Property {
 	if es.Keys != nil {
 		return json.NewArrayProperty("events", es.Events)
 	}

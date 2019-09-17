@@ -80,14 +80,14 @@ func (ua *uniqueArray) IsEmpty() bool {
 	return ua.values.Length() == 0
 }
 
-func (ua *uniqueArray) ToJSONProperty(field string) json.Property {
+func (ua *uniqueArray) JSONProperty(field string) json.Property {
 	if ua.values.Length() == 0 {
 		return json.Property{}
 	}
 	return json.NewArrayProperty(field, ua.values)
 }
 
-func (ua *uniqueArray) ToJSONArray() json.Array {
+func (ua *uniqueArray) JSONArray() json.Array {
 	return ua.values
 }
 

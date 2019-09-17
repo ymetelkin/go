@@ -149,7 +149,7 @@ func (cs *companies) Parse(nd xml.Node) {
 	}
 }
 
-func (cs *companies) ToJSONProperty() json.Property {
+func (cs *companies) JSONProperty() json.Property {
 	if cs.Keys != nil {
 		ja := json.Array{}
 		for _, item := range cs.Companies {
@@ -162,13 +162,13 @@ func (cs *companies) ToJSONProperty() json.Property {
 				company.AddString("creator", comp.Creator)
 			}
 			if !comp.Rels.IsEmpty() {
-				company.AddProperty(comp.Rels.ToJSONProperty("rels"))
+				company.AddProperty(comp.Rels.JSONProperty("rels"))
 			}
 			if !comp.Industries.IsEmpty() {
-				company.AddProperty(comp.Industries.ToJSONProperty("industries"))
+				company.AddProperty(comp.Industries.JSONProperty("industries"))
 			}
 			if !comp.Symbols.IsEmpty() {
-				company.AddProperty(comp.Symbols.ToJSONProperty("symbols"))
+				company.AddProperty(comp.Symbols.JSONProperty("symbols"))
 			}
 
 			ja.AddObject(company)

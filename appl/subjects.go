@@ -83,7 +83,7 @@ func (sbjs *subjects) Parse(nd xml.Node) {
 	}
 }
 
-func (sbjs *subjects) ToJSONProperty(field string) json.Property {
+func (sbjs *subjects) JSONProperty(field string) json.Property {
 	if sbjs.Keys != nil {
 		ja := json.Array{}
 		for _, item := range sbjs.Subjects {
@@ -96,10 +96,10 @@ func (sbjs *subjects) ToJSONProperty(field string) json.Property {
 				subject.AddString("creator", sbj.Creator)
 			}
 			if !sbj.Rels.IsEmpty() {
-				subject.AddProperty(sbj.Rels.ToJSONProperty("rels"))
+				subject.AddProperty(sbj.Rels.JSONProperty("rels"))
 			}
 			if !sbj.ParentIds.IsEmpty() {
-				subject.AddProperty(sbj.ParentIds.ToJSONProperty("parentids"))
+				subject.AddProperty(sbj.ParentIds.JSONProperty("parentids"))
 			}
 			if sbj.TopParent == "true" {
 				subject.AddBool("topparent", true)

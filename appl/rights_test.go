@@ -53,18 +53,19 @@ func TestRights(t *testing.T) {
 	jo := json.Object{}
 
 	/*
-		err := doc.ParsePublicationManagement(&jo)
+			err := doc.ParsePublicationManagement(&jo)
+			if err != nil {
+				t.Error(err.Error())
+			}
+
+
+		err := doc.ParseNewsLines(&jo)
 		if err != nil {
 			t.Error(err.Error())
 		}
 	*/
 
-	err := doc.ParseNewsLines(&jo)
-	if err != nil {
-		t.Error(err.Error())
-	}
-
-	err = doc.ParseRightsMetadata(&jo)
+	err := doc.ParseRightsMetadata(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}

@@ -131,7 +131,7 @@ func (ps *places) Parse(nd xml.Node) {
 	}
 }
 
-func (ps *places) ToJSONProperty() json.Property {
+func (ps *places) JSONProperty() json.Property {
 	if ps.Keys != nil {
 		ja := json.Array{}
 		for _, item := range ps.Places {
@@ -144,10 +144,10 @@ func (ps *places) ToJSONProperty() json.Property {
 				place.AddString("creator", p.Creator)
 			}
 			if !p.Rels.IsEmpty() {
-				place.AddProperty(p.Rels.ToJSONProperty("rels"))
+				place.AddProperty(p.Rels.JSONProperty("rels"))
 			}
 			if !p.ParentIds.IsEmpty() {
-				place.AddProperty(p.ParentIds.ToJSONProperty("parentids"))
+				place.AddProperty(p.ParentIds.JSONProperty("parentids"))
 			}
 			if p.TopParent == "true" {
 				place.AddBool("topparent", true)

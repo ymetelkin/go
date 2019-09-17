@@ -53,7 +53,7 @@ func (doc *Document) parsePublicationManagement(node xml.Node) {
 				}
 			}
 		case "FirstCreated":
-			fc, jo := newFirstCreated(nd)
+			fc, jo := parseFirstCreated(nd)
 			if fc.Date != nil {
 				doc.Created = &fc
 				doc.JSON.AddString("firstcreated", formatDate(*fc.Date))
@@ -62,7 +62,7 @@ func (doc *Document) parsePublicationManagement(node xml.Node) {
 				doc.JSON.AddObject("firstcreator", jo)
 			}
 		case "LastModifiedDateTime":
-			lm, jo := newLastModified(nd)
+			lm, jo := parseLastModified(nd)
 			if lm.Date != nil {
 				doc.Modified = &lm
 				doc.JSON.AddString("lastmodifieddatetime", formatDate(*lm.Date))
@@ -166,7 +166,7 @@ func (doc *Document) parsePublicationManagement(node xml.Node) {
 		case "TimeRestrictions":
 			if nd.Nodes != nil {
 				for _, n := range nd.Nodes {
-					tr := newTimeRestriction(n)
+					tr := parseTimeRestriction(n)
 					doc.TimeRestrictions = append(doc.TimeRestrictions, tr)
 				}
 			}
@@ -194,21 +194,21 @@ func (doc *Document) parsePublicationManagement(node xml.Node) {
 
 	if !types.IsEmpty() {
 		doc.EditorialTypes = types.Values()
-		doc.JSON.AddProperty(types.ToJSONProperty("editorialtypes"))
+		doc.JSON.AddProperty(types.JSONProperty("editorialtypes"))
 	}
 
 	if !outs.IsEmpty() {
 		doc.Outs = outs.Values()
-		doc.JSON.AddProperty(outs.ToJSONProperty("outinginstructions"))
+		doc.JSON.AddProperty(outs.JSONProperty("outinginstructions"))
 	}
 
 	if !signals.IsEmpty() {
 		doc.Signals = signals.Values()
-		doc.JSON.AddProperty(signals.ToJSONProperty("signals"))
+		doc.JSON.AddProperty(signals.JSONProperty("signals"))
 	}
 
 	if len(asswith) > 0 {
-		asses, ja := getAssociations(asswith)
+		asses, ja := parseAssociations(asswith)
 		if len(asses) > 0 {
 			doc.Associations = asses
 			doc.JSON.SetArray("associations", ja)
@@ -235,7 +235,7 @@ func getPubStatus(s string) string {
 	return ""
 }
 
-func newFirstCreated(nd xml.Node) (fc FirstCreated, jo json.Object) {
+func parseFirstCreated(nd xml.Node) (fc FirstCreated, jo json.Object) {
 	if nd.Attributes == nil {
 		return
 	}
@@ -272,13 +272,13 @@ func newFirstCreated(nd xml.Node) (fc FirstCreated, jo json.Object) {
 		fc.Date = &ts
 	}
 
-	ua, jo := newUserAccount(nd)
+	ua, jo := parseUserAccount(nd)
 	fc.User = &ua
 
 	return
 }
 
-func newLastModified(nd xml.Node) (lm LastModified, jo json.Object) {
+func parseLastModified(nd xml.Node) (lm LastModified, jo json.Object) {
 	if nd.Attributes == nil {
 		return
 	}
@@ -288,13 +288,13 @@ func newLastModified(nd xml.Node) (lm LastModified, jo json.Object) {
 		lm.Date = &ts
 	}
 
-	ua, jo := newUserAccount(nd)
+	ua, jo := parseUserAccount(nd)
 	lm.User = &ua
 
 	return
 }
 
-func newUserAccount(nd xml.Node) (ua UserAccount, jo json.Object) {
+func parseUserAccount(nd xml.Node) (ua UserAccount, jo json.Object) {
 	for k, v := range nd.Attributes {
 		switch k {
 		case "UserName":
@@ -334,7 +334,7 @@ func newUserAccount(nd xml.Node) (ua UserAccount, jo json.Object) {
 	return
 }
 
-func newTimeRestriction(nd xml.Node) (tr TimeRestriction) {
+func parseTimeRestriction(nd xml.Node) (tr TimeRestriction) {
 	if nd.Attributes != nil {
 		for k, v := range nd.Attributes {
 			switch k {
@@ -355,7 +355,7 @@ func newTimeRestriction(nd xml.Node) (tr TimeRestriction) {
 	return
 }
 
-func getAssociations(nodes []xml.Node) (asses []Association, ja json.Array) {
+func parseAssociations(nodes []xml.Node) (asses []Association, ja json.Array) {
 	/*
 	   -test the value of //AssociatedWith, if its all zeros, do not convert; otherwise, each //AssociatedWith is converted to an object $.associations[i];
 	   -each object $.associations[i] has five name/value pairs, $.associations[i].type, $.associations[i].itemid, $.associations[i].representationtype, $.associations[i].associationrank and $associations[i].typerank;

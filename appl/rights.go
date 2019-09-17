@@ -61,13 +61,13 @@ func (doc *document) ParseRightsMetadata(parent *json.Object) error {
 					jo.AddString("usagetype", ut)
 				}
 
-				jo.AddProperty(geo.ToJSONProperty("geography"))
+				jo.AddProperty(geo.JSONProperty("geography"))
 
 				if rh != "" {
 					jo.AddString("rightsholder", rh)
 				}
 
-				jo.AddProperty(lim.ToJSONProperty("limitations"))
+				jo.AddProperty(lim.JSONProperty("limitations"))
 
 				if sd != "" {
 					jo.AddString("startdate", sd)

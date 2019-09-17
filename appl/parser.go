@@ -59,11 +59,6 @@ func XMLToJSON(scanner io.ByteScanner) (jo json.Object, err error) {
 		return
 	}
 
-	err = doc.ParseNewsLines(&jo)
-	if err != nil {
-		return
-	}
-
 	err = doc.ParseAdministrativeMetadata(&jo)
 	if err != nil {
 		return
@@ -88,8 +83,6 @@ func XMLToJSON(scanner io.ByteScanner) (jo json.Object, err error) {
 	}
 
 	doc.ParsePublicationComponents(&jo)
-
-	doc.SetHeadline(&jo)
 
 	return
 }

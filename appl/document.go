@@ -31,6 +31,7 @@ type Document struct {
 	Status                  string
 	ReleaseDateTime         *time.Time
 	Associations            []Association
+	RefersTo                string
 	Outs                    []string
 	SpecialInstructions     string
 	EditorialTypes          []string
@@ -43,11 +44,33 @@ type Document struct {
 	Signals                 []string
 	Function                string
 	TimeRestrictions        []TimeRestriction
-	RefersTo                string
+	Title                   string
+	Headline                string
+	ExtendedHeadline        string
+	Summary                 string
+	Overlines               []string
+	Keywordlines            []string
+	Bylines                 []Byline
+	Producer                *CodeNameTitle
+	Photographer            *CodeNameTitle
+	Captionwriter           *CodeNameTitle
+	Edits                   []string
+	Dateline                string
+	Creditline              string
+	Copyright               *Copyright
+	Rightsline              string
+	Seriesline              string
+	OutCue                  string
+	Persons                 []Person
+	Locationline            string
 
 	EditorialID string
-	Title       string
 	Filings     []Filing
+
+	Story    *Text
+	Caption  *Text
+	Script   *Text
+	Shotlist *Text
 
 	XML  *xml.Node
 	JSON *json.Object
@@ -97,6 +120,40 @@ type TimeRestriction struct {
 	Include bool
 }
 
+//Byline struct
+type Byline struct {
+	Code       string
+	By         string
+	Title      string
+	Parametric string
+}
+
+//CodeNameTitle struct
+type CodeNameTitle struct {
+	Code  string
+	Name  string
+	Title string
+}
+
+//Copyright struct
+type Copyright struct {
+	Notice string
+	Holder string
+	Year   int
+}
+
+//Person struct
+type Person struct {
+	Name       string
+	IsFeatured bool
+}
+
+//Text struct
+type Text struct {
+	Body  string
+	Words int
+}
+
 //New create new Document from byte stream
 func New(scanner io.ByteScanner) (doc Document, err error) {
 	xml, err := xml.Parse(scanner)
@@ -125,9 +182,9 @@ func (doc *Document) parse() (err error) {
 		case "Identification":
 			doc.parseIdentification(nd)
 		case "PublicationManagement":
-			//doc.PublicationManagement = &nd
+			doc.parsePublicationManagement(nd)
 		case "NewsLines":
-			//doc.NewsLines = &nd
+			doc.parseNewsLines(nd)
 		case "AdministrativeMetadata":
 			//doc.AdministrativeMetadata = &nd
 		case "RightsMetadata":
@@ -139,7 +196,8 @@ func (doc *Document) parse() (err error) {
 		}
 	}
 
-	doc.SetReferenceID()
+	doc.setReferenceID()
+	doc.setHeadline()
 
 	return
 }

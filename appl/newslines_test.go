@@ -2,22 +2,15 @@ package appl
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/ymetelkin/go/json"
+	"github.com/ymetelkin/go/xml"
 )
 
 func TestNewslines(t *testing.T) {
-	s := `
+	input := `
 <Publication>
-	<Identification>
-		<ItemId>00000000000000000000000000000001</ItemId>
-		<RecordId>00000000000000000000000000000002</RecordId>
-		<CompositeId>00000000000000000000000000000003</CompositeId>
-		<CompositionType>StandardPrintPhoto</CompositionType>
-		<MediaType>Photo</MediaType>
-	</Identification>
 	<NewsLines>
 		<Title>FBN--Vikings-Free Agency</Title>
 		<HeadLine>Vikings, Sage Rosenfels agree to 2-year contract</HeadLine>
@@ -29,40 +22,32 @@ func TestNewslines(t *testing.T) {
 		<KeywordLine>Vikings-Free Agency</KeywordLine>
 		<ByLineOriginal>By DAVE CAMPBELL</ByLineOriginal>
 		<NameLine Parametric="PERSON_FEATURED">Magdalena Neuner</NameLine>
-	</NewsLines>  
-	<DescriptiveMetadata>
-		<EntityClassification SystemVersion="1" AuthorityVersion="2375" System="Teragram" Authority="AP Party">
-			<Occurrence Count="1" Value="M. Spencer Green">
-				<Property Id="111a147611e548de93ad20a387d49200" Name="PartyType" Value="PHOTOGRAPHER" />
-				<Position Value="Publication/NewsLines/ByLine" Phrase="M. Spencer Green" />
-			</Occurrence>
-		</EntityClassification>
-	</DescriptiveMetadata>
+	</NewsLines> 
 </Publication>`
-	doc, _ := parseXML(strings.NewReader(s))
-	jo := json.Object{}
 
-	//err := doc.ParseIdentification(&jo)
-	//if err != nil {
-	//	t.Error(err.Error())
-	//}
-	err := doc.ParseNewsLines(&jo)
+	expected := `
+	{
+	}`
+
+	xml, err := xml.ParseString(input)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	err = doc.ParseDescriptiveMetadata(&jo)
-	if err != nil {
-		t.Error(err.Error())
-	}
+	doc := new(Document)
+	doc.XML = &xml
+	doc.JSON = new(json.Object)
 
-	if doc.Headline == "" {
-		t.Error("[headline] is expected")
-	}
+	doc.parseNewsLines(xml.Node("NewsLines"))
+	doc.setCopyright()
+	//fmt.Println(doc.JSON.String())
 
-	if _, err := jo.GetArray("persons"); err != nil {
-		t.Error("[persons] is expected")
+	test, _ := json.ParseObjectString(expected)
+	left := doc.JSON.InlineString()
+	right := test.InlineString()
+	if left != right {
+		t.Error("Failed NewsLines")
+		fmt.Println(left)
+		fmt.Println(right)
 	}
-
-	fmt.Printf("%s\n", jo.String())
 }

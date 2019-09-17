@@ -280,12 +280,12 @@ func (xp *xParser) EndNode(nd *Node) (err error) {
 		sb    strings.Builder
 	)
 
-	for {
-		c, err = xp.SkipWS()
-		if err != nil {
-			break
-		}
+	c, err = xp.SkipWS()
+	if err != nil {
+		return
+	}
 
+	for {
 		if c == '<' {
 			c, err = xp.r.ReadByte()
 			if err != nil {
@@ -336,6 +336,12 @@ func (xp *xParser) EndNode(nd *Node) (err error) {
 					}
 
 					sb.WriteString(strings.TrimSpace(s))
+
+					c, err = xp.SkipWS()
+					if err != nil {
+						break
+					}
+					
 					continue
 				}
 			}
@@ -355,8 +361,18 @@ func (xp *xParser) EndNode(nd *Node) (err error) {
 
 			n.parent = nd
 			nodes = append(nodes, n)
+
+			c, err = xp.SkipWS()
+			if err != nil {
+				break
+			}
 		} else {
 			sb.WriteByte(c)
+
+			c, err = xp.r.ReadByte()
+			if err != nil {
+				break
+			}
 		}
 	}
 

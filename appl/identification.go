@@ -64,8 +64,7 @@ func (doc *Document) parseIdentification(node xml.Node) {
 	doc.JSON.AddString("referenceid", doc.ItemID)
 }
 
-//SetReferenceID sets reference ID after all fields are collected
-func (doc *Document) SetReferenceID() {
+func (doc *Document) setReferenceID() {
 	var ref string
 
 	if (doc.MediaType == "photo" || doc.MediaType == "graphic") && doc.FriendlyKey != "" {
