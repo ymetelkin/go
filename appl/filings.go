@@ -9,6 +9,20 @@ import (
 	"github.com/ymetelkin/go/xml"
 )
 
+//Filing APPL filing
+type Filing struct {
+	Source      string
+	Category    string
+	Slugline    string
+	ForeignKeys []ForeignKey
+}
+
+//ForeignKey APPL foreign key
+type ForeignKey struct {
+	Field string
+	Value string
+}
+
 type filing struct {
 	Source      string
 	Category    string

@@ -70,6 +70,8 @@ func (xp *xParser) Parse() (nd Node, err error) {
 			err = fmt.Errorf("Expected '<', found '%c'", c)
 			return
 		}
+	} else {
+		xp.r.UnreadByte()
 	}
 
 	nd, closed, e := xp.StartNode()

@@ -59,19 +59,6 @@ func XMLToJSON(scanner io.ByteScanner) (jo json.Object, err error) {
 		return
 	}
 
-	jo.AddString("representationversion", "1.0")
-	jo.AddString("representationtype", "full")
-
-	err = doc.ParseIdentification(&jo)
-	if err != nil {
-		return
-	}
-
-	err = doc.ParsePublicationManagement(&jo)
-	if err != nil {
-		return
-	}
-
 	err = doc.ParseNewsLines(&jo)
 	if err != nil {
 		return
@@ -102,7 +89,6 @@ func XMLToJSON(scanner io.ByteScanner) (jo json.Object, err error) {
 
 	doc.ParsePublicationComponents(&jo)
 
-	doc.SetReferenceID(&jo)
 	doc.SetHeadline(&jo)
 
 	return

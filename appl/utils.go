@@ -1,8 +1,10 @@
 package appl
 
 import (
+	"errors"
 	"fmt"
 	"html"
+	"sort"
 	"strings"
 	"time"
 
@@ -89,6 +91,20 @@ func (ua *uniqueArray) ToJSONArray() json.Array {
 	return ua.values
 }
 
+func (ua *uniqueArray) Values() (values []string) {
+	if ua.keys == nil {
+		return
+	}
+
+	for k := range ua.keys {
+		values = append(values, k)
+	}
+
+	sort.Strings(values)
+
+	return
+}
+
 func setRels(system string, match string, rels *uniqueArray) {
 	if strings.EqualFold(system, "RTE") {
 		rels.AddString("inferred")
@@ -144,6 +160,68 @@ func makePrettyString(s string) string {
 	return string(t[0:w])
 }
 
+func parseDate(s string) (time.Time, error) {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return time.Time{}, errors.New("Missing date input")
+	}
+
+	formats := []string{
+		"2006-01-02T15:04:05",
+		"2006-01-02T15:04:05Z",
+		"2006-01-02T15:04:05-0700",
+		"2006-01-02",
+		"2006-01",
+		"2006",
+	}
+
+	for _, format := range formats {
+		ts, err := time.Parse(format, s)
+		if err == nil {
+			return ts.UTC(), nil
+		}
+	}
+
+	return time.Time{}, errors.New("Invalid date input")
+}
+
+func properDate(s string) string {
+	ts, err := parseDate(s)
+	if err != nil {
+		return ""
+	}
+
+	return ts.Format("2006-01-02T15:04:05Z")
+}
+
+func formatDate(ts time.Time) string {
+	return ts.Format("2006-01-02T15:04:05Z")
+}
+
+func parseTime(s string) (time.Time, error) {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return time.Time{}, errors.New("Missing time input")
+	}
+
+	formats := []string{
+		"15:04:05",
+		"15:04",
+		"15:04:05Z",
+		"15:04:05-0700",
+	}
+
+	for _, format := range formats {
+		ts, err := time.Parse(format, s)
+		if err == nil {
+			return ts.UTC(), nil
+		}
+	}
+
+	return time.Time{}, errors.New("Invalid time input")
+}
+
+/*
 func parseIsoDate(s string) string {
 	t, err := time.Parse(time.RFC3339, s)
 	if err != nil {
@@ -154,6 +232,7 @@ func parseIsoDate(s string) string {
 	}
 	return t.Format("2006-01-02T15:04:05Z")
 }
+*/
 
 func formatTime(ms int64) string {
 	t := time.Unix(0, ms*int64(time.Millisecond)).UTC()

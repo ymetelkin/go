@@ -65,12 +65,14 @@ func TestAdmin(t *testing.T) {
 	doc, _ := parseXML(strings.NewReader(s))
 	jo := json.Object{}
 
-	err := doc.ParsePublicationManagement(&jo)
-	if err != nil {
-		t.Error(err.Error())
-	}
+	/*
+		err := doc.ParsePublicationManagement(&jo)
+		if err != nil {
+			t.Error(err.Error())
+		}
+	*/
 
-	err = doc.ParseAdministrativeMetadata(&jo)
+	err := doc.ParseAdministrativeMetadata(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}

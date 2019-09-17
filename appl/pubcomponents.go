@@ -78,7 +78,7 @@ func parsePublicationComponent(nd xml.Node) pubcomponent {
 		case "Role":
 			role = v
 		case "MediaType":
-			mt, _ = getMediaType(v)
+			//mt, _ = getMediaType(v)
 		}
 	}
 

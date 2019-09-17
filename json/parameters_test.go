@@ -5,6 +5,7 @@ import (
 	"testing"
 )
 
+/*
 func TestPropertyNameWithParametersParsing(t *testing.T) {
 	s := `{"${f}":1}`
 	runes := []rune(s)
@@ -23,7 +24,7 @@ func TestPropertyNameWithParametersParsing(t *testing.T) {
 		}
 	}
 
-	s = `{"${f?id}":1}`
+	input = `{"${f?id}":1}`
 	runes = []rune(s)
 	size = len(runes)
 
@@ -43,7 +44,7 @@ func TestPropertyNameWithParametersParsing(t *testing.T) {
 		}
 	}
 
-	s = `{"${prefix?user}_${suffix?id}":1}`
+	input = `{"${prefix?user}_${suffix?id}":1}`
 	runes = []rune(s)
 	size = len(runes)
 
@@ -91,7 +92,7 @@ func TestValueWithParametersParsing(t *testing.T) {
 		}
 	}
 
-	s = `"${v?test}"`
+	input = `"${v?test}"`
 	runes = []rune(s)
 	size = len(runes)
 
@@ -111,7 +112,7 @@ func TestValueWithParametersParsing(t *testing.T) {
 		}
 	}
 
-	s = `"prefix_${v?test}_suffix"`
+	input = `"prefix_${v?test}_suffix"`
 	runes = []rune(s)
 	size = len(runes)
 
@@ -131,7 +132,7 @@ func TestValueWithParametersParsing(t *testing.T) {
 		}
 	}
 
-	s = `"This is ${prefix?user} ${suffix?id} xyz"`
+	input = `"This is ${prefix?user} ${suffix?id} xyz"`
 	runes = []rune(s)
 	size = len(runes)
 
@@ -160,93 +161,149 @@ func TestValueWithParametersParsing(t *testing.T) {
 		}
 	}
 }
+*/
 
 func TestJSONObjectWithParametersParsing(t *testing.T) {
-	s := `{"id":"${id}","name":"${name}","params":{"id":1,"name":"YM"}}`
-	jo, err := ParseJSONObjectWithParameters(s)
+	input := `{"id":"${id}","name":"${name}","params":{"id":1,"name":"YM"}}`
+	expected := `{"id":1,"name":"YM"}`
+	jo, err := ParseObjectString(input)
 	if err != nil {
 		t.Error(err.Error())
-	} else {
-		fmt.Printf("%s\n", jo.String())
+	}
+	jo.SetParams(nil)
+	test := jo.InlineString()
+	if test != expected {
+		t.Error("Doesn't match!")
+		fmt.Println(test)
 	}
 
-	s = `{"id":"${id}", "name":"${name}","params":{"name":"YM"}}`
-	jo, err = ParseJSONObjectWithParameters(s)
+	input = `{"id":"${id}", "name":"${name}","params":{"name":"YM"}}`
+	expected = `{"name":"YM"}`
+	jo, err = ParseObjectString(input)
 	if err != nil {
 		t.Error(err.Error())
-	} else {
-		fmt.Printf("%s\n", jo.String())
+	}
+	jo.SetParams(nil)
+	test = jo.InlineString()
+	if test != expected {
+		t.Error("Doesn't match!")
+		fmt.Println(test)
 	}
 
-	s = `{"id":"${id}","name":"${name}", "child":{"name":"${name}", "age":"${age}","${extra_field}":"${extra_value}"}, "params":{"id":1,"name":"YM","age":13,"extra_field":"nick","extra_value":"Gusyonok"}}`
-	jo, err = ParseJSONObjectWithParameters(s)
+	input = `{"id":"${id}","name":"${name}", "child":{"name":"${name}", "age":"${age}","${extra_field}":"${extra_value}"}, "params":{"id":1,"name":"YM","age":13,"extra_field":"nick","extra_value":"Gusyonok"}}`
+	expected = `{"id":1,"name":"YM","child":{"name":"YM","age":13,"nick":"Gusyonok"}}`
+	jo, err = ParseObjectString(input)
 	if err != nil {
 		t.Error(err.Error())
-	} else {
-		fmt.Printf("%s\n", jo.String())
+	}
+	jo.SetParams(nil)
+	test = jo.InlineString()
+	if test != expected {
+		t.Error("Doesn't match!")
+		fmt.Println(test)
 	}
 
-	s = `{"id":"${id}","name":"${name}", "child":{"age":"${age}"}, "params":{"id":1,"name":"YM"}}`
-	jo, err = ParseJSONObjectWithParameters(s)
+	input = `{"id":"${id}","name":"${name}", "child":{"age":"${age}"}, "params":{"id":1,"name":"YM"}}`
+	expected = `{"id":1,"name":"YM"}`
+	jo, err = ParseObjectString(input)
 	if err != nil {
 		t.Error(err.Error())
-	} else {
-		fmt.Printf("%s\n", jo.String())
+	}
+	jo.SetParams(nil)
+	test = jo.InlineString()
+	if test != expected {
+		t.Error("Doesn't match!")
+		fmt.Println(test)
 	}
 
-	s = `{"${id_prefix}_id":"${id}","name":"${name}", "child":{"name":"${name} Jr.", "age":"${age}"}, "params":{"id_prefix":"user","id":1,"name":"YM"}}`
-	jo, err = ParseJSONObjectWithParameters(s)
+	input = `{"${id_prefix}_id":"${id}","name":"${name}", "child":{"name":"${name} Jr.", "age":"${age}"}, "params":{"id_prefix":"user","id":1,"name":"YM"}}`
+	expected = `{"user_id":1,"name":"YM","child":{"name":"YM Jr."}}`
+	jo, err = ParseObjectString(input)
 	if err != nil {
 		t.Error(err.Error())
-	} else {
-		fmt.Printf("%s\n", jo.String())
+	}
+	jo.SetParams(nil)
+	test = jo.InlineString()
+	if test != expected {
+		t.Error("Doesn't match!")
+		fmt.Println(test)
 	}
 
-	s = `{"${id_prefix}_id":"${id}","name":"${name}", "child":{"name":"${name} Jr.", "age":"${age}"}, "params":{"id_prefix1":"user","id":1,"name":"YM"}}`
-	jo, err = ParseJSONObjectWithParameters(s)
+	input = `{"${id_prefix}_id":"${id}","name":"${name}", "child":{"name":"${name} Jr.", "age":"${age}"}, "params":{"id_prefix1":"user","id":1,"name":"YM"}}`
+	expected = `{"_id":1,"name":"YM","child":{"name":"YM Jr."}}`
+	jo, err = ParseObjectString(input)
 	if err != nil {
 		t.Error(err.Error())
-	} else {
-		fmt.Printf("%s\n", jo.String())
+	}
+	jo.SetParams(nil)
+	test = jo.InlineString()
+	if test != expected {
+		t.Error("Doesn't match!")
+		fmt.Println(test)
 	}
 
-	s = `{"template":{"query":{"query_string":{"query":"${query}","fields":"${fields}"}}},"params":{"query":"test","fields":["head","body"]}}`
-	jo, err = ParseJSONObjectWithParameters(s)
+	input = `{"template":{"query":{"query_string":{"query":"${query}","fields":"${fields}"}}},"params":{"query":"test","fields":["head","body"]}}`
+	expected = `{"template":{"query":{"query_string":{"query":"test","fields":["head","body"]}}}}`
+	jo, err = ParseObjectString(input)
 	if err != nil {
 		t.Error(err.Error())
-	} else {
-		fmt.Printf("%s\n", jo.String())
+	}
+	jo.SetParams(nil)
+	test = jo.InlineString()
+	if test != expected {
+		t.Error("Doesn't match!")
+		fmt.Println(test)
 	}
 
-	s = `{"template":{"_source":["headline","${field1}","${field2}","${field3}"],"params":{"field1":"type","field2":"date"}}}`
-	jo, err = ParseJSONObjectWithParameters(s)
+	input = `{"template":{"_source":["headline","${field1}","${field2}","${field3}"],"params":{"field1":"type","field2":"date"}}}`
+	expected = `{"template":{"_source":["headline","type","date"]}}`
+	jo, err = ParseObjectString(input)
 	if err != nil {
 		t.Error(err.Error())
-	} else {
-		fmt.Printf("%s\n", jo.String())
+	}
+	jo.SetParams(nil)
+	test = jo.InlineString()
+	if test != expected {
+		t.Error("Doesn't match!")
+		fmt.Println(test)
 	}
 
-	s = `{"first_name":"${first_name?Yuri}","last_name":"${last_name?Metelkine}","params":{"last_name":"Metelkin"}}`
-	jo, err = ParseJSONObjectWithParameters(s)
+	input = `{"first_name":"${first_name?Yuri}","last_name":"${last_name?Metelkine}","params":{"last_name":"Metelkin"}}`
+	expected = `{"first_name":"Yuri","last_name":"Metelkin"}`
+	jo, err = ParseObjectString(input)
 	if err != nil {
 		t.Error(err.Error())
-	} else {
-		fmt.Printf("%s\n", jo.String())
+	}
+	jo.SetParams(nil)
+	test = jo.InlineString()
+	if test != expected {
+		t.Error("Doesn't match!")
+		fmt.Println(test)
 	}
 
-	s = `{"name":"${first_name?Yuri} ${last_name?Metelkine}","params":{"last_name":"Metelkin"}}`
-	jo, err = ParseJSONObjectWithParameters(s)
+	input = `{"name":"${first_name?Yuri} ${last_name?Metelkine}","params":{"last_name":"Metelkin"}}`
+	expected = `{"name":"Yuri Metelkin"}`
+	jo, err = ParseObjectString(input)
 	if err != nil {
 		t.Error(err.Error())
-	} else {
-		fmt.Printf("%s\n", jo.String())
+	}
+	jo.SetParams(nil)
+	test = jo.InlineString()
+	if test != expected {
+		t.Error("Doesn't match!")
+		fmt.Println(test)
 	}
 
-	s = `{"template":{"_source":["headline","${field1}","${field2}","${field3?test}"],"params":{"field1":"type","field2":"date"}}}`
-	jo, err = ParseJSONObjectWithParameters(s)
+	input = `{"template":{"_source":["headline","${field1}","${field2}","${field3?test}"],"params":{"field1":"type","field2":"date"}}}`
+	expected = `{"template":{"_source":["headline","type","date","test"]}}`
+	jo, err = ParseObjectString(input)
 	if err != nil {
 		t.Error(err.Error())
-	} else {
-		fmt.Printf("%s\n", jo.String())
+	}
+	jo.SetParams(nil)
+	test = jo.InlineString()
+	if test != expected {
+		t.Error("Doesn't match!")
+		fmt.Println(test)
 	}
 }

@@ -3,428 +3,503 @@ package json
 import (
 	"errors"
 	"fmt"
+	"io"
 	"strconv"
 	"strings"
 )
 
-const (
-	runeNull        rune = 0
-	runeBL          rune = 7
-	runeBS          rune = 8
-	runeHT          rune = 9
-	runeLF          rune = 10
-	runeVT          rune = 11
-	runeFF          rune = 12
-	runeCR          rune = 13
-	runeSpace       rune = 32
-	runeQuote       rune = 34
-	runeDollar      rune = 36
-	runeComma       rune = 44
-	runeMinus       rune = 45
-	runePeriod      rune = 46
-	rune0           rune = 48
-	rune9           rune = 57
-	runeColon       rune = 58
-	runeQuestion    rune = 63
-	runeEUpper      rune = 69
-	runeLeftSquare  rune = 91
-	runeBackslash   rune = 92
-	runeRightSquare rune = 93
-	runeA           rune = 97
-	runeB           rune = 98
-	runeE           rune = 101
-	runeF           rune = 102
-	runeL           rune = 108
-	runeN           rune = 110
-	runeR           rune = 114
-	runeS           rune = 115
-	runeT           rune = 116
-	runeU           rune = 117
-	runeV           rune = 118
-	runeLeftCurly   rune = 123
-	runeRightCurly  rune = 125
-)
-
-//ParseJSONObject parses string to JSON object
-func ParseJSONObject(s string) (Object, error) {
-	return parseJSONObject(s, false)
+type parser struct {
+	r io.ByteScanner
 }
 
-//ParseJSONArray parses string to JSON array
-func ParseJSONArray(s string) (Array, error) {
-	jv, err := parseJSONValue(s, false)
-	if err == nil {
-		ja, err := jv.GetArray()
-		if err == nil {
-			return ja, nil
-		}
-	}
-
-	return Array{}, err
+//ParseObject parses new JSON object from scanner
+func ParseObject(scanner io.ByteScanner) (jo Object, err error) {
+	return parseObject(scanner)
 }
 
-func parseJSONValue(s string, parameterize bool) (value, error) {
-	runes := []rune(s)
-	size := len(runes)
-	r, i := skipWhitespace(runes, size, 0)
+//ParseObjectString parses new JSON object from string
+func ParseObjectString(s string) (jo Object, err error) {
+	scanner := strings.NewReader(s)
+	return parseObject(scanner)
+}
 
-	if size < 2 {
-		return value{}, errors.New("Invalid string input")
+func parseObject(scanner io.ByteScanner) (jo Object, err error) {
+	p := &parser{r: scanner}
+
+	c, err := p.SkipWS()
+	if err == io.EOF {
+		err = errors.New("Missing JSON input")
+		return
 	}
 
-	if r == runeLeftCurly {
-		jo, _, err := parseObject(runes, size, i, parameterize)
+	if err != nil {
+		return
+	}
 
-		if err != nil {
-			return value{}, err
-		}
-		return newObject(jo), nil
-	} else if runes[0] == runeLeftSquare {
-		ja, _, err := parseArray(runes, size, i, false)
-
-		if err != nil {
-			return value{}, err
-		}
-		return newArray(ja), nil
+	if c == '{' {
+		jo, _, err = p.ParseObject()
 	} else {
-		return value{}, errors.New("Invalid string input")
+		err = fmt.Errorf("Expected '{', found '%c'", c)
 	}
+
+	return
 }
 
-func parseJSONObject(s string, parameterize bool) (Object, error) {
-	jv, err := parseJSONValue(s, parameterize)
-	if err == nil {
-		jo, err := jv.GetObject()
+//ParseArray parses new JSON object from scanner
+func ParseArray(scanner io.ByteScanner) (ja Array, err error) {
+	return parseArray(scanner)
+}
+
+//ParseArrayString parses new JSON object from string
+func ParseArrayString(s string) (ja Array, err error) {
+	scanner := strings.NewReader(s)
+	return parseArray(scanner)
+}
+
+func parseArray(scanner io.ByteScanner) (ja Array, err error) {
+	p := &parser{r: scanner}
+
+	c, err := p.SkipWS()
+	if err == io.EOF {
+		err = errors.New("Missing JSON input")
+		return
+	}
+
+	if err != nil {
+		return
+	}
+
+	if c == '[' {
+		ja, _, err = p.ParseArray()
+	} else {
+		err = fmt.Errorf("Expected '[', found '%c'", c)
+	}
+
+	return
+}
+
+func (p *parser) Parse() (jv value, params bool, err error) {
+	c, err := p.SkipWS()
+	if err == io.EOF {
+		err = errors.New("Missing input")
+		return
+	}
+
+	if err != nil {
+		return
+	}
+
+	if c == '{' {
+		jo, ps, err := p.ParseObject()
 		if err == nil {
-			return jo, nil
+			params = ps
+			jv = newObject(jo)
+		}
+	} else if c == '[' {
+		ja, ps, err := p.ParseArray()
+		if err == nil {
+			params = ps
+			jv = newArray(ja)
+		}
+	} else {
+		err = fmt.Errorf("Expected '{' or '[', found '%c'", c)
+	}
+
+	return
+}
+
+func (p *parser) ParseObject() (jo Object, params bool, err error) {
+	var ps bool
+
+	ps, err = p.AddProperty(&jo)
+	if err != nil {
+		return
+	}
+	if ps {
+		params = true
+	}
+
+	for {
+		c, e := p.SkipWS()
+		if e != nil {
+			err = e
+			return
+		}
+
+		if c == ',' {
+			ps, e = p.AddProperty(&jo)
+			if e != nil {
+				err = e
+				return
+			}
+			if ps {
+				params = true
+			}
+		} else if c == '}' {
+			break
+		} else {
+			err = fmt.Errorf("Expected '}', found '%c'", c)
+			break
 		}
 	}
 
-	return Object{}, err
+	return
 }
 
-func addProperty(jo *Object, runes []rune, size int, index int, parameterize bool) (rune, int, error) {
-	index++
-	r, index := skipWhitespace(runes, size, index)
+func (p *parser) AddProperty(jo *Object) (params bool, err error) {
+	c, err := p.SkipWS()
+	if err != nil {
+		return
+	}
 
-	if r == runeQuote {
+	if c == '"' {
 		var (
-			name  string
-			err   error
-			pname ParameterizedString
+			name   string
+			jv     value
+			ps     bool
+			pvalue int
 		)
 
-		if parameterize {
-			pname, index, err = parsePropertyNameWithParameters(runes, size, index)
-			name = pname.Value
+		name, ps, err = p.ParsePropertyName()
+		if err != nil {
+			return
+		}
+		if ps {
+			params = true
+			pvalue = 1
+
+			if jo.pnames == nil {
+				jo.pnames = make(map[string]int)
+			}
+			jo.pnames[name] = pvalue
+		}
+
+		jv, ps, err = p.ParseValue()
+		if err != nil {
+			return
+		}
+
+		if !jv.IsEmpty() {
+			if ps {
+				params = true
+
+				if pvalue == 0 && jo.pnames == nil {
+					jo.pnames = make(map[string]int)
+				}
+				pvalue = pvalue + 2
+				jo.pnames[name] = pvalue
+			}
+
+			jo.addValue(name, jv)
+		}
+	} else if c != '}' {
+		err = fmt.Errorf("Expected '}', found '%c'", c)
+	}
+
+	return
+}
+
+func (p *parser) ParsePropertyName() (name string, params bool, err error) {
+	var (
+		sb  strings.Builder
+		pos int
+	)
+
+	for {
+		c, e := p.r.ReadByte()
+		if e != nil {
+			err = e
+			return
+		}
+
+		if c == '"' {
+			c, e = p.r.ReadByte()
+			if e != nil {
+				err = e
+				break
+			}
+			if c != ':' {
+				err = fmt.Errorf("Expected ':', found '%c'", c)
+				break
+			}
+			name = sb.String()
+			if name == "" {
+				err = errors.New("Missing property name")
+			}
+			break
 		} else {
-			name, index, err = parsePropertyName(runes, size, index)
-		}
-		if err != nil {
-			return r, index, err
-		}
-
-		index++ //skip colon
-		value, index, pvalue, err := parseValue(runes, size, index, parameterize)
-		if err != nil {
-			return r, index, err
-		}
-
-		if pvalue.Value != "" {
-			if pvalue.IsParameterized {
-				value = newParameterizedString(pvalue)
+			if isParam(c) {
+				params = true
 			} else {
-				value = newString(pvalue.Value)
+				if pos == 0 {
+					if !isAlpha(c) && c != '_' {
+						err = fmt.Errorf("Invalid first character of property name: '%c'", c)
+						break
+					}
+				} else {
+					if !isProperty(c) {
+						err = fmt.Errorf("Invalid character in property name: '%c'", c)
+						break
+					}
+				}
 			}
+
+			sb.WriteByte(c)
+			pos++
 		}
-
-		if !value.IsEmpty() {
-			if pname.IsParameterized || pvalue.IsParameterized {
-				jo.AddWithParameters(pname, value)
-			} else {
-				jo.addValue(name, value)
-			}
-		}
-		index++
-		r, index = skipWhitespace(runes, size, index)
-		return r, index, nil
-	} else if r == runeRightCurly {
-		return r, index, nil
-	} else {
-		return r, index, fmt.Errorf("Expected '\"', found '%c'", r)
-	}
-}
-
-func parsePropertyName(runes []rune, size int, index int) (string, int, error) {
-	index++
-
-	r := runeNull
-	start := index
-
-	for index < size {
-		r = runes[index]
-
-		if r == runeQuote {
-			end := index
-
-			index++
-			r, index = skipWhitespace(runes, size, index)
-			if r == runeColon {
-				return string(runes[start:end]), index, nil
-			}
-			return "", index, fmt.Errorf("Expected ':', found '%c'", r)
-		}
-
-		index++
 	}
 
-	return "", index, fmt.Errorf("Expected '\"', found '%c'", r)
+	return
 }
 
-func parseValue(runes []rune, size int, index int, parameterize bool) (value, int, ParameterizedString, error) {
-	r, index := skipWhitespace(runes, size, index)
+func (p *parser) ParseValue() (jv value, params bool, err error) {
+	c, err := p.SkipWS()
+	if err != nil {
+		return
+	}
 
-	if r == runeQuote {
-		index++
-
-		if parameterize {
-			ps, index, err := parseTextValueWithParameters(runes, size, index)
-			if err != nil {
-				return value{}, index, ps, err
-			}
-			return value{}, index, ps, nil
-		}
-
+	if c == '"' {
 		var sb strings.Builder
 
-		for index < size {
-			r := runes[index]
+		for {
+			c, e := p.r.ReadByte()
+			if e != nil {
+				err = e
+				return
+			}
 
-			if r == runeBackslash {
-				index++
-				if index < size {
-					test := runes[index]
-					if test == runeR {
-						sb.WriteRune(runeCR)
-					} else if test == runeN {
-						sb.WriteRune(runeLF)
-					} else if test == runeT {
-						sb.WriteRune(runeHT)
-					} else if test == runeB {
-						sb.WriteRune(runeBS)
-					} else if test == runeF {
-						sb.WriteRune(runeFF)
-					} else if test == runeA {
-						sb.WriteRune(runeBL)
-					} else if test == runeV {
-						sb.WriteRune(runeVT)
-					} else if test == runeQuote {
-						sb.WriteRune(runeQuote)
-					}
+			if c == '\\' {
+				c, e := p.r.ReadByte()
+				if e != nil {
+					err = e
+					return
 				}
-			} else if r == runeQuote {
-				return newString(sb.String()), index, ParameterizedString{}, nil
+
+				if c == 'r' {
+					sb.WriteByte('\r')
+				} else if c == 'n' {
+					sb.WriteByte('\n')
+				} else if c == 't' {
+					sb.WriteByte('\t')
+				} else if c == 'b' {
+					sb.WriteByte('\b')
+				} else if c == 'f' {
+					sb.WriteByte('\f')
+				} else if c == 'a' {
+					sb.WriteByte('\a')
+				} else if c == 'v' {
+					sb.WriteByte('\v')
+				} else if c == '"' {
+					sb.WriteByte('"')
+				} else if c == '\\' {
+					sb.WriteByte('\\')
+				}
+			} else if c == '"' {
+				jv = newString(sb.String())
+				return
 			} else {
-				sb.WriteRune(r)
-			}
-
-			index++
-		}
-		return value{}, index, ParameterizedString{}, nil
-	}
-
-	if r == runeLeftCurly {
-		jo, index, err := parseObject(runes, size, index, parameterize)
-		if err != nil {
-			return value{}, index, ParameterizedString{}, err
-		}
-		return newObject(jo), index, ParameterizedString{}, nil
-	}
-
-	if r == runeLeftSquare {
-		ja, index, err := parseArray(runes, size, index, parameterize)
-		if err != nil {
-			return value{}, index, ParameterizedString{}, err
-		}
-		return newArray(ja), index, ParameterizedString{}, nil
-	}
-
-	if r == runeT {
-		index++
-		if index < size && runes[index] == runeR {
-			index++
-			if index < size && runes[index] == runeU {
-				index++
-				if index < size && runes[index] == runeE {
-					jv := newBool(true)
-					jv.Text = "true"
-					return jv, index, ParameterizedString{}, nil
+				if isParam(c) {
+					params = true
 				}
+				sb.WriteByte(c)
 			}
 		}
-	} else if r == runeF {
-		index++
-		if index < size && runes[index] == runeA {
-			index++
-			if index < size && runes[index] == runeL {
-				index++
-				if index < size && runes[index] == runeS {
-					index++
-					if index < size && runes[index] == runeE {
-						jv := newBool(false)
-						jv.Text = "false"
-						return jv, index, ParameterizedString{}, nil
+	}
+
+	if c == '{' {
+		jo, ps, e := p.ParseObject()
+		if e == nil {
+			params = ps
+			jv = newObject(jo)
+		} else {
+			err = e
+		}
+		return
+	}
+
+	if c == '[' {
+		ja, ps, e := p.ParseArray()
+		if e == nil {
+			params = ps
+			jv = newArray(ja)
+		} else {
+			err = e
+		}
+		return
+	}
+
+	if c == 't' {
+		c, err = p.SkipString("rue")
+		if err == nil {
+			jv = newBool(true)
+			jv.Text = "true"
+		}
+		p.r.UnreadByte()
+	} else if c == 'f' {
+		c, err = p.SkipString("alse")
+		if err == nil {
+			jv = newBool(false)
+			jv.Text = "false"
+		}
+		p.r.UnreadByte()
+	} else if c == 'n' {
+		c, err = p.SkipString("ull")
+		if err == nil {
+			jv = newNull()
+			jv.Text = "null"
+		}
+		p.r.UnreadByte()
+	} else if (c >= '0' && c <= '9') || c == '-' {
+		var (
+			sb    strings.Builder
+			float bool
+		)
+
+		sb.WriteByte(c)
+
+		for {
+			c, e := p.r.ReadByte()
+			if e != nil {
+				err = e
+				return
+			}
+
+			if c == '.' || c == 'e' || c == 'E' || c == '-' || c == '+' {
+				float = true
+				sb.WriteByte(c)
+			} else if c >= '0' && c <= '9' {
+				sb.WriteByte(c)
+			} else {
+				p.r.UnreadByte()
+
+				s := sb.String()
+				if float {
+					f, e := strconv.ParseFloat(s, 64)
+					if e == nil {
+						jv = newFloat(f)
+						jv.Text = s
+						return
+					}
+				} else {
+					i, e := strconv.Atoi(s)
+					if e == nil {
+						jv = newInt(i)
+						jv.Text = s
+						return
 					}
 				}
-			}
-		}
-	} else if r == runeN {
-		index++
-		if index < size && runes[index] == runeU {
-			index++
-			if index < size && runes[index] == runeL {
-				index++
-				if index < size && runes[index] == runeL {
-					return newNull(), index, ParameterizedString{}, nil
-				}
-			}
-		}
-	} else if r > runeComma && r < runeColon {
-		start := index
-		floating := false
 
-		index++
-		r = runes[index]
-		for r > runeMinus && r < runeColon {
-			if r == runePeriod {
-				floating = true
-			}
-			index++
-			r = runes[index]
-		}
+				err = fmt.Errorf("Expected number, found '%s'", s)
+				return
 
-		if r == runeE || r == runeEUpper { //Scientific
-			floating = true
-			index++
-			r = runes[index] // skip sign + -
-			for index < size {
-				index++
-				r = runes[index]
-				if r < rune0 || r > rune9 { //skip digits
-					break
-				}
 			}
 		}
 
-		s := string(runes[start:index])
-
-		index--
-
-		if floating {
-			f, err := strconv.ParseFloat(s, 64)
-			if err == nil {
-				jv := newFloat(f)
-				jv.Text = s
-				return jv, index, ParameterizedString{}, nil
-			}
-		} else {
-			i, err := strconv.Atoi(s)
-			if err == nil {
-				jv := newInt(i)
-				jv.Text = s
-				return jv, index, ParameterizedString{}, nil
-			}
-		}
-
-		return value{}, index, ParameterizedString{}, fmt.Errorf("Expected number, found '%s'", s)
 	}
 
-	return value{}, index, ParameterizedString{}, fmt.Errorf("Unexpected character: '%c'", r)
+	return
 }
 
-func parseObject(runes []rune, size int, index int, parameterize bool) (Object, int, error) {
-	jo := Object{}
+func (p *parser) ParseArray() (ja Array, params bool, err error) {
+	var ps bool
 
-	r, index, err := addProperty(&jo, runes, size, index, parameterize)
+	ps, err = p.AddArrayValue(&ja)
 	if err != nil {
-		return Object{}, index, err
+		return
+	}
+	if ps {
+		params = true
 	}
 
-	for r == runeComma {
-		r, index, err = addProperty(&jo, runes, size, index, parameterize)
+	for {
+		c, e := p.SkipWS()
+		if e != nil {
+			err = e
+			return
+		}
+
+		if c == ',' {
+			ps, e = p.AddArrayValue(&ja)
+			if e != nil {
+				err = e
+				return
+			}
+			if ps {
+				params = true
+			}
+		} else if c == ']' {
+			break
+		} else {
+			err = fmt.Errorf("Expected ']', found '%c'", c)
+			break
+		}
+	}
+
+	return
+}
+
+func (p *parser) AddArrayValue(ja *Array) (params bool, err error) {
+	var jv value
+
+	jv, params, err = p.ParseValue()
+	if err == nil && !jv.IsEmpty() {
+		idx := ja.addValue(jv)
+
+		if params {
+			ja.pvalues = append(ja.pvalues, idx)
+		}
+	}
+
+	return
+}
+
+func (p *parser) SkipWS() (c byte, err error) {
+	for {
+		c, err = p.r.ReadByte()
+		if err != nil || !isWS(c) {
+			break
+		}
+	}
+
+	return
+}
+
+func (p *parser) SkipString(s string) (c byte, err error) {
+	bytes := []byte(s)
+	for _, exp := range bytes {
+		c, err = p.r.ReadByte()
 		if err != nil {
-			return Object{}, index, err
+			break
+		}
+
+		if c != exp {
+			err = fmt.Errorf("Expected '%c', found '%c'", exp, c)
+			break
 		}
 	}
 
-	if r != runeRightCurly {
-		return Object{}, index, fmt.Errorf("Expected '}', found '%c'", r)
+	if err == nil {
+		c, err = p.SkipWS()
 	}
 
-	return jo, index, nil
+	return
 }
 
-func addValue(ja *Array, runes []rune, size int, index int, parameterize bool) (rune, int, error) {
-	index++
-	r, index := skipWhitespace(runes, size, index)
-
-	if r == runeRightSquare {
-		return r, index, nil
-	}
-
-	value, index, ps, err := parseValue(runes, size, index, parameterize)
-	if err != nil {
-		return r, index, err
-	}
-
-	if ps.Value != "" {
-		if ps.IsParameterized {
-			value = newParameterizedString(ps)
-		} else {
-			value = newString(ps.Value)
-		}
-	}
-
-	if !value.IsEmpty() {
-		ja.addValue(value)
-	}
-	index++
-	r, index = skipWhitespace(runes, size, index)
-	return r, index, nil
+func isWS(c byte) bool {
+	return c == ' ' || c == '\n' || c == '\t' || c == '\r' || c == '\f' || c == '\v' || c == '\b'
 }
 
-func parseArray(runes []rune, size int, index int, parameterize bool) (Array, int, error) {
-	ja := Array{}
-
-	r, index, err := addValue(&ja, runes, size, index, parameterize)
-	if err != nil {
-		return Array{}, index, err
+func isAlpha(c byte) bool {
+	if (c < 'a' || c > 'z') && (c < 'A' || c > 'Z') {
+		return false
 	}
-
-	for r == runeComma {
-		r, index, err = addValue(&ja, runes, size, index, parameterize)
-		if err != nil {
-			return Array{}, index, err
-		}
-	}
-
-	if r != runeRightSquare {
-		return Array{}, index, fmt.Errorf("Expected ']', found '%c'", r)
-	}
-
-	return ja, index, nil
+	return true
 }
 
-func skipWhitespace(runes []rune, size int, index int) (rune, int) {
-	for index < size {
-		r := runes[index]
+func isProperty(c byte) bool {
+	return isAlpha(c) || c == '_' || c == '-' || c == '.' || (c >= '0' && c <= '9')
+}
 
-		if r == runeNull || r == runeSpace || r == runeLF || r == runeCR || r == runeHT || r == runeBS || r == runeFF || r == runeVT {
-			index++
-		} else {
-			return r, index
-		}
-	}
-
-	return runeNull, index
+func isParam(c byte) bool {
+	return c == '$' || c == '{' || c == '?' || c == '}'
 }

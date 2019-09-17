@@ -1,10 +1,10 @@
 package appl
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ymetelkin/go/json"
 	"github.com/ymetelkin/go/xml"
@@ -14,59 +14,67 @@ const (
 	digit0 rune = 48
 )
 
-var acctXML, acctJSON []string
-
-func (doc *document) ParsePublicationManagement(jo *json.Object) error {
-	if doc.PublicationManagement == nil || doc.PublicationManagement.Nodes == nil || len(doc.PublicationManagement.Nodes) == 0 {
-		return errors.New("PublicationManagement is missing")
+func (doc *Document) parsePublicationManagement(node xml.Node) {
+	if node.Nodes == nil {
+		return
 	}
 
 	var (
-		embargo, ref bool
-		rdt          string
-		types, outs  uniqueArray
-		ass          []xml.Node
+		embargo, ref         bool
+		rdt                  string
+		types, outs, signals uniqueArray
+		asswith              []xml.Node
 	)
 
-	for _, nd := range doc.PublicationManagement.Nodes {
+	for _, nd := range node.Nodes {
 		switch nd.Name {
 		case "RecordType":
-			jo.AddString("recordtype", nd.Text)
+			doc.RecordType = nd.Text
+			doc.JSON.AddString("recordtype", nd.Text)
 		case "FilingType":
-			jo.AddString("filingtype", nd.Text)
+			doc.FilingType = nd.Text
+			doc.JSON.AddString("filingtype", nd.Text)
 		case "ChangeEvent":
 			if nd.Text != "" {
-				jo.AddString("changeevent", nd.Text)
+				doc.ChangeEvent = nd.Text
+				doc.JSON.AddString("changeevent", nd.Text)
 			}
 		case "ItemKey":
 			if nd.Text != "" {
-				jo.AddString("itemkey", nd.Text)
+				doc.ItemKey = nd.Text
+				doc.JSON.AddString("itemkey", nd.Text)
 			}
 		case "ArrivalDateTime":
 			if nd.Text != "" {
-				jo.AddString("arrivaldatetime", nd.Text+"Z")
+				ts, err := parseDate(nd.Text)
+				if err == nil {
+					doc.ArrivalDateTime = &ts
+					doc.JSON.AddString("arrivaldatetime", formatDate(ts))
+				}
 			}
 		case "FirstCreated":
-			date, year, err := getFirstCreatedDate(nd)
-			if err == nil {
-				doc.FirstCreatedYear = year
-				jo.AddString("firstcreated", date)
-			} else {
-				return err
+			fc, jo := newFirstCreated(nd)
+			if fc.Date != nil {
+				doc.Created = &fc
+				doc.JSON.AddString("firstcreated", formatDate(*fc.Date))
 			}
-			getAccountInfo(nd, "firstcreator", jo)
+			if !jo.IsEmpty() {
+				doc.JSON.AddObject("firstcreator", jo)
+			}
 		case "LastModifiedDateTime":
-			if nd.Text != "" {
-				jo.AddString("lastmodifieddatetime", nd.Text+"Z")
+			lm, jo := newLastModified(nd)
+			if lm.Date != nil {
+				doc.Modified = &lm
+				doc.JSON.AddString("lastmodifieddatetime", formatDate(*lm.Date))
 			}
-			getAccountInfo(nd, "lastmodifier", jo)
+			if !jo.IsEmpty() {
+				doc.JSON.AddObject("lastmodifier", jo)
+			}
 		case "Status":
-			ps, err := getPubStatus(nd.Text)
-			if err == nil {
-				doc.PubStatus = ps
-				jo.AddString("pubstatus", string(ps))
-			} else {
-				return err
+			status := getPubStatus(nd.Text)
+			if status != "" {
+				doc.Status = status
+				doc.JSON.AddString("pubstatus", status)
 			}
 		case "Instruction":
 			outs.AddString(nd.Text)
@@ -83,234 +91,268 @@ func (doc *document) ParsePublicationManagement(jo *json.Object) error {
 				}
 			}
 		case "AssociatedWith":
-			if ass == nil {
-				ass = []xml.Node{nd}
-			} else {
-				ass = append(ass, nd)
-			}
+			asswith = append(asswith, nd)
 		case "ReleaseDateTime":
 			if nd.Text != "" {
-				rdt = nd.Text + "Z"
-				jo.AddString("releasedatetime", rdt)
+				ts, err := parseDate(nd.Text)
+				if err == nil {
+					doc.ReleaseDateTime = &ts
+					rdt = formatDate(ts)
+					doc.JSON.AddString("releasedatetime", rdt)
+				}
 			}
 		case "SpecialInstructions":
 			if nd.Text != "" {
-				jo.AddString("specialinstructions", nd.Text)
+				doc.SpecialInstructions = nd.Text
+				doc.JSON.AddString("specialinstructions", nd.Text)
 			}
 		case "EditorialId":
 			if nd.Text != "" {
 				doc.EditorialID = nd.Text
-				jo.AddString("editorialid", nd.Text)
+				doc.JSON.AddString("editorialid", nd.Text)
 			}
 		case "ItemStartDateTime":
 			if nd.Text != "" {
-				jo.AddString("itemstartdatetime", nd.Text+"Z")
+				ts, err := parseDate(nd.Text)
+				if err == nil {
+					doc.ItemStartDateTime = &ts
+					doc.JSON.AddString("itemstartdatetime", formatDate(ts))
+				}
 			}
 		case "ItemStartDateTimeActual":
 			if nd.Text != "" {
-				jo.AddString("itemstartdatetimeactual", nd.Text+"Z")
+				ts, err := parseDate(nd.Text)
+				if err == nil {
+					doc.ItemStartDateTimeActual = &ts
+					doc.JSON.AddString("itemstartdatetimeactual", formatDate(ts))
+				}
 			}
 		case "ItemExpireDateTime":
 			if nd.Text != "" {
-				jo.AddString("itemexpiredatetime", nd.Text+"Z")
+				ts, err := parseDate(nd.Text)
+				if err == nil {
+					doc.ItemExpireDateTime = &ts
+					doc.JSON.AddString("itemexpiredatetime", formatDate(ts))
+				}
 			}
 		case "SearchDateTime":
 			if nd.Text != "" {
-				jo.AddString("searchdatetime", nd.Text+"Z")
+				ts, err := parseDate(nd.Text)
+				if err == nil {
+					doc.SearchDateTime = &ts
+					doc.JSON.AddString("searchdatetime", formatDate(ts))
+				}
 			}
 		case "ItemEndDateTime":
 			if nd.Text != "" {
-				jo.AddString("itemenddatetime", nd.Text+"Z")
+				ts, err := parseDate(nd.Text)
+				if err == nil {
+					doc.ItemEndDateTime = &ts
+					doc.JSON.AddString("itemenddatetime", formatDate(ts))
+				}
 			}
 		case "Function":
 			if nd.Text != "" {
 				doc.Function = nd.Text
-				jo.AddString("function", nd.Text)
+				doc.JSON.AddString("function", nd.Text)
 			}
 		case "TimeRestrictions":
 			if nd.Nodes != nil {
 				for _, n := range nd.Nodes {
-					f, v := getTimeRestriction(n)
-					if f != "" {
-						jo.AddBool(f, v)
+					tr := newTimeRestriction(n)
+					doc.TimeRestrictions = append(doc.TimeRestrictions, tr)
+					if tr.ID != "" {
+						doc.JSON.AddBool(tr.ID, tr.Include)
 					}
 				}
 			}
 		case "RefersTo":
 			if !ref && nd.Text != "" {
-				jo.AddString("refersto", nd.Text)
+				doc.RefersTo = nd.Text
+				doc.JSON.AddString("refersto", nd.Text)
 				ref = true
 			}
 		case "ExplicitWarning":
 			if nd.Text == "1" {
-				doc.Signals.AddString("explicitcontent")
+				signals.AddString("explicitcontent")
 			} else if strings.EqualFold(nd.Text, "NUDITY") {
-				doc.Signals.AddString("NUDITY")
+				signals.AddString("NUDITY")
 			} else if strings.EqualFold(nd.Text, "OBSCENITY") {
-				doc.Signals.AddString("OBSCENITY")
+				signals.AddString("OBSCENITY")
 			} else if strings.EqualFold(nd.Text, "GRAPHIC CONTENT") {
-				doc.Signals.AddString("GRAPHICCONTENT")
+				signals.AddString("GRAPHICCONTENT")
 			}
 		case "IsDigitized":
 			if strings.EqualFold(nd.Text, "false") {
-				doc.Signals.AddString("isnotdigitized")
+				signals.AddString("isnotdigitized")
 			}
 		}
 	}
 
-	if embargo && rdt != "" {
-		jo.AddString("embargoed", rdt)
+	if embargo && doc.ReleaseDateTime != nil {
+		doc.Embargoed = doc.ReleaseDateTime
+		doc.JSON.AddString("embargoed", rdt)
 	}
 
-	jo.AddProperty(outs.ToJSONProperty("outinginstructions"))
-	jo.AddProperty(types.ToJSONProperty("editorialtypes"))
-	jo.AddProperty(doc.Signals.ToJSONProperty("signals"))
+	if !types.IsEmpty() {
+		doc.EditorialTypes = types.Values()
+		doc.JSON.AddProperty(types.ToJSONProperty("editorialtypes"))
+	}
 
-	getAssociatedWith(ass, jo)
+	if !outs.IsEmpty() {
+		doc.Outs = outs.Values()
+		doc.JSON.AddProperty(outs.ToJSONProperty("outinginstructions"))
+	}
 
-	return nil
+	if !signals.IsEmpty() {
+		doc.Signals = signals.Values()
+		doc.JSON.AddProperty(signals.ToJSONProperty("signals"))
+	}
+
+	if len(asswith) > 0 {
+		asses, ja := getAssociations(asswith)
+		if len(asses) > 0 {
+			doc.Associations = asses
+			doc.JSON.AddArray("associations", ja)
+		}
+	}
 }
 
-func getPubStatus(s string) (pubStatus, error) {
+func getPubStatus(s string) string {
 	if strings.EqualFold(s, "Usable") || strings.EqualFold(s, "Embargoed") || strings.EqualFold(s, "Unknown") {
-		return pubStatusUsable, nil
+		return "usable"
 	} else if strings.EqualFold(s, "Withheld") {
-		return pubStatusWithheld, nil
+		return "withheld"
 	} else if strings.EqualFold(s, "Canceled") {
-		return pubStatusCanceled, nil
-	} else {
-		e := fmt.Sprintf("Invalid pub status [%s]", s)
-		return pubStatusUnknown, errors.New(e)
+		return "canceled"
 	}
+	return ""
 }
 
-func getFirstCreatedDate(nd xml.Node) (string, int, error) {
+func newFirstCreated(nd xml.Node) (fc FirstCreated, jo json.Object) {
 	if nd.Attributes == nil {
-		return "", 0, errors.New("FirstCreated year is missing")
+		return
 	}
-
-	var (
-		year                   int
-		date, month, day, time string
-	)
 
 	for k, v := range nd.Attributes {
 		switch k {
 		case "Year":
-			i, err := strconv.Atoi(v)
-			if err == nil && i > 0 {
-				year = i
+			year, err := strconv.Atoi(v)
+			if err == nil && year > 0 {
+				fc.Year = year
 			}
 		case "Month":
-			i, err := strconv.Atoi(v)
-			if err == nil {
-				zero := ""
-				if i < 10 {
-					zero = "0"
-				}
-				month = fmt.Sprintf("%s%d", zero, i)
+			month, err := strconv.Atoi(v)
+			if err == nil && month > 0 {
+				fc.Month = month
 			}
 		case "Day":
-			i, err := strconv.Atoi(v)
-			if err == nil {
-				zero := ""
-				if i < 10 {
-					zero = "0"
-				}
-				day = fmt.Sprintf("%s%d", zero, i)
+			day, err := strconv.Atoi(v)
+			if err == nil && day > 0 {
+				fc.Day = day
 			}
 		case "Time":
-			time = v
-		}
-	}
-
-	if year <= 0 {
-		e := fmt.Sprintf("Invalid FirstCreated year [%d]", year)
-		return "", 0, errors.New(e)
-	}
-
-	if month == "" {
-		date = fmt.Sprintf("%d", year)
-	} else {
-		if day == "" {
-			date = fmt.Sprintf("%d-%s", year, month)
-		} else {
-			if time == "" {
-				date = fmt.Sprintf("%d-%s-%s", year, month, day)
-			} else {
-				date = fmt.Sprintf("%d-%s-%sT%sZ", year, month, day, time)
+			ts, err := parseTime(v)
+			if err == nil {
+				fc.Hour = ts.Hour()
+				fc.Minute = ts.Minute()
+				fc.Second = ts.Second()
 			}
 		}
 	}
 
-	return date, year, nil
+	if fc.Year > 0 {
+		ts := time.Date(fc.Year, time.Month(fc.Month), fc.Day, fc.Hour, fc.Minute, fc.Second, 0, time.UTC)
+		fc.Date = &ts
+	}
+
+	ua, jo := newUserAccount(nd)
+	fc.User = &ua
+
+	return
 }
 
-func getAccountInfo(nd xml.Node, name string, parent *json.Object) {
-	if acctXML == nil {
-		acctXML = []string{
-			"UserName",
-			"UserAccount",
-			"UserAccountSystem",
-			"ToolVersion",
-			"UserLocation",
-			"UserWorkgroup",
-		}
-
-		acctJSON = []string{
-			"username",
-			"useraccount",
-			"useraccountsystem",
-			"toolversion",
-			"userlocation",
-			"userworkgroup",
-		}
+func newLastModified(nd xml.Node) (lm LastModified, jo json.Object) {
+	if nd.Attributes == nil {
+		return
 	}
 
-	var (
-		jo  json.Object
-		add bool
-	)
-
-	for i, a := range acctXML {
-		s := nd.Attribute(a)
-		if s != "" {
-			add = true
-			jo.AddString(acctJSON[i], s)
-		}
+	ts, err := parseDate(nd.Text)
+	if err == nil {
+		lm.Date = &ts
 	}
 
-	if add {
-		parent.AddObject(name, jo)
-	}
+	ua, jo := newUserAccount(nd)
+	lm.User = &ua
+
+	return
 }
 
-func getTimeRestriction(nd xml.Node) (string, bool) {
+func newUserAccount(nd xml.Node) (ua UserAccount, jo json.Object) {
+	for k, v := range nd.Attributes {
+		switch k {
+		case "UserName":
+			ua.Name = v
+		case "UserAccount":
+			ua.Account = v
+		case "UserAccountSystem":
+			ua.System = v
+		case "ToolVersion":
+			ua.ToolVersion = v
+		case "UserLocation":
+			ua.Location = v
+		case "UserWorkgroup":
+			ua.Workgroup = v
+		}
+	}
+
+	if ua.Name != "" {
+		jo.AddString("username", ua.Name)
+	}
+	if ua.Account != "" {
+		jo.AddString("useraccount", ua.Account)
+	}
+	if ua.System != "" {
+		jo.AddString("useraccountsystem", ua.System)
+	}
+	if ua.Location != "" {
+		jo.AddString("userlocation", ua.Location)
+	}
+	if ua.Workgroup != "" {
+		jo.AddString("userworkgroup", ua.Workgroup)
+	}
+	if ua.ToolVersion != "" {
+		jo.AddString("toolversion", ua.ToolVersion)
+	}
+
+	return
+}
+
+func newTimeRestriction(nd xml.Node) (tr TimeRestriction) {
 	if nd.Attributes != nil {
 		var (
-			system, zone, include string
+			system, zone string
 		)
 		for k, v := range nd.Attributes {
 			switch k {
 			case "System":
-				system = v
+				tr.System = v
 			case "Zone":
-				zone = v
+				tr.Zone = v
 			case "Include":
-				include = v
+				tr.Include = v == "true"
 			}
 		}
 
 		if system != "" && zone != "" {
-			s := fmt.Sprintf("%s%s", system, zone)
-			return strings.ToLower(s), include == "true"
+			tr.ID = strings.ToLower(fmt.Sprintf("%s%s", system, zone))
 		}
 	}
 
-	return "", false
+	return
 }
 
-func getAssociatedWith(ass []xml.Node, parent *json.Object) {
+func getAssociations(nodes []xml.Node) (asses []Association, ja json.Array) {
 	/*
 	   -test the value of //AssociatedWith, if its all zeros, do not convert; otherwise, each //AssociatedWith is converted to an object $.associations[i];
 	   -each object $.associations[i] has five name/value pairs, $.associations[i].type, $.associations[i].itemid, $.associations[i].representationtype, $.associations[i].associationrank and $associations[i].typerank;
@@ -320,13 +362,12 @@ func getAssociatedWith(ass []xml.Node, parent *json.Object) {
 	   --load the sequence number of the AssociatedWith node (a number starting at 1) to $.associations[i].associationrank as a number;
 	   --load the sequence number of the AssociatedWith node by @CompositionType (a number starting at 1) to $.associations[i].typerank as a number; note that CompositionType may be absent OR ‘StandardIngestedContent’ (which does not output a type) and any such AssociatedWith nodes should be ranked on their own.
 	*/
-	ja := json.Array{}
 
 	rank := 0
 	types := make(map[string]int)
 
-	for _, aw := range ass {
-		runes := []rune(aw.Text)
+	for _, nd := range nodes {
+		runes := []rune(nd.Text)
 		empty := true
 		for _, r := range runes {
 			if r != digit0 {
@@ -335,11 +376,11 @@ func getAssociatedWith(ass []xml.Node, parent *json.Object) {
 			}
 		}
 
-		if empty || aw.Attributes == nil {
+		if empty || nd.Attributes == nil {
 			continue
 		}
 
-		ct := aw.Attribute("CompositionType")
+		ct := nd.Attribute("CompositionType")
 		if strings.EqualFold(ct, "StandardText") {
 			ct = "text"
 		} else if strings.EqualFold(ct, "StandardPrintPhoto") {
@@ -372,16 +413,22 @@ func getAssociatedWith(ass []xml.Node, parent *json.Object) {
 			continue
 		}
 
-		jo := json.Object{}
+		var (
+			ass Association
+			jo  json.Object
+		)
 
 		if ct != "notype" {
+			ass.Type = ct
 			jo.AddString("type", ct)
 		}
 
-		jo.AddString("itemid", aw.Text)
+		ass.ItemID = nd.Text
+		jo.AddString("itemid", nd.Text)
 		jo.AddString("representationtype", "partial")
 
 		rank++
+		ass.Rank = rank
 		jo.AddInt("associationrank", rank)
 
 		typerank, ok := types[ct]
@@ -391,12 +438,12 @@ func getAssociatedWith(ass []xml.Node, parent *json.Object) {
 			typerank = 1
 		}
 		types[ct] = typerank
+		ass.TypeRank = typerank
 		jo.AddInt("typerank", typerank)
 
+		asses = append(asses, ass)
 		ja.AddObject(jo)
 	}
 
-	if ja.Length() > 0 {
-		parent.AddArray("associations", ja)
-	}
+	return
 }

@@ -29,9 +29,9 @@ func (doc *document) ParseRightsMetadata(parent *json.Object) error {
 					case "Limitations":
 						lim.AddString(n.Text)
 					case "StartDate":
-						sd = n.Text
+						sd = properDate(n.Text)
 					case "EndDate":
-						ed = n.Text
+						ed = properDate(n.Text)
 					case "Group":
 						g := json.Object{}
 						if n.Attributes != nil {
@@ -70,11 +70,11 @@ func (doc *document) ParseRightsMetadata(parent *json.Object) error {
 				jo.AddProperty(lim.ToJSONProperty("limitations"))
 
 				if sd != "" {
-					jo.AddString("startdate", parseIsoDate(sd))
+					jo.AddString("startdate", sd)
 				}
 
 				if ed != "" {
-					jo.AddString("enddate", parseIsoDate(ed))
+					jo.AddString("enddate", ed)
 				}
 
 				if !gps.IsEmpty() {

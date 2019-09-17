@@ -6,10 +6,11 @@ import (
 	"testing"
 
 	"github.com/ymetelkin/go/json"
+	"github.com/ymetelkin/go/xml"
 )
 
 func TestManagement(t *testing.T) {
-	s := `
+	input := `
 <Publication>
 	<PublicationManagement>
 		<RecordType>Change</RecordType>
@@ -61,44 +62,102 @@ func TestManagement(t *testing.T) {
 	 </PublicationManagement>   
 </Publication>
 `
-	doc, _ := parseXML(strings.NewReader(s))
-	jo := json.Object{}
 
-	err := doc.ParsePublicationManagement(&jo)
+	expected := `
+	{
+		"recordtype": "Change",
+		"filingtype": "Text",
+		"arrivaldatetime": "2012-03-12T20:54:44Z",
+		"firstcreated": "2019-04-29T13:07:36Z",
+		"firstcreator": {
+		  "username": "APGBL\\wweissert",
+		  "useraccount": "APGBL",
+		  "useraccountsystem": "APADS",
+		  "userlocation": "Austin, TX",
+		  "userworkgroup": "USA Central",
+		  "toolversion": "ELVIS 1.24.4.3"
+		},
+		"lastmodifieddatetime": "2012-03-12T20:54:37Z",
+		"lastmodifier": {
+		  "username": "APGBL\\dzelio",
+		  "useraccount": "APGBL",
+		  "useraccountsystem": "APADS"
+		},
+		"releasedatetime": "2012-03-12T20:54:44Z",
+		"pubstatus": "usable",
+		"specialinstructions": "Eds:APNewsNow.Willbeupdated.",
+		"refersto": "YM",
+		"itemstartdatetime": "2012-03-12T20:54:44Z",
+		"itemstartdatetimeactual": "2012-03-12T20:54:44Z",
+		"embargoed": "2012-03-12T20:54:44Z",
+		"editorialtypes": [
+		  "Advance",
+		  "YM"
+		],
+		"outinginstructions": [
+		  "INTERNET",
+		  "MOBILE"
+		],
+		"signals": [
+		  "explicitcontent",
+		  "isnotdigitized"
+		],
+		"associations": [
+		  {
+			"type": "text",
+			"itemid": "00000000000000000000000000000010",
+			"representationtype": "partial",
+			"associationrank": 1,
+			"typerank": 1
+		  },
+		  {
+			"type": "text",
+			"itemid": "00000000000000000000000000000020",
+			"representationtype": "partial",
+			"associationrank": 2,
+			"typerank": 2
+		  },
+		  {
+			"type": "photo",
+			"itemid": "00000000000000000000000000000030",
+			"representationtype": "partial",
+			"associationrank": 3,
+			"typerank": 1
+		  },
+		  {
+			"type": "photo",
+			"itemid": "00000000000000000000000000000040",
+			"representationtype": "partial",
+			"associationrank": 4,
+			"typerank": 2
+		  },
+		  {
+			"itemid": "00000000000000000000000000000050",
+			"representationtype": "partial",
+			"associationrank": 5,
+			"typerank": 1
+		  }
+		]
+	  }`
+
+	xml, err := xml.New(strings.NewReader(input))
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	fmt.Printf("%s\n", jo.String())
+	doc := new(Document)
+	doc.XML = &xml
+	doc.JSON = new(json.Object)
 
-	if string(doc.PubStatus) != "usable" {
-		t.Error("[pubstatus:usable] is expected")
-	}
-	if doc.FirstCreatedYear == 0 {
-		t.Error("[firstcreated.year] is expected")
-	}
-	if _, err := jo.GetString("firstcreated"); err != nil {
-		t.Error("[firstcreated] is expected")
-	}
-	if _, err := jo.GetString("refersto"); err != nil {
-		t.Error("[refersto] is expected")
-	}
-	if _, err := jo.GetString("embargoed"); err != nil {
-		t.Error("[embargoed] is expected")
-	}
-	if _, err := jo.GetArray("signals"); err != nil {
-		t.Error("[signals] is expected")
-	}
-	if _, err := jo.GetArray("outinginstructions"); err != nil {
-		t.Error("[outinginstructions] is expected")
-	}
-	if _, err := jo.GetArray("editorialtypes"); err != nil {
-		t.Error("[editorialtypes] is expected")
-	}
-	if v, _ := jo.GetBool("newspowerdrivetimeatlantic"); !v {
-		t.Error("[newspowerdrivetimeatlantic] is expected")
-	}
-	if _, err := jo.GetArray("associations"); err != nil {
-		t.Error("[associations] is expected")
+	doc.parsePublicationManagement(xml.Node("PublicationManagement"))
+	//fmt.Println(doc.JSON.String())
+
+	test, _ := json.ParseObjectString(expected)
+	left := doc.JSON.InlineString()
+	right := test.InlineString()
+	if left != right {
+		t.Error("Failed PublicationManagement")
+		fmt.Println(left)
+		fmt.Println(right)
 	}
 }

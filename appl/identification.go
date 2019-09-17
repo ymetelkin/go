@@ -1,80 +1,80 @@
 package appl
 
 import (
-	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/ymetelkin/go/json"
+	"github.com/ymetelkin/go/xml"
 )
 
-func (doc *document) ParseIdentification(jo *json.Object) error {
-	if doc.Identification == nil || doc.Identification.Nodes == nil || len(doc.Identification.Nodes) == 0 {
-		return errors.New("Identification is missing")
+func (doc *Document) parseIdentification(node xml.Node) {
+	if node.Nodes == nil {
+		return
 	}
 
-	for _, nd := range doc.Identification.Nodes {
+	for _, nd := range node.Nodes {
 		switch nd.Name {
 		case "ItemId":
 			doc.ItemID = nd.Text
-			jo.AddString("itemid", nd.Text)
+			doc.JSON.AddString("itemid", nd.Text)
 		case "RecordId":
-			jo.AddString("recordid", nd.Text)
+			doc.RecordID = nd.Text
+			doc.JSON.AddString("recordid", nd.Text)
 		case "CompositeId":
-			jo.AddString("compositeid", nd.Text)
+			doc.CompositeID = nd.Text
+			doc.JSON.AddString("compositeid", nd.Text)
 		case "CompositionType":
 			doc.CompositionType = nd.Text
-			jo.AddString("compositiontype", nd.Text)
+			doc.JSON.AddString("compositiontype", nd.Text)
 		case "MediaType":
-			mt, err := getMediaType(nd.Text)
-			if err != nil {
-				return err
-			}
-			doc.MediaType = mt
-			jo.AddString("type", string(mt))
+			doc.MediaType = strings.ToLower(nd.Text)
+			doc.JSON.AddString("type", doc.MediaType)
 		case "Priority":
-			i, err := strconv.Atoi(nd.Text)
+			priority, err := strconv.Atoi(nd.Text)
 			if err == nil {
-				jo.AddInt("priority", i)
+				doc.Priority = priority
+				doc.JSON.AddInt("priority", priority)
 			}
 		case "EditorialPriority":
 			if nd.Text != "" {
-				jo.AddString("editorialpriority", nd.Text)
+				doc.EditorialPriority = nd.Text
+				doc.JSON.AddString("editorialpriority", nd.Text)
 			}
 		case "DefaultLanguage":
 			if len(nd.Text) >= 2 {
 				language := string([]rune(nd.Text)[0:2])
-				jo.AddString("language", language)
+				doc.Language = language
+				doc.JSON.AddString("language", language)
 			}
 		case "RecordSequenceNumber":
-			i, err := strconv.Atoi(nd.Text)
+			rsn, err := strconv.Atoi(nd.Text)
 			if err == nil {
-				jo.AddInt("recordsequencenumber", i)
+				doc.RSN = rsn
+				doc.JSON.AddInt("recordsequencenumber", rsn)
 			}
 		case "FriendlyKey":
 			if nd.Text != "" {
 				doc.FriendlyKey = nd.Text
-				jo.AddString("friendlykey", nd.Text)
+				doc.JSON.AddString("friendlykey", nd.Text)
 			}
 		}
 	}
 
-	jo.AddString("referenceid", doc.ItemID)
-
-	return nil
+	doc.ReferenceID = doc.ItemID
+	doc.JSON.AddString("referenceid", doc.ItemID)
 }
 
-func (doc *document) SetReferenceID(jo *json.Object) {
+//SetReferenceID sets reference ID after all fields are collected
+func (doc *Document) SetReferenceID() {
 	var ref string
 
-	if (doc.MediaType == mediaTypePhoto || doc.MediaType == mediaTypeGraphic) && doc.FriendlyKey != "" {
+	if (doc.MediaType == "photo" || doc.MediaType == "graphic") && doc.FriendlyKey != "" {
 		ref = doc.FriendlyKey
-	} else if doc.MediaType == mediaTypeAudio && doc.EditorialID != "" {
+	} else if doc.MediaType == "audio" && doc.EditorialID != "" {
 		ref = doc.EditorialID
-	} else if doc.MediaType == mediaTypeComplexData && doc.Title != "" {
+	} else if doc.MediaType == "complexdata" && doc.Title != "" {
 		ref = doc.Title
-	} else if doc.MediaType == mediaTypeText {
+	} else if doc.MediaType == "text" {
 		if doc.Title != "" {
 			ref = doc.Title
 		} else if doc.Filings != nil {
@@ -85,7 +85,7 @@ func (doc *document) SetReferenceID(jo *json.Object) {
 				}
 			}
 		}
-	} else if doc.MediaType == mediaTypeVideo {
+	} else if doc.MediaType == "video" {
 		if doc.CompositionType == "StandardBroadcastVideo" {
 			if doc.EditorialID != "" {
 				ref = doc.EditorialID
@@ -110,27 +110,7 @@ func (doc *document) SetReferenceID(jo *json.Object) {
 	}
 
 	if ref != "" {
-		jo.SetString("referenceid", ref)
+		doc.ReferenceID = ref
+		doc.JSON.SetString("referenceid", ref)
 	}
-}
-
-func getMediaType(s string) (mt mediaType, err error) {
-	if strings.EqualFold(s, "text") {
-		mt = mediaTypeText
-	} else if strings.EqualFold(s, "photo") {
-		mt = mediaTypePhoto
-	} else if strings.EqualFold(s, "video") {
-		mt = mediaTypeVideo
-	} else if strings.EqualFold(s, "audio") {
-		mt = mediaTypeAudio
-	} else if strings.EqualFold(s, "graphic") {
-		mt = mediaTypeGraphic
-	} else if strings.EqualFold(s, "complexdata") {
-		mt = mediaTypeComplexData
-	} else {
-		mt = mediaTypeUnknown
-		err = fmt.Errorf("Invalid media type [%s]", s)
-	}
-
-	return
 }

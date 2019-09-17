@@ -42,11 +42,11 @@ func TestNewslines(t *testing.T) {
 	doc, _ := parseXML(strings.NewReader(s))
 	jo := json.Object{}
 
-	err := doc.ParseIdentification(&jo)
-	if err != nil {
-		t.Error(err.Error())
-	}
-	err = doc.ParseNewsLines(&jo)
+	//err := doc.ParseIdentification(&jo)
+	//if err != nil {
+	//	t.Error(err.Error())
+	//}
+	err := doc.ParseNewsLines(&jo)
 	if err != nil {
 		t.Error(err.Error())
 	}

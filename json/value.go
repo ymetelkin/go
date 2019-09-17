@@ -14,7 +14,6 @@ const (
 	jsonInt
 	jsonFloat
 	jsonBool
-	jsonParams
 	jsonNull
 )
 
@@ -146,10 +145,6 @@ func newArrays(vs []Array) []value {
 	return values
 }
 
-func newParameterizedString(ps ParameterizedString) value {
-	return value{Value: ps, Type: jsonParams}
-}
-
 func (jv *value) GetInt() (int, error) {
 	if jv.Type == jsonInt {
 		i, ok := jv.Value.(int)
@@ -208,7 +203,7 @@ func (jv *value) GetString() (string, error) {
 		}
 		return "", errors.New("Cannot read string value")
 	}
-	return jv.ToString(true, 0), nil
+	return jv.String(true, 0), nil
 }
 
 func (jv *value) GetBool() (bool, error) {
@@ -254,19 +249,7 @@ func (jv *value) GetArray() (Array, error) {
 	return Array{}, fmt.Errorf("Unsupported value type: %d", jv.Type)
 }
 
-func (jv *value) GetParameterizedString() (ParameterizedString, error) {
-	if jv.Type == jsonParams {
-		ps, ok := jv.Value.(ParameterizedString)
-		if ok {
-			return ps, nil
-		}
-		return ParameterizedString{}, errors.New("Cannot read string value")
-	}
-
-	return ParameterizedString{}, fmt.Errorf("Unsupported value type: %d", jv.Type)
-}
-
-func (jv *value) ToString(pretty bool, level int) string {
+func (jv *value) String(pretty bool, level int) string {
 	if jv.Value == nil {
 		return "null"
 	}
@@ -279,41 +262,41 @@ func (jv *value) ToString(pretty bool, level int) string {
 	case jsonString:
 		s, ok := jv.Value.(string)
 		if ok {
-			runes := []rune(s)
+			bytes := []byte(s)
 			var sb strings.Builder
-			sb.WriteRune(runeQuote)
+			sb.WriteByte('"')
 
-			for _, r := range runes {
-				switch r {
-				case runeQuote:
-					sb.WriteRune(runeBackslash)
-					sb.WriteRune(runeQuote)
-				case runeBackslash:
-					sb.WriteRune(runeBackslash)
-					sb.WriteRune(runeBackslash)
-				case runeCR:
-					sb.WriteRune(runeBackslash)
-					sb.WriteRune(runeR)
-				case runeLF:
-					sb.WriteRune(runeBackslash)
-					sb.WriteRune(runeN)
-				case runeHT:
-					sb.WriteRune(runeBackslash)
-					sb.WriteRune(runeT)
-				case runeBS:
-					sb.WriteRune(runeBackslash)
-					sb.WriteRune(runeB)
-				case runeFF:
-					sb.WriteRune(runeBackslash)
-					sb.WriteRune(runeF)
-				case runeVT:
-					sb.WriteRune(runeSpace)
+			for _, c := range bytes {
+				switch c {
+				case '"':
+					sb.WriteByte('\\')
+					sb.WriteByte('"')
+				case '\\':
+					sb.WriteByte('\\')
+					sb.WriteByte('\\')
+				case '\r':
+					sb.WriteByte('\\')
+					sb.WriteByte('r')
+				case '\n':
+					sb.WriteByte('\\')
+					sb.WriteByte('n')
+				case '\t':
+					sb.WriteByte('\\')
+					sb.WriteByte('t')
+				case '\b':
+					sb.WriteByte('\\')
+					sb.WriteByte('b')
+				case '\f':
+					sb.WriteByte('\\')
+					sb.WriteByte('f')
+				case '\v':
+					sb.WriteByte(' ')
 				default:
-					sb.WriteRune(r)
+					sb.WriteByte(c)
 				}
 			}
 
-			sb.WriteRune(runeQuote)
+			sb.WriteByte('"')
 			return sb.String()
 		}
 	case jsonInt:
