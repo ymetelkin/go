@@ -1,28 +1,18 @@
 package appl
 
 import (
-	"fmt"
-	"strings"
 	"testing"
 
-	"github.com/ymetelkin/go/json"
+	"github.com/ymetelkin/go/xml"
 )
 
 func TestAdmin(t *testing.T) {
 	s := `
 <Publication>
-	<PublicationManagement>		
-		<RecordType>Change</RecordType>
-		<FilingType>Text</FilingType>
-		<FirstCreated UserAccount="APGBL" UserAccountSystem="APADS" UserName="APGBL\dcampbell" Year="2012" Month="3" Day="12" Time="20:54:44"/>
-		<Status>Usable</Status>
-		<ExplicitWarning>1</ExplicitWarning>
-		<IsDigitized>false</IsDigitized>
-	 </PublicationManagement>  
 	<AdministrativeMetadata>
 		<Provider Id="AP" Type="AP">AP</Provider>
 		<Creator>AP</Creator>
-		<Source Type="AP">AP</Source>
+		<Source City="Buenos Aires" Country="Argentina" Id="z00052" Url="http://www.dyn.com" Type="ThirdParty" SubType="NewsAgency">Agencia Diarios y Noticias (DYN)</Source>
 		<Contributor>NTB</Contributor>
 		<SourceMaterial Name="alternate">
 			<Type>Website</Type>
@@ -50,77 +40,60 @@ func TestAdmin(t *testing.T) {
 		<Reach Scheme="AP">ap_subject:General</Reach>
 		<Reach Scheme="UNKNOWN">UNKNOWN</Reach>
 		<Signal>YM</Signal>
-		<InPackage Scheme="APText">tophd inthd alhd cthd dehd ilhd iahd arhd</InPackage>
 		<InPackage Scheme="APText">asbizhd</InPackage>
 		<InPackage Scheme="APText">BIZHD APFNHD</InPackage>
 		<ConsumerReady>TRUE</ConsumerReady>
 		<Rating Value="3" ScaleMin="1" ScaleMax="6" ScaleUnit="int" Raters="1" RaterType="Editorial" />
-		<Rating Value="2" ScaleMin="1" ScaleMax="6" ScaleUnit="int" Raters="1" RaterType="Editorial" />
-		<Property Name="EAI:SUBMISSIONPRIORITY"></Property>
-		<Property Name="EAI:SLUGWORDCOUNT"></Property>
-		<Property Name="EAI:ELVIS_CALLBACK_URL"></Property>
-		<Property Name="EAI:ELVIS_WORKFLOW_ID"></Property>
+		<Rating Value="2" ScaleMin="1" ScaleMax="6" ScaleUnit="int" Raters="1" RaterType="Editorial" />		
 	</AdministrativeMetadata>
 </Publication>`
-	doc, _ := parseXML(strings.NewReader(s))
-	jo := json.Object{}
 
-	/*
-		err := doc.ParsePublicationManagement(&jo)
-		if err != nil {
-			t.Error(err.Error())
-		}
-	*/
-
-	err := doc.ParseAdministrativeMetadata(&jo)
+	xml, err := xml.ParseString(s)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	if _, err := jo.GetObject("provider"); err != nil {
-		t.Error("[provider] is expected")
+	doc := new(Document)
+
+	doc.parseAdministrativeMetadata(xml.Node("AdministrativeMetadata"))
+
+	if doc.Provider.Code != "AP" {
+		t.Error("Invalid Provider")
 	}
-
-	if _, err := jo.GetArray("sources"); err != nil {
-		t.Error("[sources] is expected")
+	if doc.Creator != "AP" {
+		t.Error("Invalid Creator")
 	}
-
-	if _, err := jo.GetString("canonicallink"); err != nil {
-		t.Error("[canonicallink] is expected")
+	if doc.Sources[0].Country != "Argentina" {
+		t.Error("Invalid .Sources[0].Country")
 	}
-
-	if _, err := jo.GetArray("sourcematerials"); err != nil {
-		t.Error("[sourcematerials] is expected")
+	if doc.CanonicalLink != "http://www.apnewsarchive.com/2017/Ext-Sum-September-1st-test2/id-050b1f04ddfe47acb12c3937fe5ebe4b" {
+		t.Error("Invalid CanonicalLink")
 	}
-
-	if _, err := jo.GetArray("transmissionsources"); err != nil {
-		t.Error("[transmissionsources] is expected")
+	if doc.SourceMaterials[0].Type != "Email" {
+		t.Error("Invalid SourceMaterials[1].Type")
 	}
-
-	if _, err := jo.GetArray("productsources"); err != nil {
-		t.Error("[productsources] is expected")
+	if doc.TransmissionSources[3] != "JagRoars" {
+		t.Error("Invalid TransmissionSources[3]")
 	}
-
-	if _, err := jo.GetObject("itemcontenttype"); err != nil {
-		t.Error("[itemcontenttype] is expected")
+	if doc.ProductSources[3] != "GermanPhotos" {
+		t.Error("Invalid ProductSources[3]")
 	}
-
-	if _, err := jo.GetArray("distributionchannels"); err != nil {
-		t.Error("[distributionchannels] is expected")
+	if doc.DistributionChannels[1] != "Web File Delivery" {
+		t.Error("Invalid DistributionChannels[1]")
 	}
-
-	if _, err := jo.GetObject("fixture"); err != nil {
-		t.Error("[fixture] is expected")
+	if len(doc.DistributionChannels) != 2 {
+		t.Error("Invalid length of DistributionChannels")
 	}
-
-	if _, err := jo.GetArray("signals"); err != nil {
-		t.Error("[signals] is expected")
+	if doc.InPackages[2] != "APFNHD" {
+		t.Error("Invalid InPackages[2]")
 	}
-
-	if _, err := jo.GetArray("inpackages"); err != nil {
-		t.Error("[inpackages] is expected")
+	if doc.Ratings[1].Value != 2 {
+		t.Error("Invalid Ratings[1].Value")
 	}
-
-	fmt.Printf("%s\n", jo.String())
-
+	if doc.Signals[2] != "YM" {
+		t.Error("Invalid Signals[2]")
+	}
+	if len(doc.Signals) != 4 {
+		t.Error("Invalid length of Signals")
+	}
 }

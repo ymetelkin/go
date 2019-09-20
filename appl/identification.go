@@ -16,52 +16,37 @@ func (doc *Document) parseIdentification(node xml.Node) {
 		switch nd.Name {
 		case "ItemId":
 			doc.ItemID = nd.Text
-			doc.JSON.AddString("itemid", nd.Text)
 		case "RecordId":
 			doc.RecordID = nd.Text
-			doc.JSON.AddString("recordid", nd.Text)
 		case "CompositeId":
 			doc.CompositeID = nd.Text
-			doc.JSON.AddString("compositeid", nd.Text)
 		case "CompositionType":
 			doc.CompositionType = nd.Text
-			doc.JSON.AddString("compositiontype", nd.Text)
 		case "MediaType":
 			doc.MediaType = strings.ToLower(nd.Text)
-			doc.JSON.AddString("type", doc.MediaType)
 		case "Priority":
 			priority, err := strconv.Atoi(nd.Text)
 			if err == nil {
 				doc.Priority = priority
-				doc.JSON.AddInt("priority", priority)
 			}
 		case "EditorialPriority":
-			if nd.Text != "" {
-				doc.EditorialPriority = nd.Text
-				doc.JSON.AddString("editorialpriority", nd.Text)
-			}
+			doc.EditorialPriority = nd.Text
 		case "DefaultLanguage":
 			if len(nd.Text) >= 2 {
 				language := string([]rune(nd.Text)[0:2])
 				doc.Language = language
-				doc.JSON.AddString("language", language)
 			}
 		case "RecordSequenceNumber":
 			rsn, err := strconv.Atoi(nd.Text)
 			if err == nil {
 				doc.RSN = rsn
-				doc.JSON.AddInt("recordsequencenumber", rsn)
 			}
 		case "FriendlyKey":
-			if nd.Text != "" {
-				doc.FriendlyKey = nd.Text
-				doc.JSON.AddString("friendlykey", nd.Text)
-			}
+			doc.FriendlyKey = nd.Text
 		}
 	}
 
 	doc.ReferenceID = doc.ItemID
-	doc.JSON.AddString("referenceid", doc.ItemID)
 }
 
 func (doc *Document) setReferenceID() {
@@ -110,6 +95,5 @@ func (doc *Document) setReferenceID() {
 
 	if ref != "" {
 		doc.ReferenceID = ref
-		doc.JSON.SetString("referenceid", ref)
 	}
 }

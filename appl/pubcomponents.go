@@ -63,7 +63,7 @@ func (doc *document) ParsePublicationComponents(jo *json.Object) {
 	}
 }
 
-func parsePublicationComponent(nd xml.Node) pubcomponent {
+func parsePublicationComponent2(nd xml.Node) pubcomponent {
 	if nd.Nodes == nil || len(nd.Nodes) == 0 || nd.Attributes == nil {
 		return pubcomponent{}
 	}

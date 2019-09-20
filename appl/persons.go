@@ -1,5 +1,7 @@
 package appl
 
+/*
+
 import (
 	"fmt"
 	"strings"
@@ -12,9 +14,9 @@ type person struct {
 	Name    string
 	Code    string
 	Creator string
-	Rels    uniqueArray
-	Types   uniqueArray
-	Ids     uniqueArray
+	Rels    uniqueStrings
+	Types   uniqueStrings
+	Ids     uniqueStrings
 	Teams   uniqueArray
 	States  uniqueArray
 	Events  uniqueArray
@@ -49,7 +51,7 @@ func (ps *persons) Parse(nd xml.Node) {
 				prs = ps.Persons[i]
 			} else {
 				prs = person{Name: name, Code: code, Creator: system}
-				prs.Rels.AddString("direct")
+				prs.Rels.Append("direct")
 				ps.Persons = append(ps.Persons, prs)
 				i = len(ps.Persons) - 1
 				ps.Keys[key] = i
@@ -74,12 +76,12 @@ func (ps *persons) Parse(nd xml.Node) {
 							key := strings.ToLower(n)
 							if key == "partytype" {
 								if strings.EqualFold(v, "PERSON_FEATURED") {
-									prs.Rels.AddString(v)
+									prs.Rels.Append(v)
 									if prs.Creator == "" {
 										prs.Creator = "Editorial"
 									}
 								} else {
-									prs.Types.AddString(v)
+									prs.Types.Append(v)
 								}
 							} else if key == "team" && id != "" {
 								prs.Teams.AddKeyValue("code", id, "name", v)
@@ -88,7 +90,7 @@ func (ps *persons) Parse(nd xml.Node) {
 							} else if key == "associatedstate" && id != "" {
 								prs.States.AddKeyValue("code", id, "name", v)
 							} else if key == "extid" {
-								prs.Ids.AddString(v)
+								prs.Ids.Append(v)
 							}
 						}
 					}
@@ -118,12 +120,14 @@ func (ps *persons) JSONProperty(namelines []json.Object) json.Property {
 			if p.Creator != "" {
 				person.AddString("creator", p.Creator)
 			}
-			if !p.Rels.IsEmpty() {
-				person.AddProperty(p.Rels.JSONProperty("rels"))
-			}
-			if !p.Types.IsEmpty() {
-				person.AddProperty(p.Types.JSONProperty("types"))
-			}
+			
+				if !p.Rels.IsEmpty() {
+					person.AddProperty(p.Rels.JSONProperty("rels"))
+				}
+				if !p.Types.IsEmpty() {
+					person.AddProperty(p.Types.JSONProperty("types"))
+				}
+			
 			if !p.Teams.IsEmpty() {
 				person.AddProperty(p.Teams.JSONProperty("teams"))
 			}
@@ -133,9 +137,11 @@ func (ps *persons) JSONProperty(namelines []json.Object) json.Property {
 			if !p.Events.IsEmpty() {
 				person.AddProperty(p.Events.JSONProperty("associatedevents"))
 			}
-			if !p.Ids.IsEmpty() {
-				person.AddProperty(p.Ids.JSONProperty("extids"))
-			}
+			
+				if !p.Ids.IsEmpty() {
+					person.AddProperty(p.Ids.JSONProperty("extids"))
+				}
+			
 
 			ja.AddObject(person)
 			add = true
@@ -155,3 +161,4 @@ func (ps *persons) JSONProperty(namelines []json.Object) json.Property {
 
 	return json.Property{}
 }
+*/

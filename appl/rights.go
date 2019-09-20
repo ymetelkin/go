@@ -1,96 +1,98 @@
 package appl
 
 import (
-	"github.com/ymetelkin/go/json"
+	"fmt"
+	"strconv"
+
+	"github.com/ymetelkin/go/xml"
 )
 
-func (doc *document) ParseRightsMetadata(parent *json.Object) error {
-	ja := json.Array{}
+func (doc *Document) parseRightsMetadata(node xml.Node) {
+	if node.Nodes == nil {
+		return
+	}
 
-	for _, nd := range doc.RightsMetadata.Nodes {
+	for _, nd := range node.Nodes {
 		switch nd.Name {
+		case "Copyright":
+			if nd.Attributes != nil {
+				for k, v := range nd.Attributes {
+					switch k {
+					case "Holder":
+						if doc.Copyright == nil {
+							doc.Copyright = &Copyright{}
+						}
+						doc.Copyright.Holder = v
+					case "Date":
+						year, err := strconv.Atoi(v)
+						if err == nil && year > 0 {
+							if doc.Copyright == nil {
+								doc.Copyright = &Copyright{}
+							}
+							doc.Copyright.Year = year
+						}
+					}
+				}
+			}
+			if doc.Copyright != nil && doc.Copyright.Notice == "" && doc.Copyright.Holder != "" && doc.Copyright.Year > 0 {
+				doc.Copyright.Notice = fmt.Sprintf("Copyright %d %s. All rights reserved. This material may not be published, broadcast, rewritten or redistributed.", doc.Copyright.Year, doc.Copyright.Holder)
+			}
 		case "UsageRights":
 			if nd.Nodes != nil {
 				var (
-					ut, rh, sd, ed string
-					geo, lim       uniqueArray
-					gps            json.Array
+					ur       UsageRights
+					geo, lim uniqueStrings
 				)
-				jo := json.Object{}
 
 				for _, n := range nd.Nodes {
 					switch n.Name {
 					case "UsageType":
-						ut = n.Text
+						ur.UsageType = n.Text
 					case "Geography":
-						geo.AddString(n.Text)
+						geo.Append(n.Text)
 					case "RightsHolder":
-						rh = n.Text
+						ur.RightsHolder = n.Text
 					case "Limitations":
-						lim.AddString(n.Text)
+						lim.Append(n.Text)
 					case "StartDate":
-						sd = properDate(n.Text)
+						if n.Text != "" {
+							ts, err := parseDate(n.Text)
+							if err == nil {
+								ur.StartDate = &ts
+							}
+						}
 					case "EndDate":
-						ed = properDate(n.Text)
+						if n.Text != "" {
+							ts, err := parseDate(n.Text)
+							if err == nil {
+								ur.EndDate = &ts
+							}
+						}
 					case "Group":
-						g := json.Object{}
+						var grp CodeNameTitle
 						if n.Attributes != nil {
 							for k, v := range n.Attributes {
 								switch k {
 								case "Type":
-									if v != "" {
-										g.AddString("type", v)
-									}
+									grp.Title = v
 								case "Id":
-									if v != "" {
-										g.AddString("code", v)
-									}
+									grp.Code = v
 								}
 							}
 						}
-						if n.Text != "" {
-							g.AddString("name", n.Text)
-						}
-						if !g.IsEmpty() {
-							gps.AddObject(g)
-						}
+
+						grp.Name = n.Text
+						ur.Groups = append(ur.Groups, grp)
 					}
 				}
-
-				if ut != "" {
-					jo.AddString("usagetype", ut)
+				if !geo.IsEmpty() {
+					ur.Geography = geo.Values()
 				}
-
-				jo.AddProperty(geo.JSONProperty("geography"))
-
-				if rh != "" {
-					jo.AddString("rightsholder", rh)
+				if !lim.IsEmpty() {
+					ur.Limitations = lim.Values()
 				}
-
-				jo.AddProperty(lim.JSONProperty("limitations"))
-
-				if sd != "" {
-					jo.AddString("startdate", sd)
-				}
-
-				if ed != "" {
-					jo.AddString("enddate", ed)
-				}
-
-				if !gps.IsEmpty() {
-					jo.AddArray("groups", gps)
-				}
-
-				if !jo.IsEmpty() {
-					ja.AddObject(jo)
-				}
+				doc.UsageRights = append(doc.UsageRights, ur)
 			}
 		}
 	}
-
-	if !ja.IsEmpty() {
-		parent.AddArray("usagerights", ja)
-	}
-
-	return nil
 }

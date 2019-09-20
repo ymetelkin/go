@@ -1,15 +1,13 @@
 package appl
 
 import (
-	"fmt"
 	"testing"
 
-	"github.com/ymetelkin/go/json"
 	"github.com/ymetelkin/go/xml"
 )
 
 func TestIdentification(t *testing.T) {
-	input := `
+	s := `
 	<Publication>
 		<Identification>
 			<ItemId>c8f59c9cb3724b04b753ef957f6d885b</ItemId>
@@ -25,40 +23,29 @@ func TestIdentification(t *testing.T) {
 		</Identification>
 	</Publication>`
 
-	expected := `
-	{
-		"itemid": "c8f59c9cb3724b04b753ef957f6d885b",
-		"recordid": "24b1f7fcf6b54d20a96a1e86a9cfd5dd",
-		"compositeid": "00000000000000000000000000000000",
-		"compositiontype": "StandardPrintPhoto",
-		"type": "photo",
-		"priority": 5,
-		"editorialpriority": "d",
-		"language": "en",
-		"recordsequencenumber": 2,
-		"friendlykey": "18212677756771",
-		"referenceid": "c8f59c9cb3724b04b753ef957f6d885b"
-	  }`
-
-	xml, err := xml.ParseString(input)
+	xml, err := xml.ParseString(s)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
 	doc := new(Document)
-	doc.XML = &xml
-	doc.JSON = new(json.Object)
 
 	doc.parseIdentification(xml.Node("Identification"))
-	//fmt.Println(doc.JSON.String())
 
-	test, _ := json.ParseObjectString(expected)
-	left := doc.JSON.InlineString()
-	right := test.InlineString()
-	if left != right {
-		t.Error("Failed Identification")
-		fmt.Println(left)
-		fmt.Println(right)
+	if doc.ItemID != "c8f59c9cb3724b04b753ef957f6d885b" {
+		t.Error("Invalid ItemID")
+	}
+	if doc.RecordID != "24b1f7fcf6b54d20a96a1e86a9cfd5dd" {
+		t.Error("Invalid RecordID")
+	}
+	if doc.MediaType != "photo" {
+		t.Error("Invalid MediaType")
+	}
+	if doc.Priority != 5 {
+		t.Error("Invalid Priority")
+	}
+	if doc.ReferenceID != "c8f59c9cb3724b04b753ef957f6d885b" {
+		t.Error("Invalid ReferenceID")
 	}
 }
 
@@ -80,7 +67,6 @@ func TestIdentificationReferenceId(t *testing.T) {
 	}
 	doc := new(Document)
 	doc.XML = &x
-	doc.JSON = new(json.Object)
 
 	doc.parseIdentification(x.Node("Identification"))
 	doc.setReferenceID()
@@ -105,7 +91,6 @@ func TestIdentificationReferenceId(t *testing.T) {
 	}
 	doc = new(Document)
 	doc.XML = &x
-	doc.JSON = new(json.Object)
 
 	doc.parseIdentification(x.Node("Identification"))
 	doc.setReferenceID()
@@ -134,7 +119,6 @@ func TestIdentificationReferenceId(t *testing.T) {
 	}
 	doc = new(Document)
 	doc.XML = &x
-	doc.JSON = new(json.Object)
 
 	doc.parseIdentification(x.Node("Identification"))
 	doc.setReferenceID()
@@ -159,7 +143,6 @@ func TestIdentificationReferenceId(t *testing.T) {
 	}
 	doc = new(Document)
 	doc.XML = &x
-	doc.JSON = new(json.Object)
 
 	doc.parseIdentification(x.Node("Identification"))
 	doc.setReferenceID()
@@ -187,7 +170,6 @@ func TestIdentificationReferenceId(t *testing.T) {
 	}
 	doc = new(Document)
 	doc.XML = &x
-	doc.JSON = new(json.Object)
 
 	doc.parseIdentification(x.Node("Identification"))
 	doc.setReferenceID()
@@ -212,7 +194,6 @@ func TestIdentificationReferenceId(t *testing.T) {
 	}
 	doc = new(Document)
 	doc.XML = &x
-	doc.JSON = new(json.Object)
 
 	doc.parseIdentification(x.Node("Identification"))
 	doc.setReferenceID()
@@ -240,7 +221,6 @@ func TestIdentificationReferenceId(t *testing.T) {
 	}
 	doc = new(Document)
 	doc.XML = &x
-	doc.JSON = new(json.Object)
 
 	doc.parseIdentification(x.Node("Identification"))
 	doc.setReferenceID()
@@ -265,7 +245,6 @@ func TestIdentificationReferenceId(t *testing.T) {
 	}
 	doc = new(Document)
 	doc.XML = &x
-	doc.JSON = new(json.Object)
 
 	doc.parseIdentification(x.Node("Identification"))
 	doc.setReferenceID()

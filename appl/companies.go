@@ -1,4 +1,5 @@
 package appl
+/*
 
 import (
 	"fmt"
@@ -12,7 +13,7 @@ type company struct {
 	Name       string
 	Code       string
 	Creator    string
-	Rels       uniqueArray
+	Rels       uniqueStrings
 	Symbols    uniqueArray
 	Industries uniqueArray
 }
@@ -51,7 +52,7 @@ func (cs *companies) Parse(nd xml.Node) {
 				comp = cs.Companies[i]
 			} else {
 				comp = company{Name: name, Code: code, Creator: system}
-				comp.Rels.AddString("direct")
+				comp.Rels.Append("direct")
 				cs.Companies = append(cs.Companies, comp)
 				i = len(cs.Companies) - 1
 				cs.Keys[key] = i
@@ -162,7 +163,7 @@ func (cs *companies) JSONProperty() json.Property {
 				company.AddString("creator", comp.Creator)
 			}
 			if !comp.Rels.IsEmpty() {
-				company.AddProperty(comp.Rels.JSONProperty("rels"))
+				company.AddArray("rels", comp.Rels.JSONArray())
 			}
 			if !comp.Industries.IsEmpty() {
 				company.AddProperty(comp.Industries.JSONProperty("industries"))
@@ -179,3 +180,4 @@ func (cs *companies) JSONProperty() json.Property {
 
 	return json.Property{}
 }
+*/

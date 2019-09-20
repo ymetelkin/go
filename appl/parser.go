@@ -54,36 +54,6 @@ type document struct {
 
 //XMLToJSON converts APPL XML to APPL JSON
 func XMLToJSON(scanner io.ByteScanner) (jo json.Object, err error) {
-	doc, err := parseXML(scanner)
-	if err != nil {
-		return
-	}
-
-	err = doc.ParseAdministrativeMetadata(&jo)
-	if err != nil {
-		return
-	}
-
-	err = doc.ParseRightsMetadata(&jo)
-	if err != nil {
-		return
-	}
-
-	err = doc.ParseDescriptiveMetadata(&jo)
-	if err != nil {
-		return
-	}
-
-	if doc.Filings != nil {
-		filings := json.Array{}
-		for _, f := range doc.Filings {
-			filings.AddObject(f.JSON)
-		}
-		jo.AddArray("filings", filings)
-	}
-
-	doc.ParsePublicationComponents(&jo)
-
 	return
 }
 
@@ -121,13 +91,15 @@ func parseXML(scanner io.ByteScanner) (doc document, err error) {
 			} else {
 				fs = append(fs, f)
 			}
-		case "PublicationComponent":
-			pc := parsePublicationComponent(nd)
-			if pcs == nil {
-				pcs = []pubcomponent{pc}
-			} else {
-				pcs = append(pcs, pc)
-			}
+			/*
+				case "PublicationComponent":
+					pc := parsePublicationComponent(nd)
+					if pcs == nil {
+						pcs = []pubcomponent{pc}
+					} else {
+						pcs = append(pcs, pc)
+					}
+			*/
 		}
 	}
 

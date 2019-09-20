@@ -1,15 +1,13 @@
 package appl
 
 import (
-	"fmt"
 	"testing"
 
-	"github.com/ymetelkin/go/json"
 	"github.com/ymetelkin/go/xml"
 )
 
 func TestManagement(t *testing.T) {
-	input := `
+	s := `
 <Publication>
 	<PublicationManagement>
 		<RecordType>Change</RecordType>
@@ -62,105 +60,31 @@ func TestManagement(t *testing.T) {
 </Publication>
 `
 
-	expected := `
-	{
-		"recordtype": "Change",
-		"filingtype": "Text",
-		"arrivaldatetime": "2012-03-12T20:54:44Z",
-		"firstcreated": "2019-04-29T13:07:36Z",
-		"firstcreator": {
-		  "username": "APGBL\\wweissert",
-		  "useraccount": "APGBL",
-		  "useraccountsystem": "APADS",
-		  "toolversion": "ELVIS 1.24.4.3",
-		  "userworkgroup": "USA Central",
-		  "userlocation": "Austin, TX"
-		},
-		"lastmodifieddatetime": "2012-03-12T20:54:37Z",
-		"lastmodifier": {
-		  "username": "APGBL\\dzelio",
-		  "useraccount": "APGBL",
-		  "useraccountsystem": "APADS"
-		},
-		"releasedatetime": "2012-03-12T20:54:44Z",
-		"pubstatus": "usable",
-		"specialinstructions": "Eds:APNewsNow.Willbeupdated.",
-		"refersto": "YM",
-		"associations": [
-		  {
-			"type": "text",
-			"itemid": "00000000000000000000000000000010",
-			"representationtype": "partial",
-			"associationrank": 1,
-			"typerank": 1
-		  },
-		  {
-			"type": "text",
-			"itemid": "00000000000000000000000000000020",
-			"representationtype": "partial",
-			"associationrank": 2,
-			"typerank": 2
-		  },
-		  {
-			"type": "photo",
-			"itemid": "00000000000000000000000000000030",
-			"representationtype": "partial",
-			"associationrank": 3,
-			"typerank": 1
-		  },
-		  {
-			"type": "photo",
-			"itemid": "00000000000000000000000000000040",
-			"representationtype": "partial",
-			"associationrank": 4,
-			"typerank": 2
-		  },
-		  {
-			"itemid": "00000000000000000000000000000050",
-			"representationtype": "partial",
-			"associationrank": 5,
-			"typerank": 1
-		  }
-		],
-		"itemstartdatetime": "2012-03-12T20:54:44Z",
-		"itemstartdatetimeactual": "2012-03-12T20:54:44Z",
-		"embargoed": "2012-03-12T20:54:44Z",
-		"editorialtypes": [
-		  "Advance",
-		  "YM"
-		],
-		"outinginstructions": [
-		  "INTERNET",
-		  "MOBILE"
-		],
-		"signals": [
-		  "explicitcontent",
-		  "isnotdigitized"
-		],
-		"newspowerdrivetimeatlantic": true,
-		"newspowerdrivetimeeastern": true,
-		"newspowerdrivetimecentral": true,
-		"newspowerdrivetimemountain": true
-	  }`
-
-	xml, err := xml.ParseString(input)
+	xml, err := xml.ParseString(s)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
 	doc := new(Document)
-	doc.XML = &xml
-	doc.JSON = new(json.Object)
 
 	doc.parsePublicationManagement(xml.Node("PublicationManagement"))
-	//fmt.Println(doc.JSON.String())
 
-	test, _ := json.ParseObjectString(expected)
-	left := doc.JSON.InlineString()
-	right := test.InlineString()
-	if left != right {
-		t.Error("Failed PublicationManagement")
-		fmt.Println(left)
-		fmt.Println(right)
+	if doc.ArrivalDateTime.Year() != 2012 {
+		t.Error("Invalid ArrivalDateTime")
+	}
+	if doc.Created.Year != 2019 {
+		t.Error("Invalid Created.Year")
+	}
+	if doc.Copyright.Year != 2019 {
+		t.Error("Invalid Copyright.Year")
+	}
+	if doc.Created.User.Name != "APGBL\\wweissert" {
+		t.Error("Invalid Created.User.Name")
+	}
+	if doc.Associations[0].ItemID != "00000000000000000000000000000010" {
+		t.Error("Invalid Associations[0].ItemID")
+	}
+	if doc.Associations[4].TypeRank != 2 {
+		t.Error("Invalid Associations[4].TypeRank")
 	}
 }

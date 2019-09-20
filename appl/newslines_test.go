@@ -1,15 +1,13 @@
 package appl
 
 import (
-	"fmt"
 	"testing"
 
-	"github.com/ymetelkin/go/json"
 	"github.com/ymetelkin/go/xml"
 )
 
 func TestNewslines(t *testing.T) {
-	input := `
+	s := `
 <Publication>
 	<NewsLines>
 		<Title>FBN--Vikings-Free Agency</Title>
@@ -25,52 +23,28 @@ func TestNewslines(t *testing.T) {
 	</NewsLines> 
 </Publication>`
 
-	expected := `
-	{
-		"title": "FBN--Vikings-Free Agency",
-		"headline": "Vikings, Sage Rosenfels agree to 2-year contract",
-		"headline_extended": "Agent: Vikings, Rosenfels agree in principle to 2-year contract to give team veteran backup QB",
-		"dateline": "EDEN PRAIRIE, Minn.",
-		"copyrightnotice": "Copyright 2012 The Associated Press. All rights reserved. This material may not be published, broadcast, rewritten or redistributed.",
-		"keywordlines": [
-		  "Vikings-Free Agency"
-		],
-		"person": [
-		  {
-			"name": "Magdalena Neuner",
-			"rel": [
-			  "personfeatured"
-			],
-			"creator": "Editorial"
-		  }
-		],
-		"bylines": [
-		  {
-			"by": "By DAVE CAMPBELL",
-			"title": "AP Sports Writer"
-		  }
-		]
-	  }`
-
-	xml, err := xml.ParseString(input)
+	xml, err := xml.ParseString(s)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
 	doc := new(Document)
-	doc.XML = &xml
-	doc.JSON = new(json.Object)
 
 	doc.parseNewsLines(xml.Node("NewsLines"))
-	doc.setCopyright()
-	//fmt.Println(doc.JSON.String())
 
-	test, _ := json.ParseObjectString(expected)
-	left := doc.JSON.InlineString()
-	right := test.InlineString()
-	if left != right {
-		t.Error("Failed NewsLines")
-		fmt.Println(left)
-		fmt.Println(right)
+	if doc.Headline != "Vikings, Sage Rosenfels agree to 2-year contract" {
+		t.Error("Invalid Headline")
+	}
+	if doc.Copyright.Notice != "Copyright 2012 The Associated Press. All rights reserved. This material may not be published, broadcast, rewritten or redistributed." {
+		t.Error("Invalid Copyright.Notice")
+	}
+	if doc.Keywordlines[0] != "Vikings-Free Agency" {
+		t.Error("Invalid Keywordlines")
+	}
+	if doc.Namelines[0].Name != "Magdalena Neuner" {
+		t.Error("Invalid Persons.Nameline[0].Name")
+	}
+	if doc.Bylines[0].By != "By DAVE CAMPBELL" {
+		t.Error("Invalid Bylines")
 	}
 }

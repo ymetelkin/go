@@ -22,7 +22,8 @@ func TestXml(t *testing.T) {
     <DefaultLanguage>en-us</DefaultLanguage>
     <RecordSequenceNumber>0</RecordSequenceNumber>
     <FriendlyKey>19120542327253</FriendlyKey>
-    <HeadLine>Vikings, Sage Rosenfels agree to 2-year contract</HeadLine>
+    <Title>Vikings, <a href="#">Sage Rosenfels</a> agree to <a href="#">2-year</a> contract</Title>
+    <HeadLine><a href="#">Vikings</a>, Sage Rosenfels agree to 2-year contract</HeadLine>
   </Identification>
   <script>
    <![CDATA[

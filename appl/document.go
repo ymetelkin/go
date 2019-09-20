@@ -2,9 +2,9 @@ package appl
 
 import (
 	"io"
+	"strings"
 	"time"
 
-	"github.com/ymetelkin/go/json"
 	"github.com/ymetelkin/go/xml"
 )
 
@@ -51,29 +51,59 @@ type Document struct {
 	Overlines               []string
 	Keywordlines            []string
 	Bylines                 []Byline
-	Producer                *CodeNameTitle
+	Producer                *CodeName
 	Photographer            *CodeNameTitle
 	Captionwriter           *CodeNameTitle
 	Edits                   []string
 	Dateline                string
-	Creditline              string
+	Creditline              *CodeName
 	Copyright               *Copyright
 	Rightsline              string
 	Seriesline              string
 	OutCue                  string
-	Persons                 []Person
+	Namelines               []Nameline
 	Locationline            string
+	Provider                *Provider
+	Creator                 string
+	Sources                 []Source
+	Contributor             string
+	SourceMaterials         []SourceMaterial
+	CanonicalLink           string
+	WorkflowStatus          string
+	TransmissionSources     []string
+	ProductSources          []string
+	ItemContentType         *ItemContentType
+	Workgroup               string
+	DistributionChannels    []string
+	InPackages              []string
+	EditorialRole           string
+	Fixture                 *CodeName
+	Ratings                 []Rating
+	UsageRights             []UsageRights
+	Descriptions            []string
+	DateLineLocation        *Location
+	Generators              []CodeName
+	Categories              []CodeName
+	SuppCategories          []CodeName
+	AlertCategories         []string
+	Subjects                []Subject
+	Persons                 []Person
+	Organizations           []Subject
+	Companies               []Company
+	Places                  []Place
+	Events                  []Event
 
 	EditorialID string
 	Filings     []Filing
 
-	Story    *Text
-	Caption  *Text
-	Script   *Text
-	Shotlist *Text
+	Story                  *Text
+	Caption                *Text
+	Script                 *Text
+	Shotlist               *Text
+	PublishableEditorNotes *Text
 
-	XML  *xml.Node
-	JSON *json.Object
+	XML *xml.Node
+	//JSON *json.Object
 }
 
 //UserAccount struct
@@ -128,6 +158,12 @@ type Byline struct {
 	Parametric string
 }
 
+//CodeName struct
+type CodeName struct {
+	Code string
+	Name string
+}
+
 //CodeNameTitle struct
 type CodeNameTitle struct {
 	Code  string
@@ -142,10 +178,167 @@ type Copyright struct {
 	Year   int
 }
 
-//Person struct
-type Person struct {
+//Nameline struct
+type Nameline struct {
 	Name       string
 	IsFeatured bool
+}
+
+//Provider struct
+type Provider struct {
+	Code    string
+	Type    string
+	Subtype string
+	Name    string
+}
+
+//Source struct
+type Source struct {
+	Code        string
+	City        string
+	Country     string
+	County      string
+	CountryArea string
+	URL         string
+	Type        string
+	Subtype     string
+	Name        string
+}
+
+//SourceMaterial struct
+type SourceMaterial struct {
+	Code              string
+	Type              string
+	PermissionGranted string
+	Name              string
+}
+
+//ItemContentType struct
+type ItemContentType struct {
+	Code    string
+	Creator string
+	Name    string
+}
+
+//Rating struct
+type Rating struct {
+	Value     int
+	ScaleMin  int
+	ScaleMax  int
+	ScaleUnit string
+	Raters    int
+	RaterType string
+	Creator   string
+}
+
+//UsageRights struct
+type UsageRights struct {
+	UsageType    string
+	Geography    []string
+	RightsHolder string
+	Limitations  []string
+	StartDate    *time.Time
+	EndDate      *time.Time
+	Groups       []CodeNameTitle
+}
+
+//Location struct
+type Location struct {
+	City            string
+	CountryAreaCode string
+	CountryAreaName string
+	CountryCode     string
+	CountryName     string
+	Geo             *Geo
+}
+
+//Geo struct
+type Geo struct {
+	Longitude float64
+	Latitude  float64
+}
+
+//Subject struct
+type Subject struct {
+	Code      string
+	Name      string
+	Creator   string
+	Rels      []string
+	ParentIds []string
+	TopParent *bool
+	rels      uniqueStrings
+	ids       uniqueStrings
+}
+
+//Person struct
+type Person struct {
+	Code    string
+	Name    string
+	Creator string
+	Rels    []string
+	Types   []string
+	Ids     []string
+	Teams   []CodeName
+	States  []CodeName
+	Events  []CodeName
+	rels    uniqueStrings
+	types   uniqueStrings
+	ids     uniqueStrings
+	teams   uniqueCodeNames
+	states  uniqueCodeNames
+	events  uniqueCodeNames
+}
+
+//Company struct
+type Company struct {
+	Code       string
+	Name       string
+	Creator    string
+	Rels       []string
+	Symbols    []string
+	Industries []CodeName
+	rels       uniqueStrings
+	symbols    uniqueStrings
+	tickers    uniqueCodeNames
+	exchanges  map[string]string
+}
+
+//Place struct
+type Place struct {
+	Code         string
+	Name         string
+	Creator      string
+	Rels         []string
+	ParentIds    []string
+	TopParent    *bool
+	LocationType *CodeName
+	Geo          *Geo
+	rels         uniqueStrings
+	ids          uniqueStrings
+}
+
+//Event struct
+type Event struct {
+	Code        string
+	Name        string
+	Creator     string
+	ExternalIDs []CodeName
+	Properties  []CodeName
+	props       uniqueCodeNames
+}
+
+//Filing APPL filing
+type Filing struct {
+	Source      string
+	Category    string
+	Slugline    string
+	ForeignKeys []ForeignKey
+}
+
+//ForeignKey APPL foreign key
+type ForeignKey struct {
+	Field string
+	Value string
 }
 
 //Text struct
@@ -154,16 +347,14 @@ type Text struct {
 	Words int
 }
 
-//New create new Document from byte stream
-func New(scanner io.ByteScanner) (doc Document, err error) {
+//Parse create new Document from byte stream
+func Parse(scanner io.ByteScanner) (doc Document, err error) {
 	xml, err := xml.Parse(scanner)
 	if err != nil {
 		return
 	}
 
 	doc.XML = &xml
-
-	doc.JSON = new(json.Object)
 
 	err = doc.parse()
 	if err != nil {
@@ -174,9 +365,6 @@ func New(scanner io.ByteScanner) (doc Document, err error) {
 }
 
 func (doc *Document) parse() (err error) {
-	doc.JSON.AddString("representationversion", "1.0")
-	doc.JSON.AddString("representationtype", "full")
-
 	for _, nd := range doc.XML.Nodes {
 		switch nd.Name {
 		case "Identification":
@@ -186,11 +374,11 @@ func (doc *Document) parse() (err error) {
 		case "NewsLines":
 			doc.parseNewsLines(nd)
 		case "AdministrativeMetadata":
-			//doc.AdministrativeMetadata = &nd
+			doc.parseAdministrativeMetadata(nd)
 		case "RightsMetadata":
-			//doc.RightsMetadata = &nd
+			doc.parseRightsMetadata(nd)
 		case "DescriptiveMetadata":
-			//doc.DescriptiveMetadata = &nd
+			doc.parseDescriptiveMetadata(nd)
 		case "FilingMetadata":
 		case "PublicationComponent":
 		}
@@ -200,4 +388,10 @@ func (doc *Document) parse() (err error) {
 	doc.setHeadline()
 
 	return
+}
+
+//ParseString create new Document from byte stream
+func ParseString(s string) (Document, error) {
+	scanner := strings.NewReader(s)
+	return Parse(scanner)
 }

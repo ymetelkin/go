@@ -12,6 +12,110 @@ import (
 	"github.com/ymetelkin/go/xml"
 )
 
+type uniqueStrings struct {
+	keys   map[string]bool
+	values []string
+}
+
+func (us *uniqueStrings) Append(s string) {
+	if s == "" {
+		return
+	}
+
+	if us.keys == nil {
+		us.keys = make(map[string]bool)
+	} else {
+		_, ok := us.keys[s]
+		if ok {
+			return
+		}
+	}
+
+	us.keys[s] = true
+	us.values = append(us.values, s)
+}
+
+func (us *uniqueStrings) IsEmpty() bool {
+	return us.values == nil || len(us.values) == 0
+}
+
+func (us *uniqueStrings) Values() []string {
+	return us.values
+}
+
+func (us *uniqueStrings) JSONArray() (ja json.Array) {
+	if !us.IsEmpty() {
+		for _, v := range us.values {
+			ja.AddString(v)
+		}
+	}
+	return
+}
+
+func (us *uniqueStrings) AppendRel(system string, match *bool) {
+	if strings.EqualFold(system, "RTE") {
+		us.Append("inferred")
+	} else if match != nil {
+		if *match {
+			us.Append("direct")
+		} else {
+			us.Append("ancestor")
+		}
+	}
+}
+
+type uniqueCodeNames struct {
+	keys   map[string]bool
+	values []CodeName
+}
+
+func (us *uniqueCodeNames) Append(k string, v string) {
+	if k == "" || v == "" {
+		return
+	}
+
+	key := fmt.Sprintf("%s_%s", k, v)
+
+	if us.keys == nil {
+		us.keys = make(map[string]bool)
+	} else {
+		_, ok := us.keys[key]
+		if ok {
+			return
+		}
+	}
+
+	us.keys[key] = true
+	cn := CodeName{
+		Code: k,
+		Name: v,
+	}
+	us.values = append(us.values, cn)
+}
+
+func (us *uniqueCodeNames) IsEmpty() bool {
+	return us.values == nil || len(us.values) == 0
+}
+
+func (us *uniqueCodeNames) Values() []CodeName {
+	return us.values
+}
+
+func (us *uniqueCodeNames) JSONArray(f func(CodeName) json.Object) (ja json.Array) {
+	if !us.IsEmpty() {
+		for _, cm := range us.values {
+			var jo json.Object
+			if f == nil {
+				jo = cm.json()
+			} else {
+				jo = f(cm)
+			}
+			ja.AddObject(jo)
+		}
+	}
+	return
+}
+
 type uniqueArray struct {
 	keys   map[string]bool
 	values json.Array
@@ -105,16 +209,6 @@ func (ua *uniqueArray) Values() (values []string) {
 	return
 }
 
-func setRels(system string, match string, rels *uniqueArray) {
-	if strings.EqualFold(system, "RTE") {
-		rels.AddString("inferred")
-	} else if strings.EqualFold(match, "true") {
-		rels.AddString("direct")
-	} else if strings.EqualFold(match, "false") {
-		rels.AddString("ancestor")
-	}
-}
-
 func getGeoProperty(lat float64, long float64) json.Property {
 	if lat == 0 && long == 0 {
 		return json.Property{}
@@ -170,9 +264,12 @@ func parseDate(s string) (time.Time, error) {
 		"2006-01-02T15:04:05",
 		"2006-01-02T15:04:05Z",
 		"2006-01-02T15:04:05-0700",
+		"2006-01-02T15:04:05-07:00",
 		"2006-01-02",
 		"2006-01",
 		"2006",
+		"02/01/06",
+		"02/01/2006",
 	}
 
 	for _, format := range formats {

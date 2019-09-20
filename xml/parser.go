@@ -153,7 +153,7 @@ func (xp *xParser) StartNode() (nd Node, closed bool, err error) {
 			nd.Name = sb.String()
 			exit = true
 			break
-		} else if !isAlpha(c) {
+		} else if !isNodeName(c) {
 			err = fmt.Errorf("Expected alpha character, found '%c'", c)
 			return
 		} else {
@@ -275,9 +275,10 @@ func (xp *xParser) StartNode() (nd Node, closed bool, err error) {
 
 func (xp *xParser) EndNode(nd *Node) (err error) {
 	var (
-		c     byte
-		nodes []Node
-		sb    strings.Builder
+		c        byte
+		nodes    []Node
+		sb       strings.Builder
+		txt, nds bool
 	)
 
 	c, err = xp.SkipWS()
@@ -336,12 +337,13 @@ func (xp *xParser) EndNode(nd *Node) (err error) {
 					}
 
 					sb.WriteString(strings.TrimSpace(s))
+					txt = true
 
 					c, err = xp.SkipWS()
 					if err != nil {
 						break
 					}
-					
+
 					continue
 				}
 			}
@@ -359,15 +361,38 @@ func (xp *xParser) EndNode(nd *Node) (err error) {
 				}
 			}
 
-			n.parent = nd
-			nodes = append(nodes, n)
+			if txt {
+				s, _ := n.InlineString()
+				sb.WriteString(s)
 
-			c, err = xp.SkipWS()
-			if err != nil {
-				break
+				c, err = xp.r.ReadByte()
+				if err != nil {
+					break
+				}
+			} else {
+				nds = true
+				n.parent = nd
+				nodes = append(nodes, n)
+
+				c, err = xp.SkipWS()
+				if err != nil {
+					break
+				}
 			}
 		} else {
+			if nds {
+				for i, n := range nodes {
+					if i > 0 {
+						sb.WriteByte(' ')
+					}
+					s, _ := n.InlineString()
+					sb.WriteString(s)
+				}
+				nds = false
+			}
+
 			sb.WriteByte(c)
+			txt = true
 
 			c, err = xp.r.ReadByte()
 			if err != nil {
@@ -376,9 +401,11 @@ func (xp *xParser) EndNode(nd *Node) (err error) {
 		}
 	}
 
-	nd.Text = sb.String()
+	if txt {
+		nd.Text = sb.String()
+	}
 
-	if len(nodes) > 0 {
+	if nds {
 		nd.Nodes = nodes
 	}
 
@@ -462,6 +489,10 @@ func isAlpha(c byte) bool {
 		return false
 	}
 	return true
+}
+
+func isNodeName(c byte) bool {
+	return isAlpha(c) || c == '.' || c == '_' || c == '-'
 }
 
 func isAttribute(c byte) bool {

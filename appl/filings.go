@@ -9,20 +9,6 @@ import (
 	"github.com/ymetelkin/go/xml"
 )
 
-//Filing APPL filing
-type Filing struct {
-	Source      string
-	Category    string
-	Slugline    string
-	ForeignKeys []ForeignKey
-}
-
-//ForeignKey APPL foreign key
-type ForeignKey struct {
-	Field string
-	Value string
-}
-
 type filing struct {
 	Source      string
 	Category    string
@@ -45,7 +31,7 @@ func parseFiling(nd xml.Node) filing {
 		f                  filing
 		jo, rts            json.Object
 		ids                json.Array
-		fcs, frs, fss, fts uniqueArray
+		fcs, frs, fss, fts uniqueStrings
 	)
 
 	for _, n := range nd.Nodes {
@@ -117,14 +103,14 @@ func parseFiling(nd xml.Node) filing {
 					}
 				}
 				if n.Text != "" && t != "" {
-					ua := uniqueArray{}
+					var us uniqueStrings
 					toks := strings.Split(n.Text, " ")
 					for _, s := range toks {
-						ua.AddString(s)
+						us.Append(s)
 					}
 
 					field := fmt.Sprintf("%s%s%ss", e, strings.ToLower(t), o)
-					rts.AddProperty(ua.JSONProperty(field))
+					rts.AddArray(field, us.JSONArray())
 				}
 			}
 		case "SlugLine":
@@ -188,19 +174,19 @@ func parseFiling(nd xml.Node) filing {
 			}
 		case "FilingCountry":
 			if n.Text != "" {
-				fcs.AddString(n.Text)
+				fcs.Append(n.Text)
 			}
 		case "FilingRegion":
 			if n.Text != "" {
-				frs.AddString(n.Text)
+				frs.Append(n.Text)
 			}
 		case "FilingSubject", "FilingSubSubject":
 			if n.Text != "" {
-				fss.AddString(n.Text)
+				fss.Append(n.Text)
 			}
 		case "FilingTopic":
 			if n.Text != "" {
-				fts.AddString(n.Text)
+				fts.Append(n.Text)
 			}
 		case "FilingOnlineCode":
 			if n.Text != "" {
@@ -244,19 +230,19 @@ func parseFiling(nd xml.Node) filing {
 	}
 
 	if !fcs.IsEmpty() {
-		jo.AddProperty(fcs.JSONProperty("filingcountries"))
+		jo.AddArray("filingcountries", fcs.JSONArray())
 	}
 
 	if !frs.IsEmpty() {
-		jo.AddProperty(fcs.JSONProperty("filingregions"))
+		jo.AddArray("filingregions", frs.JSONArray())
 	}
 
 	if !fss.IsEmpty() {
-		jo.AddProperty(fss.JSONProperty("filingsubjects"))
+		jo.AddArray("filingsubjects", fss.JSONArray())
 	}
 
 	if !fts.IsEmpty() {
-		jo.AddProperty(fts.JSONProperty("filingtopics"))
+		jo.AddArray("filingtopics", fts.JSONArray())
 	}
 
 	f.JSON = jo

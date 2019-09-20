@@ -1,0 +1,162 @@
+package appl
+
+import (
+	"fmt"
+	"strings"
+	"testing"
+
+	"github.com/ymetelkin/go/xml"
+)
+
+func TestTextContentItem(t *testing.T) {
+	s := `
+<Publication>
+  <PublicationComponent Role="Main" MediaType="Text">
+    <TextContentItem Id="ad60ff12f12e42de94488a9b50d9a0ff" ArrivedInFilingId="c03e698999834086a1cabdeab7d5163f">
+      <DataContent>
+        <nitf>
+          <body.content>
+            <block>
+              <p>LONDON (AP) — He talked nuclear threats with Russia’s president and gave an iPod to the queen.</p>
+              <p>"I think if you pulled quotes from 10 years ago, 20 years ago, 30 years ago, from previous news reports, you might find similar contentions that America was on decline," Obama said. “And somehow it hasn’t worked out that way."</p>
+              <p>
+                Test href <a href="#">Test</a> should parse <a></a> as text
+              </p>
+            </block>
+          </body.content>
+        </nitf>
+      </DataContent>
+      <Characteristics MimeType="text/xml" Format="IIM" FileExtension="xml" SizeInBytes="110">
+        <Words>666</Words>
+      </Characteristics>
+    </TextContentItem>
+  </PublicationComponent>
+  <PublicationComponent Role="Main" MediaType="Text">
+    <TextContentItem Id="2b29780765ae46ebbf9d143427c0e037" ArrivedInFilingId="c03e698999834086a1cabdeab7d5163f">
+      <DataContent>
+        <anpa>
+          ¥´1151¤ ¥AP-EU-Obama,1466¤
+          %headline(¥Obama seems everywhere as he takes global stage¤%)
+          %xhl(Obama takes the world stage _ sober, joking, relaxed, seemingly everywhere on summit eve%)
+        </anpa>
+      </DataContent>
+      <Characteristics MimeType="text/plain" Format="ANPA1312" FileExtension="txt" SizeInBytes="5960">
+        <Words>1012</Words>
+      </Characteristics>
+    </TextContentItem>
+  </PublicationComponent>
+  <PublicationComponent Role="Caption" MediaType="Text">
+    <TextContentItem Id="a4235d49caeb43388058613008a3e3e3" ArrivedInFilingId="802bc28ebcfe402890dfa9e98a82a086">
+      <DataContent>
+        <nitf xmlns="http://ap.org/schemas/03/2005/appl">
+          <body.content>
+            <block>
+              <p>This undated photo courtesy of Sarah Dorio shows a tattoo on the arm of chef Hugh Acheson. Acheson has four tattoos. Once considered the province of sailors, bikers, ex-cons and, of course, college hipsters, tattoos have become standard attire in professional kitchens.  (AP Photo/Sarah Dorio)</p>
+            </block>
+          </body.content>
+        </nitf>
+      </DataContent>
+      <Characteristics MimeType="text/xml" Format="NITF" FileExtension="xml" SizeInBytes="293">
+        <Words>47</Words>
+      </Characteristics>
+    </TextContentItem>
+  </PublicationComponent>
+  <PublicationComponent Role="Script" MediaType="Text">
+    <TextContentItem Id="cb1d185b245b448db822e38119ba8326" ArrivedInFilingId="bcab0148458e4de599115bba3c290c46">
+      <DataContent>
+        <nitf>
+          <body.content>
+            <block>
+              <p>Nathan Horton’s second goal of the game keyed Boston’s three-goal third period as the Bruins beat the Winnipeg Jets 5-3 on Tuesday night (10 January).</p>
+              <p>Andrew Ladd, former Bruin Blake Wheeler, and Eric Fehr scored for the Jets, who got two assists apiece from defensemen Zach Bogosian and Tobias Enstrom and ended a four-game road trip 1-3.</p>
+              <p>SUGGESTED VOICE OVER: </p>
+            </block>
+          </body.content>
+        </nitf>
+      </DataContent>
+      <Characteristics MimeType="text/xml" Format="NITF" FileExtension="xml">
+        <Words>236</Words>
+      </Characteristics>
+    </TextContentItem>
+  </PublicationComponent>
+  <PublicationComponent Role="Shotlist" MediaType="Text">
+    <TextContentItem Id="c43443cc048c4ad3bbaa7607e5670a92" ArrivedInFilingId="bcab0148458e4de599115bba3c290c46">
+      <DataContent>
+        <nitf>
+          <body.content>
+            <block>
+              <p>TD Garden, Boston, Massachusetts, USA. 10 January 2012.</p>
+              <p>First Period</p>
+              <p>1. 00:00 Boston bench</p>
+              <p>2. 00:05 Andrew Ladd scores for Winnipeg - Jets 1-0</p>
+            </block>
+          </body.content>
+        </nitf>
+      </DataContent>
+      <Characteristics MimeType="text/xml" Format="NITF" FileExtension="xml">
+        <Words>104</Words>
+      </Characteristics>
+    </TextContentItem>
+  </PublicationComponent>
+  <PublicationComponent Role="PublishableEditorNotes" MediaType="Text">
+    <TextContentItem Id="1a8f9e8c881b4e84983175ba4efa1294" ArrivedInFilingId="2b691b5b397547dba93bc6f82933d4ed">
+      <DataContent>
+        <nitf>
+          <body.content>
+            <block>
+              <p>This AP Member Exchange was shared by the Fremont Tribune.</p>
+            </block>
+          </body.content>
+        </nitf>
+      </DataContent>
+      <Characteristics MimeType="text/xml" Format="NITF" FileExtension="xml" SizeInBytes="58">
+        <Words>10</Words>
+      </Characteristics>
+    </TextContentItem>
+  </PublicationComponent>
+</Publication>`
+
+	xml, err := xml.ParseString(s)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	doc := new(Document)
+
+	for _, nd := range xml.Nodes {
+		doc.parsePublicationComponent(nd)
+	}
+
+	fmt.Println(doc.Story.Body)
+
+	if !strings.HasPrefix(doc.Story.Body, "<p>LONDON (AP) — He talked nuclear threats") {
+		t.Error("Invalid Story.Body")
+	}
+	if doc.Story.Words != 666 {
+		t.Error("Invalid Story.Words")
+	}
+	if !strings.HasPrefix(doc.Caption.Body, "<p>This undated photo courtesy of Sarah Dorio") {
+		t.Error("Invalid Caption.Body")
+	}
+	if doc.Caption.Words != 47 {
+		t.Error("Invalid Caption.Words")
+	}
+	if !strings.HasPrefix(doc.Script.Body, "<p>Nathan Horton’s second goal") {
+		t.Error("Invalid Script.Body")
+	}
+	if doc.Script.Words != 236 {
+		t.Error("Invalid Script.Words")
+	}
+	if !strings.HasPrefix(doc.Shotlist.Body, "<p>TD Garden, Boston, Massachusetts") {
+		t.Error("Invalid Shotlist.Body")
+	}
+	if doc.Shotlist.Words != 104 {
+		t.Error("Invalid Shotlist.Words")
+	}
+	if doc.PublishableEditorNotes.Body != "<p>This AP Member Exchange was shared by the Fremont Tribune.</p>" {
+		t.Error("Invalid PublishableEditorNotes.Body")
+	}
+	if doc.PublishableEditorNotes.Words != 10 {
+		t.Error("Invalid PublishableEditorNotes.Words")
+	}
+}

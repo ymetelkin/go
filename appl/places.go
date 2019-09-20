@@ -13,8 +13,8 @@ type place struct {
 	Name         string
 	Code         string
 	Creator      string
-	Rels         uniqueArray
-	ParentIds    uniqueArray
+	Rels         uniqueStrings
+	ParentIds    uniqueStrings
 	TopParent    string
 	LocationType json.Property
 	Geo          json.Property
@@ -33,7 +33,7 @@ func (ps *places) Parse(nd xml.Node) {
 	system := nd.Attribute("System")
 
 	for _, n := range nd.Nodes {
-		var code, name, match, pid, tp string
+		var code, name, /*match,*/ pid, tp string
 
 		if n.Name == "Occurrence" && n.Attributes != nil {
 			for k, v := range n.Attributes {
@@ -43,7 +43,7 @@ func (ps *places) Parse(nd xml.Node) {
 				case "Value":
 					name = v
 				case "ActualMatch":
-					match = v
+					//match = v
 				case "ParentId":
 					pid = v
 				case "TopParent":
@@ -76,9 +76,9 @@ func (ps *places) Parse(nd xml.Node) {
 				plc.Creator = system
 			}
 
-			setRels(system, match, &plc.Rels)
+			//setRels(system, match, &plc.Rels)
 
-			plc.ParentIds.AddString(pid)
+			plc.ParentIds.Append(pid)
 			plc.TopParent = tp
 
 			var (
@@ -143,12 +143,14 @@ func (ps *places) JSONProperty() json.Property {
 			if p.Creator != "" {
 				place.AddString("creator", p.Creator)
 			}
-			if !p.Rels.IsEmpty() {
-				place.AddProperty(p.Rels.JSONProperty("rels"))
-			}
-			if !p.ParentIds.IsEmpty() {
-				place.AddProperty(p.ParentIds.JSONProperty("parentids"))
-			}
+			/*
+				if !p.Rels.IsEmpty() {
+					place.AddProperty(p.Rels.JSONProperty("rels"))
+				}
+				if !p.ParentIds.IsEmpty() {
+					place.AddProperty(p.ParentIds.JSONProperty("parentids"))
+				}
+			*/
 			if p.TopParent == "true" {
 				place.AddBool("topparent", true)
 			} else if p.TopParent == "false" {
