@@ -666,8 +666,8 @@ func (e *Event) json() (jo json.Object) {
 		var ja json.Array
 		for _, p := range e.ExternalIDs {
 			var ex json.Object
+			ex.AddString("creator", p.Name)
 			ex.AddString("code", p.Code)
-			ex.AddString("name", p.Name)
 			ex.AddString("creatorcode", fmt.Sprintf("%s:%s", p.Name, p.Code))
 			ja.AddObject(ex)
 		}
