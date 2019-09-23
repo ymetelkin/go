@@ -8,8 +8,8 @@ import (
 
 //Object represents JSON object
 type Object struct {
-	names      []string
-	pnames     map[string]ParameterizedString
+	names      []string	
+	pnames     map[string]int
 	Properties map[string]value
 }
 
@@ -264,18 +264,13 @@ func (jo *Object) IsEmpty() bool {
 	return false
 }
 
-<<<<<<< HEAD
 //Names returns all field names
 func (jo *Object) Names() []string {
 	return jo.names
 }
 
 //ToString returns pretty serialization
-func (jo *Object) ToString() string {
-=======
-//String returns pretty serialization
 func (jo *Object) String() string {
->>>>>>> 5f47947789048c5e033d95409fb25ea7dbbfa033
 	return jo.toString(true, 0)
 }
 
@@ -291,10 +286,10 @@ func (jo *Object) toString(pretty bool, level int) string {
 
 	var sb strings.Builder
 
-	sb.WriteRune(runeLeftCurly)
+	sb.WriteByte('{')
 	if pretty {
-		sb.WriteRune(runeCR)
-		sb.WriteRune(runeLF)
+		sb.WriteByte('\r')
+		sb.WriteByte('\n')
 	}
 
 	next := level + 1
@@ -303,46 +298,46 @@ func (jo *Object) toString(pretty bool, level int) string {
 		jv, err := jo.getValue(name)
 		if err == nil {
 			if index > 0 {
-				sb.WriteRune(runeComma)
+				sb.WriteByte(',')
 
 				if pretty {
-					sb.WriteRune(runeCR)
-					sb.WriteRune(runeLF)
+					sb.WriteByte('\r')
+					sb.WriteByte('\n')
 				}
 			}
 
 			if pretty {
 				i := 0
 				for i <= level {
-					sb.WriteRune(runeSpace)
-					sb.WriteRune(runeSpace)
+					sb.WriteByte(' ')
+					sb.WriteByte(' ')
 					i++
 				}
 			}
 
-			sb.WriteRune(runeQuote)
+			sb.WriteByte('"')
 			sb.WriteString(name)
-			sb.WriteRune(runeQuote)
-			sb.WriteRune(runeColon)
+			sb.WriteByte('"')
+			sb.WriteByte(':')
 			if pretty {
-				sb.WriteRune(runeSpace)
+				sb.WriteByte(' ')
 			}
-			s := jv.ToString(pretty, next)
+			s := jv.String(pretty, next)
 			sb.WriteString(s)
 		}
 	}
 
 	if pretty {
-		sb.WriteRune(runeCR)
-		sb.WriteRune(runeLF)
+		sb.WriteByte('\r')
+		sb.WriteByte('\n')
 		i := 0
 		for i < level {
-			sb.WriteRune(runeSpace)
-			sb.WriteRune(runeSpace)
+			sb.WriteByte(' ')
+			sb.WriteByte(' ')
 			i++
 		}
 	}
-	sb.WriteRune(runeRightCurly)
+	sb.WriteByte('}')
 
 	return sb.String()
 }

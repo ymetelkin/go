@@ -1,131 +1,83 @@
 package appl
 
 import (
-	"errors"
-	"fmt"
-	"strconv"
 	"strings"
 
-	"github.com/ymetelkin/go/json"
 	"github.com/ymetelkin/go/xml"
 )
 
-func (doc *document) ParseNewsLines(jo *json.Object) error {
-	if doc.NewsLines.Nodes == nil {
-		return errors.New("NewsLines is missing")
-	}
-
+func (doc *Document) parseNewsLines(node xml.Node) {
 	var (
-		summary     bool
-		overs, keys uniqueArray
-		bys, byos   []xml.Node
-		cr          string
+		overlines, keywordlines  uniqueStrings
+		bylines, bylinesoriginal []xml.Node
 	)
 
-	jo.AddString("headline", "")
-
-	for _, nd := range doc.NewsLines.Nodes {
+	for _, nd := range node.Nodes {
 		switch nd.Name {
 		case "Title":
-			if nd.Text != "" {
-				doc.Title = nd.Text
-				jo.AddString("title", nd.Text)
-			}
+			doc.Title = nd.Text
 		case "HeadLine":
-			if nd.Text != "" {
-				doc.Headline = nd.Text
-				jo.SetString("headline", nd.Text)
+			doc.Headline = nd.Text
+		case "BodySubHeader":
+			if doc.Summary == "" {
+				doc.Summary = nd.Text
 			}
 		case "ExtendedHeadLine":
-			if nd.Text != "" {
-				jo.AddString("headline_extended", nd.Text)
-			}
-		case "BodySubHeader":
-			if nd.Text != "" && !summary {
-				jo.AddString("summary", nd.Text)
-				summary = true
-			}
+			doc.ExtendedHeadline = nd.Text
+		case "ByLine":
+			bylines = append(bylines, nd)
+		case "OverLine":
+			overlines.Append(nd.Text)
 		case "DateLine":
-			if nd.Text != "" {
-				jo.AddString("dateline", nd.Text)
-			}
+			doc.Dateline = nd.Text
 		case "CreditLine":
-			if nd.Text != "" {
-				jo.AddString("creditline", nd.Text)
-			}
-			id := nd.GetAttribute("Id")
-			if id != "" {
-				jo.AddString("creditlineid", id)
-			}
-		case "RightsLine":
-			if nd.Text != "" {
-				jo.AddString("rightsline", nd.Text)
+			doc.Creditline = &CodeName{
+				Code: nd.Attribute("Id"),
+				Name: nd.Text,
 			}
 		case "CopyrightLine":
-			cr = nd.Text
+			if doc.Copyright == nil {
+				doc.Copyright = &Copyright{}
+			}
+			doc.Copyright.Notice = nd.Text
+		case "RightsLine":
+			doc.Rightsline = nd.Text
 		case "SeriesLine":
-			if nd.Text != "" {
-				jo.AddString("seriesline", nd.Text)
-			}
-		case "OutCue":
-			if nd.Text != "" {
-				jo.AddString("outcue", nd.Text)
-			}
-		case "LocationLine":
-			if nd.Text != "" {
-				jo.AddString("locationline", nd.Text)
-			}
-		case "OverLine":
-			overs.AddString(nd.Text)
+			doc.Seriesline = nd.Text
 		case "KeywordLine":
-			keys.AddString(nd.Text)
-		case "ByLineOriginal":
-			if byos == nil {
-				byos = []xml.Node{nd}
-			} else {
-				byos = append(byos, nd)
-			}
-		case "ByLine":
-			if bys == nil {
-				bys = []xml.Node{nd}
-			} else {
-				bys = append(bys, nd)
-			}
+			keywordlines.Append(nd.Text)
+		case "OutCue":
+			doc.OutCue = nd.Text
 		case "NameLine":
 			if nd.Text != "" {
-				person := json.Object{}
-				person.AddString("name", nd.Text)
-				if strings.EqualFold(nd.GetAttribute("Parametric"), "PERSON_FEATURED") {
-					rel := json.Array{}
-					rel.AddString("personfeatured")
-					person.AddArray("rel", rel)
+				person := Nameline{
+					Name:       nd.Text,
+					IsFeatured: strings.EqualFold(nd.Attribute("Parametric"), "PERSON_FEATURED"),
 				}
-				person.AddString("creator", "Editorial")
-				if doc.Namelines == nil {
-					doc.Namelines = []json.Object{person}
-				} else {
-					doc.Namelines = append(doc.Namelines, person)
-				}
+				doc.Namelines = append(doc.Namelines, person)
 			}
+		case "LocationLine":
+			doc.Locationline = nd.Text
+		case "ByLineOriginal":
+			bylinesoriginal = append(bylinesoriginal, nd)
 		}
 	}
 
-	jo.AddProperty(overs.ToJSONProperty("overlines"))
-	jo.AddProperty(keys.ToJSONProperty("keywordlines"))
+	if !overlines.IsEmpty() {
+		doc.Overlines = overlines.Values()
+	}
 
-	getBylines(bys, byos, jo)
+	if !keywordlines.IsEmpty() {
+		doc.Keywordlines = keywordlines.Values()
+	}
 
-	doc.SetCopyright(cr, jo)
-
-	return nil
+	doc.setBylines(bylines, bylinesoriginal)
 }
 
-func (doc *document) SetHeadline(jo *json.Object) {
+func (doc *Document) setHeadline() {
 	var headline string
 
-	t := doc.MediaType
-
-	if t == mediaTypeText || t == mediaTypeComplexData {
+	if doc.MediaType == "text" || doc.MediaType == "complexdata" {
 		if doc.Headline != "" {
 			return
 		} else if doc.Title != "" {
@@ -138,12 +90,12 @@ func (doc *document) SetHeadline(jo *json.Object) {
 				}
 			}
 		} else {
-			s := getFirstTenWords(jo)
-			if s != "" {
-				headline = s
+			headline = doc.getFirstTenWords()
+			if headline == "" {
+				return
 			}
 		}
-	} else if t == mediaTypeVideo && (doc.Function == "" || !strings.EqualFold(doc.Function, "APTNLibrary")) {
+	} else if doc.MediaType == "video" && (doc.Function == "" || !strings.EqualFold(doc.Function, "APTNLibrary")) {
 		if doc.Headline != "" {
 			return
 		} else if doc.Title != "" {
@@ -156,12 +108,12 @@ func (doc *document) SetHeadline(jo *json.Object) {
 				}
 			}
 		} else {
-			s := getFirstTenWords(jo)
-			if s != "" {
-				headline = s
+			headline = doc.getFirstTenWords()
+			if headline == "" {
+				return
 			}
 		}
-	} else if t == mediaTypePhoto || t == mediaTypeGraphic || (t == mediaTypeVideo && strings.EqualFold(doc.Function, "APTNLibrary")) {
+	} else if doc.MediaType == "photo" || doc.MediaType == "graphic" || (doc.MediaType == "video" && strings.EqualFold(doc.Function, "APTNLibrary")) {
 		if doc.Title != "" {
 			headline = doc.Title
 		} else if doc.Filings != nil {
@@ -172,14 +124,14 @@ func (doc *document) SetHeadline(jo *json.Object) {
 				}
 			}
 		} else if doc.Headline != "" {
-			headline = doc.Headline
+			return
 		} else {
-			s := getFirstTenWords(jo)
-			if s != "" {
-				headline = s
+			headline = doc.getFirstTenWords()
+			if headline == "" {
+				return
 			}
 		}
-	} else if t == mediaTypeAudio {
+	} else if doc.MediaType == "audio" {
 		if doc.Headline != "" {
 			return
 		} else if doc.Title != "" {
@@ -189,201 +141,105 @@ func (doc *document) SetHeadline(jo *json.Object) {
 
 	if headline != "" {
 		doc.Headline = headline
-		jo.SetString("headline", headline)
 	}
 }
 
-func (doc *document) SetCopyright(s string, jo *json.Object) {
-	var (
-		holder string
-		year   int
-	)
-
-	rmd := doc.RightsMetadata
-	nd := rmd.GetNode("Copyright")
-	if nd.Attributes != nil {
-		for _, a := range nd.Attributes {
-			switch a.Name {
-			case "Holder":
-				holder = a.Value
-			case "Date":
-				i, err := strconv.Atoi(a.Value)
-				if err == nil {
-					year = i
-				}
-			}
-		}
-	}
-
-	if s == "" && holder != "" && doc.FirstCreatedYear > 0 {
-		s = fmt.Sprintf("Copyright %d %s. All rights reserved. This material may not be published, broadcast, rewritten or redistributed.", doc.FirstCreatedYear, holder)
-	}
-
-	if s != "" {
-		jo.AddString("copyrightnotice", s)
-	}
-	if holder != "" {
-		jo.AddString("copyrightholder", holder)
-	}
-
-	if year > 0 {
-		jo.AddInt("copyrightdate", year)
-	}
-}
-
-func getBylines(bys []xml.Node, byos []xml.Node, jo *json.Object) {
-	if bys == nil || len(bys) == 0 {
+func (doc *Document) setBylines(bylines []xml.Node, bylinesoriginal []xml.Node) {
+	if bylines == nil || len(bylines) == 0 {
 		return
 	}
 
-	bylines := json.Array{}
-	edits := json.Array{}
+	if bylinesoriginal != nil || len(bylinesoriginal) > 0 {
+		for _, bl := range bylinesoriginal {
+			if bl.Text != "" {
+				byline := Byline{
+					By: bl.Text,
+				}
 
-	if byos != nil || len(byos) > 0 {
-		for _, blo := range byos {
-			if blo.Text != "" {
-				byline := json.Object{}
-				byline.AddString("by", blo.Text)
-				title := blo.GetAttribute("Title")
+				title := bl.Attribute("Title")
 				if title != "" {
-					byline.AddString("title", title)
+					byline.Title = title
 				} else {
-					for _, bl := range bys {
-						title = bl.GetAttribute("Title")
+					for _, bl := range bylines {
+						title = bl.Attribute("Title")
 						if title != "" {
-							byline.AddString("title", title)
+							byline.Title = title
 							break
 						}
 					}
 				}
-				bylines.AddObject(byline)
+				doc.Bylines = append(doc.Bylines, byline)
 			}
 		}
 	} else {
-		var pr, ph, cw bool
-
-		for _, bl := range bys {
+		for _, bl := range bylines {
 			if bl.Text != "" {
 				id, title, pm := getBylineAttributes(bl)
 
-				if strings.EqualFold(title, "EditedBy") && !pr {
-					producer := json.Object{}
-					if id != "" {
-						producer.AddString("code", id)
+				if strings.EqualFold(title, "EditedBy") && doc.Producer == nil {
+					doc.Producer = &CodeName{
+						Code: id,
+						Name: bl.Text,
 					}
-					producer.AddString("name", bl.Text)
-					jo.AddObject("producer", producer)
-					pr = true
-				} else if strings.EqualFold(pm, "PHOTOGRAPHER") && !ph {
-					photographer := json.Object{}
-					if id != "" {
-						photographer.AddString("code", id)
+				} else if strings.EqualFold(pm, "PHOTOGRAPHER") && doc.Photographer == nil {
+					doc.Photographer = &CodeNameTitle{
+						Code:  id,
+						Name:  bl.Text,
+						Title: title,
 					}
-					photographer.AddString("name", bl.Text)
-					if title != "" {
-						photographer.AddString("title", title)
+				} else if strings.EqualFold(pm, "CAPTIONWRITER") && doc.Captionwriter == nil {
+					doc.Captionwriter = &CodeNameTitle{
+						Code:  id,
+						Name:  bl.Text,
+						Title: title,
 					}
-					jo.AddObject("photographer", photographer)
-					ph = true
-				} else if strings.EqualFold(pm, "CAPTIONWRITER") && !cw {
-					captionwriter := json.Object{}
-					if id != "" {
-						captionwriter.AddString("code", id)
-					}
-					captionwriter.AddString("name", bl.Text)
-					if title != "" {
-						captionwriter.AddString("title", title)
-					}
-					jo.AddObject("captionwriter", captionwriter)
-					cw = true
 				} else if strings.EqualFold(pm, "EDITEDBY") {
-					edit := json.Object{}
-					edit.AddString("name", bl.Text)
-					edits.AddObject(edit)
+					doc.Edits = append(doc.Edits, bl.Text)
 				} else {
-					byline := json.Object{}
-					if id != "" {
-						byline.AddString("code", id)
+					byline := Byline{
+						Code:       id,
+						By:         bl.Text,
+						Title:      title,
+						Parametric: pm,
 					}
-					byline.AddString("by", bl.Text)
-					if title != "" {
-						byline.AddString("title", title)
-					}
-					if pm != "" {
-						byline.AddString("parametric", pm)
-					}
-					bylines.AddObject(byline)
+					doc.Bylines = append(doc.Bylines, byline)
 				}
 			}
 		}
 	}
-
-	if bylines.Length() > 0 {
-		jo.AddArray("bylines", bylines)
-	}
-
-	if edits.Length() > 0 {
-		jo.AddArray("edits", edits)
-	}
 }
 
-func getBylineAttributes(nd xml.Node) (string, string, string) {
-	var id, title, pm string
-
+func getBylineAttributes(nd xml.Node) (id string, title string, pm string) {
 	if nd.Attributes != nil {
-		for _, a := range nd.Attributes {
-			switch a.Name {
+		for k, v := range nd.Attributes {
+			switch k {
 			case "Id":
-				id = a.Value
+				id = v
 			case "Title":
-				title = a.Value
+				title = v
 			case "Parametric":
-				pm = a.Value
+				pm = v
 			}
 		}
 	}
-	return id, title, pm
+	return
 }
 
-func getPerson(ns []xml.Node, jo *json.Object) {
-	if ns == nil || len(ns) == 0 {
-		return
+func (doc *Document) getFirstTenWords() string {
+	var s string
+
+	if doc.Story != nil && doc.Story.Body != "" {
+		s = doc.Story.Body
+	} else if doc.Caption != nil && doc.Caption.Body != "" {
+		s = doc.Caption.Body
 	}
 
-	persons := json.Array{}
-	var add bool
-	for _, n := range ns {
-		if n.Text != "" {
-			add = true
-			person := json.Object{}
-			person.AddString("name", n.Text)
-			if strings.EqualFold(n.GetAttribute("Parametric"), "PERSON_FEATURED") {
-				rel := json.Array{}
-				rel.AddString("personfeatured")
-				person.AddArray("rel", rel)
-			}
-			person.AddString("creator", "Editorial")
-			persons.AddObject(person)
+	if s != "" {
+		toks := strings.Split(s, " ")
+		if len(toks) > 10 {
+			s = strings.Join(toks[0:10], " ")
 		}
 	}
 
-	if add {
-		jo.AddArray("person", persons)
-	}
-}
-
-func getFirstTenWords(jo *json.Object) string {
-	o, err := jo.GetObject("main")
-	if err == nil {
-		s, _ := o.GetString("nitf")
-		if s != "" {
-			toks := strings.Split(s, " ")
-			if len(toks) > 10 {
-				return strings.Join(toks[0:10], " ")
-			}
-
-			return s
-		}
-	}
-	return ""
+	return s
 }

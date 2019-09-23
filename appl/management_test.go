@@ -1,10 +1,9 @@
 package appl
 
 import (
-	"fmt"
 	"testing"
 
-	"github.com/ymetelkin/go/json"
+	"github.com/ymetelkin/go/xml"
 )
 
 func TestManagement(t *testing.T) {
@@ -60,44 +59,32 @@ func TestManagement(t *testing.T) {
 	 </PublicationManagement>   
 </Publication>
 `
-	doc, _ := parseXML([]byte(s))
-	jo := json.Object{}
 
-	err := doc.ParsePublicationManagement(&jo)
+	xml, err := xml.ParseString(s)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	fmt.Printf("%s\n", jo.String())
+	doc := new(Document)
 
-	if string(doc.PubStatus) != "usable" {
-		t.Error("[pubstatus:usable] is expected")
+	doc.parsePublicationManagement(xml.Node("PublicationManagement"))
+
+	if doc.ArrivalDateTime.Year() != 2012 {
+		t.Error("Invalid ArrivalDateTime")
 	}
-	if doc.FirstCreatedYear == 0 {
-		t.Error("[firstcreated.year] is expected")
+	if doc.Created.Year != 2019 {
+		t.Error("Invalid Created.Year")
 	}
-	if _, err := jo.GetString("firstcreated"); err != nil {
-		t.Error("[firstcreated] is expected")
+	if doc.Copyright.Year != 2019 {
+		t.Error("Invalid Copyright.Year")
 	}
-	if _, err := jo.GetString("refersto"); err != nil {
-		t.Error("[refersto] is expected")
+	if doc.Created.User.Name != "APGBL\\wweissert" {
+		t.Error("Invalid Created.User.Name")
 	}
-	if _, err := jo.GetString("embargoed"); err != nil {
-		t.Error("[embargoed] is expected")
+	if doc.Associations[0].ItemID != "00000000000000000000000000000010" {
+		t.Error("Invalid Associations[0].ItemID")
 	}
-	if _, err := jo.GetArray("signals"); err != nil {
-		t.Error("[signals] is expected")
-	}
-	if _, err := jo.GetArray("outinginstructions"); err != nil {
-		t.Error("[outinginstructions] is expected")
-	}
-	if _, err := jo.GetArray("editorialtypes"); err != nil {
-		t.Error("[editorialtypes] is expected")
-	}
-	if v, _ := jo.GetBool("newspowerdrivetimeatlantic"); !v {
-		t.Error("[newspowerdrivetimeatlantic] is expected")
-	}
-	if _, err := jo.GetArray("associations"); err != nil {
-		t.Error("[associations] is expected")
+	if doc.Associations[4].TypeRank != 2 {
+		t.Error("Invalid Associations[4].TypeRank")
 	}
 }

@@ -2,9 +2,10 @@ package appl
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
-	"github.com/ymetelkin/go/json"
+	"github.com/ymetelkin/go/xml"
 )
 
 func TestFilings(t *testing.T) {
@@ -71,18 +72,64 @@ func TestFilings(t *testing.T) {
 		<BreakingNews>Breaking</BreakingNews>
 	</FilingMetadata>
 </Publication>`
-	doc, _ := parseXML([]byte(s))
-	jo := json.Object{}
 
-	filings := json.Array{}
-	for _, f := range doc.Filings {
-		filings.AddObject(f.JSON)
-	}
-	jo.AddArray("filings", filings)
-
-	if _, err := jo.GetArray("filings"); err != nil {
-		t.Error("[filings] is expected")
+	xml, err := xml.ParseString(s)
+	if err != nil {
+		t.Error(err.Error())
 	}
 
-	fmt.Printf("%s\n", jo.String())
+	doc := new(Document)
+
+	for _, nd := range xml.Nodes {
+		doc.parseFilingMetadata(nd)
+	}
+
+	if len(doc.Filings) != 2 {
+		t.Error("Invalid Filings")
+	}
+	if doc.Filings[0].ForeignKeys[0].Field != "storyid" {
+		t.Error("Invalid Filings[0].ForeignKeys[0].Field")
+	}
+}
+
+func temp() {
+	name := "f"
+	s := `ArrivalDateTime        *time.Time
+	Cycle                  string
+	TransmissionReference  string
+	TransmissionFilename   string
+	TransmissionContent    string
+	ServiceLevelDesignator string
+	Selector               string
+	Format                 string
+	Source                 string
+	Category               string
+	Routing                string
+	Slugline               string
+	OriginalMediaID        string
+	ImportFolder           string
+	ImportWarnings         string
+	LibraryTwinCheck       string
+	LibraryRequestID       string
+	SpecialFieldAttn       string
+	Feedline               string
+	LibraryRequestLogin    string
+	Products               string
+	Priorityline           string
+	ForeignKeys            []ForeignKey
+	Country                string
+	Region                 string
+	Subject                string
+	Topic                  string
+	OnlineCode             string
+	DistributionScope      string
+	BreakingNews           string
+	Style                  string
+	Junkline               string`
+	for _, tok := range strings.Split(s, "\n") {
+		toks := strings.Split(strings.TrimSpace(tok), " ")
+		f := strings.TrimSpace(toks[0])
+		jo := strings.ToLower(f)
+		fmt.Printf("if %s.%s != \"\" {\n\tjo.AddString(\"%s\", %s.%s)\n}\n", name, f, jo, name, f)
+	}
 }

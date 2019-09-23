@@ -1,25 +1,14 @@
 package appl
 
 import (
-	"fmt"
 	"testing"
 
-	"github.com/ymetelkin/go/json"
+	"github.com/ymetelkin/go/xml"
 )
 
 func TestRights(t *testing.T) {
 	s := `
 <Publication>
-	<PublicationManagement>
-		<RecordType>Change</RecordType>
-		<FilingType>Text</FilingType>
-		<IsDistributionReady>true</IsDistributionReady>
-		<ArrivalDateTime>2012-03-12T20:54:44</ArrivalDateTime>
-		<FirstCreated Year="2012" Month="3" Day="12" Time="20:54:44"/>
-	</PublicationManagement>
-	<NewsLines>
-		<Title>FBN--Vikings-Free Agency</Title>
-	</NewsLines>  
 	<RightsMetadata>
 		<Copyright Holder="Copyright The Associated Press" Date="2011" />	
 		<UsageRights>
@@ -31,7 +20,7 @@ func TestRights(t *testing.T) {
 		</UsageRights>
 		<UsageRights>
 			<UsageType>MarketplaceDistribution</UsageType>
-			<Geography>none</Geography>
+			<Geography>NJ</Geography>
 			<RightsHolder>DAVENPORT QUAD CITY TIMES</RightsHolder>
 			<Limitations>none</Limitations>
 			<Group Type="Corporate" Id="gs40274">Lee Enterprises</Group>    
@@ -48,39 +37,29 @@ func TestRights(t *testing.T) {
 		</UsageRights>
 	</RightsMetadata>
 </Publication>`
-	doc, _ := parseXML([]byte(s))
-	jo := json.Object{}
 
-	err := doc.ParsePublicationManagement(&jo)
+	xml, err := xml.ParseString(s)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	err = doc.ParseNewsLines(&jo)
-	if err != nil {
-		t.Error(err.Error())
+	doc := new(Document)
+
+	doc.parseRightsMetadata(xml.Node("RightsMetadata"))
+
+	if doc.Copyright.Holder != "Copyright The Associated Press" {
+		t.Error("Invalid Copyright.Holder")
 	}
-
-	err = doc.ParseRightsMetadata(&jo)
-	if err != nil {
-		t.Error(err.Error())
+	if doc.Copyright.Year != 2011 {
+		t.Error("Invalid Copyright.Year")
 	}
-
-	fmt.Printf("%s\n", jo.String())
-
-	if _, err := jo.GetString("copyrightnotice"); err != nil {
-		t.Error("[copyrightnotice] is expected")
+	if doc.UsageRights[2].Geography[0] != "NJ" {
+		t.Error("Invalid UsageRights[2].Geography[0]")
 	}
-
-	if _, err := jo.GetString("copyrightholder"); err != nil {
-		t.Error("[copyrightholder] is expected")
+	if doc.UsageRights[4].StartDate.Minute() != 10 {
+		t.Error("Invalid UsageRights[4].StartDate.Minute()")
 	}
-
-	if _, err := jo.GetInt("copyrightdate"); err != nil {
-		t.Error("[copyrightdate] is expected")
-	}
-
-	if _, err := jo.GetArray("usagerights"); err != nil {
-		t.Error("[usagerights] is expected")
+	if doc.UsageRights[4].EndDate.Year() != 2005 {
+		t.Error("Invalid UsageRights[4].EndDate.Year()")
 	}
 }

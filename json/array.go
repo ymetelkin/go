@@ -7,7 +7,8 @@ import (
 
 //Array is JSON array structure
 type Array struct {
-	Values []value
+	Values  []value
+	pvalues []int
 }
 
 func (ja *Array) addValue(jv value) int {
@@ -389,48 +390,48 @@ func (ja *Array) toString(pretty bool, level int) string {
 
 	var sb strings.Builder
 
-	sb.WriteRune(runeLeftSquare)
+	sb.WriteByte('[')
 	if pretty {
-		sb.WriteRune(runeCR)
-		sb.WriteRune(runeLF)
+		sb.WriteByte('\r')
+		sb.WriteByte('\n')
 	}
 
 	next := level + 1
 
 	for index, jv := range ja.Values {
 		if index > 0 {
-			sb.WriteRune(runeComma)
+			sb.WriteByte(',')
 
 			if pretty {
-				sb.WriteRune(runeCR)
-				sb.WriteRune(runeLF)
+				sb.WriteByte('\r')
+				sb.WriteByte('\n')
 			}
 		}
 
 		if pretty {
 			i := 0
 			for i <= level {
-				sb.WriteRune(runeSpace)
-				sb.WriteRune(runeSpace)
+				sb.WriteByte(' ')
+				sb.WriteByte(' ')
 				i++
 			}
 		}
 
-		s := jv.ToString(pretty, next)
+		s := jv.String(pretty, next)
 		sb.WriteString(s)
 	}
 
 	if pretty {
-		sb.WriteRune(runeCR)
-		sb.WriteRune(runeLF)
+		sb.WriteByte('\r')
+		sb.WriteByte('\n')
 		i := 0
 		for i < level {
-			sb.WriteRune(runeSpace)
-			sb.WriteRune(runeSpace)
+			sb.WriteByte(' ')
+			sb.WriteByte(' ')
 			i++
 		}
 	}
-	sb.WriteRune(runeRightSquare)
+	sb.WriteByte(']')
 
 	return sb.String()
 }

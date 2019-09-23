@@ -6,12 +6,18 @@ import (
 	"github.com/ymetelkin/go/json"
 )
 
-func textQueryJSON(field string, value string, keyword bool) json.Object {
+func textQueryJSON(field string, value string, keyword bool, phrase bool) json.Object {
+	if value == "*" {
+		return existsQueryJSON(field)
+	}
+
 	text := json.Object{}
 	text.AddString(field, value)
 	jo := json.Object{}
 	if keyword {
 		jo.AddObject("term", text)
+	} else if phrase {
+		jo.AddObject("match_phrase", text)
 	} else {
 		jo.AddObject("match", text)
 	}
@@ -68,5 +74,13 @@ func intsQueryJSON(field string, values []int) json.Object {
 	term.AddArray(field, ja)
 	jo := json.Object{}
 	jo.AddObject("terms", term)
+	return jo
+}
+
+func existsQueryJSON(field string) json.Object {
+	f := json.Object{}
+	f.AddString("field", field)
+	jo := json.Object{}
+	jo.AddObject("exists", f)
 	return jo
 }

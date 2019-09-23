@@ -1,22 +1,14 @@
 package appl
 
 import (
-	"fmt"
 	"testing"
 
-	"github.com/ymetelkin/go/json"
+	"github.com/ymetelkin/go/xml"
 )
 
 func TestNewslines(t *testing.T) {
 	s := `
 <Publication>
-	<Identification>
-		<ItemId>00000000000000000000000000000001</ItemId>
-		<RecordId>00000000000000000000000000000002</RecordId>
-		<CompositeId>00000000000000000000000000000003</CompositeId>
-		<CompositionType>StandardPrintPhoto</CompositionType>
-		<MediaType>Photo</MediaType>
-	</Identification>
 	<NewsLines>
 		<Title>FBN--Vikings-Free Agency</Title>
 		<HeadLine>Vikings, Sage Rosenfels agree to 2-year contract</HeadLine>
@@ -28,40 +20,31 @@ func TestNewslines(t *testing.T) {
 		<KeywordLine>Vikings-Free Agency</KeywordLine>
 		<ByLineOriginal>By DAVE CAMPBELL</ByLineOriginal>
 		<NameLine Parametric="PERSON_FEATURED">Magdalena Neuner</NameLine>
-	</NewsLines>  
-	<DescriptiveMetadata>
-		<EntityClassification SystemVersion="1" AuthorityVersion="2375" System="Teragram" Authority="AP Party">
-			<Occurrence Count="1" Value="M. Spencer Green">
-				<Property Id="111a147611e548de93ad20a387d49200" Name="PartyType" Value="PHOTOGRAPHER" />
-				<Position Value="Publication/NewsLines/ByLine" Phrase="M. Spencer Green" />
-			</Occurrence>
-		</EntityClassification>
-	</DescriptiveMetadata>
+	</NewsLines> 
 </Publication>`
-	doc, _ := parseXML([]byte(s))
-	jo := json.Object{}
 
-	err := doc.ParseIdentification(&jo)
-	if err != nil {
-		t.Error(err.Error())
-	}
-	err = doc.ParseNewsLines(&jo)
+	xml, err := xml.ParseString(s)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	err = doc.ParseDescriptiveMetadata(&jo)
-	if err != nil {
-		t.Error(err.Error())
-	}
+	doc := new(Document)
 
-	if doc.Headline == "" {
-		t.Error("[headline] is expected")
-	}
+	doc.parseNewsLines(xml.Node("NewsLines"))
 
-	if _, err := jo.GetArray("persons"); err != nil {
-		t.Error("[persons] is expected")
+	if doc.Headline != "Vikings, Sage Rosenfels agree to 2-year contract" {
+		t.Error("Invalid Headline")
 	}
-
-	fmt.Printf("%s\n", jo.String())
+	if doc.Copyright.Notice != "Copyright 2012 The Associated Press. All rights reserved. This material may not be published, broadcast, rewritten or redistributed." {
+		t.Error("Invalid Copyright.Notice")
+	}
+	if doc.Keywordlines[0] != "Vikings-Free Agency" {
+		t.Error("Invalid Keywordlines")
+	}
+	if doc.Namelines[0].Name != "Magdalena Neuner" {
+		t.Error("Invalid Persons.Nameline[0].Name")
+	}
+	if doc.Bylines[0].By != "By DAVE CAMPBELL" {
+		t.Error("Invalid Bylines")
+	}
 }
