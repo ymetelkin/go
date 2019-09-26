@@ -491,10 +491,14 @@ func isAlpha(c byte) bool {
 	return true
 }
 
+func isDigit(c byte) bool {
+	return c >= '0' && c <= '9'
+}
+
 func isNodeName(c byte) bool {
-	return isAlpha(c) || c == '.' || c == '_' || c == '-'
+	return isAlpha(c) || c == '.' || c == '_' || c == '-' || isDigit(c)
 }
 
 func isAttribute(c byte) bool {
-	return isAlpha(c) || c == ':'
+	return isAlpha(c) || c == ':' || c == '_' || c =='-' || isDigit(c)
 }

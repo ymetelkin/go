@@ -373,6 +373,39 @@ func (ja *Array) Length() int {
 	return len(ja.Values)
 }
 
+//Matches compares two arrays
+func (ja *Array) Matches(other *Array) (match bool, s string) {
+	if ja.Values == nil {
+		s = "Left is nil"
+		return
+	}
+	if other.Values == nil {
+		s = "Right is nil"
+		return
+	}
+	if len(ja.Values) != len(other.Values) {
+		s = fmt.Sprintf("Size mismatch: [ %v ] vs [ %v ]", len(ja.Values), len(other.Values))
+		return
+	}
+
+	for i, lv := range ja.Values {
+		var ok bool
+		for _, rv := range other.Values {
+			ok, s = lv.Matches(&rv)
+			if ok {
+				break
+			}
+		}
+		if !ok {
+			s = fmt.Sprintf("Array mismatch: [ %d ] [ %v ]", i, lv)
+			return
+		}
+	}
+
+	match = true
+	return
+}
+
 //String transforms JSON array to pretty string
 func (ja *Array) String() string {
 	return ja.toString(true, 0)

@@ -2,91 +2,58 @@ package appl
 
 import (
 	"fmt"
+	"html"
 	"strconv"
 	"strings"
 
-	"github.com/ymetelkin/go/json"
 	"github.com/ymetelkin/go/xml"
 )
 
-type filing struct {
-	Source      string
-	Category    string
-	Slugline    string
-	ForeignKeys []foreignkey
-	JSON        json.Object
-}
-
-type foreignkey struct {
-	Field string
-	Value string
-}
-
-func parseFiling(nd xml.Node) filing {
-	if nd.Nodes == nil {
-		return filing{}
+func (doc *Document) parseFilingMetadata(node xml.Node) {
+	if node.Nodes == nil {
+		return
 	}
 
 	var (
-		f                  filing
-		jo, rts            json.Object
-		ids                json.Array
-		fcs, frs, fss, fts uniqueStrings
+		f              Filing
+		routings       map[string][]string
+		cs, rs, ss, ts uniqueStrings
 	)
 
-	for _, n := range nd.Nodes {
-		switch n.Name {
+	for _, nd := range node.Nodes {
+		switch nd.Name {
 		case "Id":
-			if n.Text != "" {
-				jo.AddString("filingid", n.Text)
-			}
+			f.ID = nd.Text
 		case "ArrivalDateTime":
-			if n.Text != "" {
-				jo.AddString("filingarrivaldatetime", n.Text+"Z")
+			if nd.Text != "" {
+				ts, err := parseDate(nd.Text)
+				if err == nil {
+					f.ArrivalDateTime = &ts
+				}
 			}
 		case "Cycle":
-			if n.Text != "" {
-				jo.AddString("cycle", n.Text)
-			}
+			f.Cycle = nd.Text
 		case "TransmissionReference":
-			if n.Text != "" {
-				jo.AddString("transmissionreference", n.Text)
-			}
+			f.TransmissionReference = nd.Text
 		case "TransmissionFilename":
-			if n.Text != "" {
-				jo.AddString("transmissionfilename", n.Text)
-			}
+			f.TransmissionFilename = nd.Text
 		case "TransmissionContent":
-			if n.Text != "" {
-				jo.AddString("transmissioncontent", n.Text)
-			}
+			f.TransmissionContent = nd.Text
 		case "ServiceLevelDesignator":
-			if n.Text != "" {
-				jo.AddString("serviceleveldesignator", n.Text)
-			}
+			f.ServiceLevelDesignator = nd.Text
 		case "Selector":
-			if n.Text != "" {
-				jo.AddString("selector", n.Text)
-			}
+			f.Selector = nd.Text
 		case "Format":
-			if n.Text != "" {
-				jo.AddString("format", n.Text)
-			}
+			f.Format = nd.Text
 		case "Source":
-			if n.Text != "" {
-				f.Source = n.Text
-				jo.AddString("filingsource", n.Text)
-			}
+			f.Source = nd.Text
 		case "Category":
-			if n.Text != "" {
-				f.Category = n.Text
-				jo.AddString("filingcategory", n.Text)
-			}
+			f.Category = nd.Text
 		case "Routing":
-			if n.Attributes != nil {
+			if nd.Attributes != nil {
 				var t, e, o string
 
-				for k, v := range n.Attributes {
+				for k, v := range nd.Attributes {
 					switch k {
 					case "Type":
 						t = v
@@ -102,150 +69,140 @@ func parseFiling(nd xml.Node) filing {
 						}
 					}
 				}
-				if n.Text != "" && t != "" {
+				if nd.Text != "" && t != "" {
 					var us uniqueStrings
-					toks := strings.Split(n.Text, " ")
+					toks := strings.Split(nd.Text, " ")
 					for _, s := range toks {
 						us.Append(s)
 					}
 
 					field := fmt.Sprintf("%s%s%ss", e, strings.ToLower(t), o)
-					rts.AddArray(field, us.JSONArray())
+
+					if routings == nil {
+						routings = make(map[string][]string)
+					}
+					routings[field] = us.Values()
 				}
 			}
 		case "SlugLine":
-			if n.Text != "" {
-				f.Slugline = n.Text
-				jo.AddString("slugline", n.Text)
-			}
+			f.Slugline = nd.Text
 		case "OriginalMediaId":
-			if n.Text != "" {
-				jo.AddString("originalmediaid", n.Text)
-			}
+			f.OriginalMediaID = nd.Text
 		case "ImportFolder":
-			if n.Text != "" {
-				jo.AddString("importfolder", n.Text)
-			}
+			f.ImportFolder = nd.Text
 		case "ImportWarnings":
-			if n.Text != "" {
-				jo.AddString("importwarnings", n.Text)
-			}
+			f.ImportWarnings = nd.Text
 		case "LibraryTwinCheck":
-			if n.Text != "" {
-				jo.AddString("librarytwincheck", n.Text)
-			}
+			f.LibraryTwinCheck = nd.Text
 		case "LibraryRequestId":
-			if n.Text != "" {
-				jo.AddString("libraryrequestid", n.Text)
-			}
+			f.LibraryRequestID = nd.Text
 		case "SpecialFieldAttn":
-			if n.Text != "" {
-				jo.AddString("specialfieldattn", n.Text)
-			}
+			f.SpecialFieldAttn = nd.Text
 		case "FeedLine":
-			if n.Text != "" {
-				jo.AddString("feedline", n.Text)
-			}
+			f.Feedline = nd.Text
 		case "LibraryRequestLogin":
-			if n.Text != "" {
-				jo.AddString("libraryrequestlogin", n.Text)
-			}
+			f.LibraryRequestLogin = nd.Text
 		case "Products":
-			if n.Nodes != nil {
-				for _, p := range n.Nodes {
-					i, err := strconv.Atoi(p.Text)
+			if nd.Nodes != nil {
+				for _, p := range nd.Nodes {
+					p, err := strconv.Atoi(p.Text)
 					if err == nil {
-						ids.AddInt(i)
+						f.Products = append(f.Products, p)
 					}
 				}
 			}
 		case "PriorityLine":
-			if n.Text != "" {
-				jo.AddString("priorityline", n.Text)
-			}
+			f.Priorityline = nd.Text
 		case "ForeignKeys":
-			fks := getForeignKeys(n)
+			fks := parseForeignKeys(nd)
 			if fks != nil {
-				if f.ForeignKeys == nil {
-					f.ForeignKeys = fks
-				} else {
-					f.ForeignKeys = append(f.ForeignKeys, fks...)
-				}
+				f.ForeignKeys = append(f.ForeignKeys, fks...)
 			}
 		case "FilingCountry":
-			if n.Text != "" {
-				fcs.Append(n.Text)
-			}
+			cs.Append(nd.Text)
 		case "FilingRegion":
-			if n.Text != "" {
-				frs.Append(n.Text)
-			}
+			rs.Append(nd.Text)
 		case "FilingSubject", "FilingSubSubject":
-			if n.Text != "" {
-				fss.Append(n.Text)
-			}
+			ss.Append(nd.Text)
 		case "FilingTopic":
-			if n.Text != "" {
-				fts.Append(n.Text)
-			}
+			ts.Append(nd.Text)
 		case "FilingOnlineCode":
-			if n.Text != "" {
-				jo.AddString("filingonlinecode", n.Text)
-			}
+			f.OnlineCode = nd.Text
 		case "DistributionScope":
-			if n.Text != "" {
-				jo.AddString("distributionscope", n.Text)
-			}
+			f.DistributionScope = nd.Text
 		case "BreakingNews":
-			if n.Text != "" {
-				jo.AddString("breakingnews", n.Text)
-			}
+			f.BreakingNews = nd.Text
 		case "FilingStyle":
-			if n.Text != "" {
-				jo.AddString("filingstyle", n.Text)
-			}
+			f.Style = nd.Text
 		case "JunkLine":
-			if n.Text != "" {
-				jo.AddString("junkline", n.Text)
+			f.Junkline = nd.Text
+		}
+	}
+
+	f.Routings = routings
+
+	if !cs.IsEmpty() {
+		f.Countries = cs.Values()
+	}
+	if !rs.IsEmpty() {
+		f.Regions = rs.Values()
+	}
+	if !ss.IsEmpty() {
+		f.Subjects = cs.Values()
+	}
+	if !ts.IsEmpty() {
+		f.Topics = ts.Values()
+	}
+
+	doc.Filings = append(doc.Filings, f)
+
+	if strings.EqualFold(f.Category, "n") {
+		state := getState(f.Source)
+		if state.Code != "" {
+			if doc.Audiences != nil {
+				for _, au := range doc.Audiences {
+					if au.Title == "AUDGEOGRAPHY" || au.Code == state.Code {
+						return
+					}
+				}
+			}
+			cnt := CodeNameTitle{
+				Code:  state.Code,
+				Name:  state.Name,
+				Title: "AUDGEOGRAPHY",
+			}
+			doc.Audiences = append(doc.Audiences, cnt)
+		}
+	}
+}
+
+func parseForeignKeys(nd xml.Node) (fks []ForeignKey) {
+	system := nd.Attribute("System")
+	if system != "" && nd.Nodes != nil {
+		for _, k := range nd.Nodes {
+			if k.Attributes != nil {
+				var id, fld string
+				for k, v := range k.Attributes {
+					switch k {
+					case "Id":
+						id = v
+					case "Field":
+						fld = v
+					}
+				}
+				if id != "" && fld != "" {
+					field := system + fld
+					field = strings.ReplaceAll(field, " ", "")
+					field = strings.ToLower(field)
+					field = html.EscapeString(field)
+					fk := ForeignKey{
+						Field: field,
+						Value: id,
+					}
+					fks = append(fks, fk)
+				}
 			}
 		}
 	}
-
-	if !ids.IsEmpty() {
-		jo.AddArray("products", ids)
-	}
-
-	if f.ForeignKeys != nil {
-		ja := json.Array{}
-		for _, fk := range f.ForeignKeys {
-			k := json.Object{}
-			k.AddString(fk.Field, fk.Value)
-			ja.AddObject(k)
-		}
-		jo.AddArray("foreignkeys", ja)
-	}
-
-	if !rts.IsEmpty() {
-		jo.AddObject("routings", rts)
-	}
-
-	if !fcs.IsEmpty() {
-		jo.AddArray("filingcountries", fcs.JSONArray())
-	}
-
-	if !frs.IsEmpty() {
-		jo.AddArray("filingregions", frs.JSONArray())
-	}
-
-	if !fss.IsEmpty() {
-		jo.AddArray("filingsubjects", fss.JSONArray())
-	}
-
-	if !fts.IsEmpty() {
-		jo.AddArray("filingtopics", fts.JSONArray())
-	}
-
-	f.JSON = jo
-
-	return f
+	return fks
 }

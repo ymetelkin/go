@@ -3,13 +3,11 @@ package appl
 import (
 	"errors"
 	"fmt"
-	"html"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/ymetelkin/go/json"
-	"github.com/ymetelkin/go/xml"
 )
 
 type uniqueStrings struct {
@@ -69,12 +67,12 @@ type uniqueCodeNames struct {
 	values []CodeName
 }
 
-func (us *uniqueCodeNames) Append(k string, v string) {
-	if k == "" || v == "" {
+func (us *uniqueCodeNames) Append(code string, name string) {
+	if code == "" || name == "" {
 		return
 	}
 
-	key := fmt.Sprintf("%s_%s", k, v)
+	key := fmt.Sprintf("%s_%s", code, name)
 
 	if us.keys == nil {
 		us.keys = make(map[string]bool)
@@ -87,8 +85,8 @@ func (us *uniqueCodeNames) Append(k string, v string) {
 
 	us.keys[key] = true
 	cn := CodeName{
-		Code: k,
-		Name: v,
+		Code: code,
+		Name: name,
 	}
 	us.values = append(us.values, cn)
 }
@@ -331,42 +329,7 @@ func parseIsoDate(s string) string {
 }
 */
 
-func formatTime(ms int64) string {
-	t := time.Unix(0, ms*int64(time.Millisecond)).UTC()
+func formatTime(ms int) string {
+	t := time.Unix(0, int64(ms)*int64(time.Millisecond)).UTC()
 	return t.Format("15:04:05.000")
-}
-
-func getForeignKeys(nd xml.Node) []foreignkey {
-	var fks []foreignkey
-
-	system := nd.Attribute("System")
-	if system != "" && nd.Nodes != nil {
-		for _, k := range nd.Nodes {
-			if k.Attributes != nil {
-				var id, fld string
-				for k, v := range k.Attributes {
-					switch k {
-					case "Id":
-						id = v
-					case "Field":
-						fld = v
-					}
-				}
-				if id != "" && fld != "" {
-					field := system + fld
-					field = strings.ReplaceAll(field, " ", "")
-					field = strings.ToLower(field)
-					field = html.EscapeString(field)
-					fk := foreignkey{Field: field, Value: id}
-
-					if fks == nil {
-						fks = []foreignkey{fk}
-					} else {
-						fks = append(fks, fk)
-					}
-				}
-			}
-		}
-	}
-	return fks
 }

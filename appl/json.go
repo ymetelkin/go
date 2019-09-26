@@ -2,6 +2,7 @@ package appl
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/ymetelkin/go/json"
@@ -51,11 +52,9 @@ func (doc *Document) JSON() (jo json.Object) {
 		if doc.Created.Date != nil {
 			jo.AddString("firstcreated", formatDate(*doc.Created.Date))
 		}
-		if doc.Created.User != nil {
-			ua := doc.Created.User.json()
-			if !ua.IsEmpty() {
-				jo.AddObject("firstcreator", ua)
-			}
+		ua := doc.Created.User.json(doc.Created)
+		if !ua.IsEmpty() {
+			jo.AddObject("firstcreator", ua)
 		}
 	}
 	if doc.Modified != nil {
@@ -63,7 +62,7 @@ func (doc *Document) JSON() (jo json.Object) {
 			jo.AddString("lastmodifieddatetime", formatDate(*doc.Modified.Date))
 		}
 		if doc.Modified.User != nil {
-			ua := doc.Modified.User.json()
+			ua := doc.Modified.User.json(nil)
 			if !ua.IsEmpty() {
 				jo.AddObject("lastmodifier", ua)
 			}
@@ -248,7 +247,7 @@ func (doc *Document) JSON() (jo json.Object) {
 	}
 	addStringArray("inpackages", doc.InPackages, &jo)
 
-	//Rights
+	//RightsMetadata
 	if doc.UsageRights != nil && len(doc.UsageRights) > 0 {
 		var ja json.Array
 		for _, ur := range doc.UsageRights {
@@ -308,11 +307,130 @@ func (doc *Document) JSON() (jo json.Object) {
 		}
 		jo.AddArray("events", ja)
 	}
+	if doc.Audiences != nil && len(doc.Audiences) > 0 {
+		var ja json.Array
+		for _, a := range doc.Audiences {
+			ja.AddObject(a.jsonaudience())
+		}
+		jo.AddArray("audiences", ja)
+	}
+	if doc.Services != nil && len(doc.Services) > 0 {
+		var ja json.Array
+		for _, s := range doc.Services {
+			ja.AddObject(s.jsonservice())
+		}
+		jo.AddArray("services", ja)
+	}
+	if doc.Perceptions != nil && len(doc.Perceptions) > 0 {
+		var ja json.Array
+		for _, p := range doc.Perceptions {
+			ja.AddObject(p.json())
+		}
+		jo.AddArray("perceptions", ja)
+	}
+	if doc.ThirdParties != nil && len(doc.ThirdParties) > 0 {
+		var ja json.Array
+		for _, tp := range doc.ThirdParties {
+			ja.AddObject(tp.json())
+		}
+		jo.AddArray("thirdpartymeta", ja)
+	}
+
+	//FilingMetadata
+	if doc.Filings != nil && len(doc.Filings) > 0 {
+		var ja json.Array
+		for _, f := range doc.Filings {
+			ja.AddObject(f.json())
+		}
+		jo.AddArray("filings", ja)
+	}
+
+	//PublicationComponent
+	if doc.Caption != nil {
+		jo.AddObject("caption", doc.Caption.json())
+	}
+	if doc.Shotlist != nil {
+		jo.AddObject("shotlist", doc.Shotlist.json())
+	}
+	if doc.Script != nil {
+		jo.AddObject("script", doc.Script.json())
+	}
+	if doc.PublishableEditorNotes != nil {
+		jo.AddObject("publishableeditornotes", doc.PublishableEditorNotes.json())
+	}
+	if doc.Story != nil {
+		jo.AddObject("main", doc.Story.json())
+	}
+	renditions := doc.Renditions != nil && len(doc.Renditions) > 0
+	if renditions {
+		var ja json.Array
+		for _, r := range doc.Renditions {
+			ja.AddObject(r.json())
+		}
+		jo.AddArray("renditions", ja)
+	}
+	if doc.Shots != nil {
+		last := len(doc.Shots)
+		if last >= 0 {
+			if doc.Shots[last].EndTime == 0 && renditions {
+				for _, r := range doc.Renditions {
+					if r.MediaType == "video" && r.TotalDuration > 0 {
+						doc.Shots[last].EndTime = r.TotalDuration
+						break
+					}
+				}
+			}
+			var ja json.Array
+			for _, shot := range doc.Shots {
+				ja.AddObject(shot.json())
+			}
+			jo.AddArray("shots", ja)
+		}
+	}
+	if doc.Parts != nil && len(doc.Parts) > 0 {
+		var ja json.Array
+		for _, r := range doc.Parts {
+			ja.AddObject(r.json())
+		}
+		jo.AddArray("parts", ja)
+	}
 
 	return
 }
 
-func (ua *UserAccount) json() (jo json.Object) {
+func (ua *UserAccount) json(fc *FirstCreated) (jo json.Object) {
+	if fc != nil {
+		if fc.Year > 0 {
+			jo.AddInt("year", fc.Year)
+		}
+		if fc.Month > 0 {
+			jo.AddInt("month", fc.Month)
+		}
+		if fc.Day > 0 {
+			jo.AddInt("day", fc.Day)
+		}
+		if fc.Hour > 0 {
+			var sb strings.Builder
+			if fc.Hour < 10 {
+				sb.WriteByte('0')
+			}
+			sb.WriteString(strconv.Itoa(fc.Hour))
+			sb.WriteByte(':')
+			if fc.Minute < 10 {
+				sb.WriteByte('0')
+			}
+			sb.WriteString(strconv.Itoa(fc.Minute))
+			sb.WriteByte(':')
+			if fc.Second < 10 {
+				sb.WriteByte('0')
+			}
+			sb.WriteString(strconv.Itoa(fc.Second))
+			jo.AddString("time", sb.String())
+			if ua == nil {
+				return
+			}
+		}
+	}
 	if ua.Name != "" {
 		jo.AddString("username", ua.Name)
 	}
@@ -348,7 +466,7 @@ func (ass *Association) json() (jo json.Object) {
 
 func (cn *CodeName) json() (jo json.Object) {
 	if cn.Code != "" {
-		jo.AddString("code", cn.Code)
+		jo.AddString("code", strings.ToLower(cn.Code))
 	}
 	if cn.Name != "" {
 		jo.AddString("name", cn.Name)
@@ -358,7 +476,7 @@ func (cn *CodeName) json() (jo json.Object) {
 
 func (cnt *CodeNameTitle) json() (jo json.Object) {
 	if cnt.Code != "" {
-		jo.AddString("code", cnt.Code)
+		jo.AddString("code", strings.ToLower(cnt.Code))
 	}
 	if cnt.Name != "" {
 		jo.AddString("name", cnt.Name)
@@ -371,7 +489,7 @@ func (cnt *CodeNameTitle) json() (jo json.Object) {
 
 func (bl *Byline) json() (jo json.Object) {
 	if bl.Code != "" {
-		jo.AddString("code", bl.Code)
+		jo.AddString("code", strings.ToLower(bl.Code))
 	}
 	jo.AddString("by", bl.By)
 	if bl.Title != "" {
@@ -396,7 +514,7 @@ func (n *Nameline) json() (jo json.Object) {
 
 func (p *Provider) json() (jo json.Object) {
 	if p.Code != "" {
-		jo.AddString("code", p.Code)
+		jo.AddString("code", strings.ToLower(p.Code))
 	}
 	if p.Type != "" {
 		jo.AddString("type", p.Type)
@@ -412,7 +530,7 @@ func (p *Provider) json() (jo json.Object) {
 
 func (s *Source) json() (jo json.Object) {
 	if s.Code != "" {
-		jo.AddString("code", s.Code)
+		jo.AddString("code", strings.ToLower(s.Code))
 	}
 	if s.City != "" {
 		jo.AddString("city", s.City)
@@ -443,7 +561,7 @@ func (s *Source) json() (jo json.Object) {
 
 func (s *SourceMaterial) json() (jo json.Object) {
 	if s.Code != "" {
-		jo.AddString("code", s.Code)
+		jo.AddString("code", strings.ToLower(s.Code))
 	}
 	if s.Type != "" {
 		jo.AddString("type", s.Type)
@@ -459,7 +577,7 @@ func (s *SourceMaterial) json() (jo json.Object) {
 
 func (ict *ItemContentType) json() (jo json.Object) {
 	if ict.Code != "" {
-		jo.AddString("code", ict.Code)
+		jo.AddString("code", strings.ToLower(ict.Code))
 	}
 	if ict.Creator != "" {
 		jo.AddString("creator", ict.Creator)
@@ -564,13 +682,13 @@ func (geo *Geo) json() (jo json.Object) {
 
 func (sbj *Subject) json() (jo json.Object) {
 	jo.AddString("scheme", "http://cv.ap.org/id/")
-	jo.AddString("code", sbj.Code)
+	jo.AddString("code", strings.ToLower(sbj.Code))
 	jo.AddString("name", sbj.Name)
 	if sbj.Creator != "" {
 		jo.AddString("creator", sbj.Creator)
 	}
 	addStringArray("rels", sbj.Rels, &jo)
-	addStringArray("parentids", sbj.ParentIds, &jo)
+	addStringArray("parentids", sbj.ParentIDs, &jo)
 	if sbj.TopParent != nil {
 		if *sbj.TopParent {
 			jo.AddBool("topparent", true)
@@ -583,7 +701,7 @@ func (sbj *Subject) json() (jo json.Object) {
 
 func (p *Person) json() (jo json.Object) {
 	jo.AddString("scheme", "http://cv.ap.org/id/")
-	jo.AddString("code", p.Code)
+	jo.AddString("code", strings.ToLower(p.Code))
 	jo.AddString("name", p.Name)
 	if p.Creator != "" {
 		jo.AddString("creator", p.Creator)
@@ -593,13 +711,13 @@ func (p *Person) json() (jo json.Object) {
 	addCodeNameArray("teams", p.Teams, nil, &jo)
 	addCodeNameArray("associatedevents", p.Events, nil, &jo)
 	addCodeNameArray("associatedstates", p.States, nil, &jo)
-	addStringArray("extids", p.Ids, &jo)
+	addStringArray("extids", p.IDs, &jo)
 	return
 }
 
 func (c *Company) json() (jo json.Object) {
 	jo.AddString("scheme", "http://cv.ap.org/id/")
-	jo.AddString("code", c.Code)
+	jo.AddString("code", strings.ToLower(c.Code))
 	jo.AddString("name", c.Name)
 	if c.Creator != "" {
 		jo.AddString("creator", c.Creator)
@@ -631,13 +749,13 @@ func (c *Company) json() (jo json.Object) {
 
 func (p *Place) json() (jo json.Object) {
 	jo.AddString("scheme", "http://cv.ap.org/id/")
-	jo.AddString("code", p.Code)
+	jo.AddString("code", strings.ToLower(p.Code))
 	jo.AddString("name", p.Name)
 	if p.Creator != "" {
 		jo.AddString("creator", p.Creator)
 	}
 	addStringArray("rels", p.Rels, &jo)
-	addStringArray("parentids", p.ParentIds, &jo)
+	addStringArray("parentids", p.ParentIDs, &jo)
 	if p.TopParent != nil {
 		if *p.TopParent {
 			jo.AddBool("topparent", true)
@@ -656,7 +774,7 @@ func (p *Place) json() (jo json.Object) {
 
 func (e *Event) json() (jo json.Object) {
 	if e.Code != "" {
-		jo.AddString("code", e.Code)
+		jo.AddString("code", strings.ToLower(e.Code))
 	}
 	jo.AddString("name", e.Name)
 	if e.Creator != "" {
@@ -683,9 +801,309 @@ func (e *Event) json() (jo json.Object) {
 	return
 }
 
+func (p *Perception) json() (jo json.Object) {
+	if p.Code != "" {
+		jo.AddString("code", strings.ToLower(p.Code))
+	}
+	if p.Name != "" {
+		jo.AddString("name", p.Name)
+	}
+	if p.Creator != "" {
+		jo.AddString("creator", p.Creator)
+	}
+	if p.Rel != "" {
+		var ja json.Array
+		ja.AddString(p.Rel)
+		jo.AddArray("rels", ja)
+	}
+	return
+}
+
+func (tp *ThirdParty) json() (jo json.Object) {
+	if tp.Code != "" {
+		jo.AddString("code", strings.ToLower(tp.Code))
+	}
+	if tp.Name != "" {
+		jo.AddString("name", tp.Name)
+	}
+	if tp.Creator != "" {
+		jo.AddString("creator", tp.Creator)
+	}
+	if tp.Vocabulary != "" {
+		jo.AddString("vocabulary", tp.Vocabulary)
+	}
+	if tp.VocabularyOwner != "" {
+		jo.AddString("vocabularyowner", tp.VocabularyOwner)
+	}
+	return
+}
+
+func (f *Filing) json() (jo json.Object) {
+	if f.ID != "" {
+		jo.AddString("filingid", f.ID)
+	}
+	if f.ArrivalDateTime != nil {
+		jo.AddString("filingarrivaldatetime", formatDate(*f.ArrivalDateTime))
+	}
+	if f.Cycle != "" {
+		jo.AddString("cycle", f.Cycle)
+	}
+	if f.TransmissionReference != "" {
+		jo.AddString("transmissionreference", f.TransmissionReference)
+	}
+	if f.TransmissionFilename != "" {
+		jo.AddString("transmissionfilename", f.TransmissionFilename)
+	}
+	if f.TransmissionContent != "" {
+		jo.AddString("transmissioncontent", f.TransmissionContent)
+	}
+	if f.ServiceLevelDesignator != "" {
+		jo.AddString("serviceleveldesignator", f.ServiceLevelDesignator)
+	}
+	if f.Selector != "" {
+		jo.AddString("selector", f.Selector)
+	}
+	if f.Format != "" {
+		jo.AddString("format", f.Format)
+	}
+	if f.Source != "" {
+		jo.AddString("filingsource", f.Source)
+	}
+	if f.Category != "" {
+		jo.AddString("filingcategory", f.Category)
+	}
+	if f.Routings != nil && len(f.Routings) > 0 {
+		var routings json.Object
+		for k, v := range f.Routings {
+			if v != nil {
+				var ja json.Array
+				for _, s := range v {
+					ja.AddString(s)
+				}
+				routings.AddArray(k, ja)
+			}
+		}
+		jo.AddObject("routings", routings)
+	}
+	if f.Slugline != "" {
+		jo.AddString("slugline", f.Slugline)
+	}
+	if f.OriginalMediaID != "" {
+		jo.AddString("originalmediaid", f.OriginalMediaID)
+	}
+	if f.ImportFolder != "" {
+		jo.AddString("importfolder", f.ImportFolder)
+	}
+	if f.ImportWarnings != "" {
+		jo.AddString("importwarnings", f.ImportWarnings)
+	}
+	if f.LibraryTwinCheck != "" {
+		jo.AddString("librarytwincheck", f.LibraryTwinCheck)
+	}
+	if f.LibraryRequestID != "" {
+		jo.AddString("libraryrequestid", f.LibraryRequestID)
+	}
+	if f.SpecialFieldAttn != "" {
+		jo.AddString("specialfieldattn", f.SpecialFieldAttn)
+	}
+	if f.Feedline != "" {
+		jo.AddString("feedline", f.Feedline)
+	}
+	if f.LibraryRequestLogin != "" {
+		jo.AddString("libraryrequestlogin", f.LibraryRequestLogin)
+	}
+	if f.Products != nil && len(f.Products) > 0 {
+		var ja json.Array
+		for _, p := range f.Products {
+			ja.AddInt(p)
+		}
+		jo.AddArray("products", ja)
+	}
+	if f.Priorityline != "" {
+		jo.AddString("priorityline", f.Priorityline)
+	}
+	if f.ForeignKeys != nil && len(f.ForeignKeys) > 0 {
+		var ja json.Array
+		for _, fk := range f.ForeignKeys {
+			var o json.Object
+			o.AddString(fk.Field, fk.Value)
+			ja.AddObject(o)
+		}
+		jo.AddArray("foreignkeys", ja)
+	}
+	if f.Countries != nil && len(f.Countries) > 0 {
+		var ja json.Array
+		for _, c := range f.Countries {
+			ja.AddString(c)
+		}
+		jo.AddArray("filingcountries", ja)
+	}
+	if f.Regions != nil && len(f.Regions) > 0 {
+		var ja json.Array
+		for _, r := range f.Regions {
+			ja.AddString(r)
+		}
+		jo.AddArray("filingregions", ja)
+	}
+	if f.Subjects != nil && len(f.Subjects) > 0 {
+		var ja json.Array
+		for _, s := range f.Subjects {
+			ja.AddString(s)
+		}
+		jo.AddArray("filingsubjects", ja)
+	}
+	if f.Topics != nil && len(f.Topics) > 0 {
+		var ja json.Array
+		for _, t := range f.Topics {
+			ja.AddString(t)
+		}
+		jo.AddArray("filingtopics", ja)
+	}
+	if f.OnlineCode != "" {
+		jo.AddString("filingonlinecode", f.OnlineCode)
+	}
+	if f.DistributionScope != "" {
+		jo.AddString("distributionscope", f.DistributionScope)
+	}
+	if f.BreakingNews != "" {
+		jo.AddString("breakingnews", f.BreakingNews)
+	}
+	if f.Style != "" {
+		jo.AddString("filingstyle", f.Style)
+	}
+	if f.Junkline != "" {
+		jo.AddString("junkline", f.Junkline)
+	}
+	return
+}
+
+func (text *Text) json() (jo json.Object) {
+	jo.AddString("nitf", text.Body)
+	if text.Words > 0 {
+		jo.AddInt("words", text.Words)
+	}
+	return
+}
+
+func (r *Rendition) json() (jo json.Object) {
+	jo.AddString("title", r.Title)
+	jo.AddString("rel", r.Rel)
+	jo.AddString("code", strings.ToLower(r.Code))
+	jo.AddString("type", r.MediaType)
+	if r.FileExtension != "" {
+		jo.AddString("fileextension", r.FileExtension)
+	}
+	if r.TapeNumber != "" {
+		jo.AddString("tapenumber", r.TapeNumber)
+	}
+	if r.Attributes != nil {
+		for k, v := range r.Attributes {
+			jo.AddString(strings.ToLower(k), v)
+		}
+	}
+	if r.ByteSize > 0 {
+		jo.AddInt("sizeinbytes", r.ByteSize)
+	}
+	if r.Scene != "" {
+		jo.AddString("scene", r.Scene)
+	}
+	if r.SceneID != "" {
+		jo.AddString("sceneid", r.SceneID)
+	}
+	if r.BroadcastFormat != "" {
+		jo.AddString("broadcastformat", r.BroadcastFormat)
+	}
+	if r.PresentationSystem != "" {
+		jo.AddString("presentationsystem", r.PresentationSystem)
+	}
+	if r.PresentationFrame != "" {
+		jo.AddString("presentationframe", r.PresentationFrame)
+	}
+	if r.PresentationFrameLocation != "" {
+		jo.AddString("presentationframelocation", r.PresentationFrameLocation)
+	}
+	if r.Width > 0 {
+		jo.AddInt("width", r.Width)
+	}
+	if r.Height > 0 {
+		jo.AddInt("height", r.Height)
+	}
+	if r.Resolution > 0 {
+		jo.AddInt("resolution", r.Resolution)
+	}
+	if r.ResolutionUnits != "" {
+		jo.AddString("resolutionunits", r.ResolutionUnits)
+	}
+	if r.FrameRate > 0 {
+		jo.AddFloat("framerate", r.FrameRate)
+	}
+	if r.TotalDuration > 0 {
+		jo.AddInt("totalduration", r.TotalDuration)
+	}
+	if r.Characteristics != nil {
+		for k, v := range r.Characteristics {
+			jo.AddString(strings.ToLower(k), v)
+		}
+	}
+	if r.ForeignKeys != nil && len(r.ForeignKeys) > 0 {
+		var ja json.Array
+		for _, fk := range r.ForeignKeys {
+			var o json.Object
+			o.AddString(fk.Field, fk.Value)
+		}
+		jo.AddArray("foreignkeys", ja)
+	}
+
+	return
+}
+
+func (shot *PhotoShot) json() (jo json.Object) {
+	jo.AddInt("seq", shot.Sequence)
+	if shot.Href != "" {
+		jo.AddString("href", shot.Href)
+	}
+	if shot.Width > 0 {
+		jo.AddInt("width", shot.Width)
+	}
+	if shot.Height > 0 {
+		jo.AddInt("height", shot.Height)
+	}
+	jo.AddString("start", formatTime(shot.StartTime))
+	jo.AddString("end", formatTime(shot.EndTime))
+	jo.AddString("timeunit", "normalplaytime")
+	return
+}
+
 func jsongen(cn CodeName) (jo json.Object) {
-	jo.AddString("code", cn.Code)
-	jo.AddString("version", cn.Name)
+	jo.AddString("name", cn.Name)
+	jo.AddString("version", cn.Code)
+	return
+}
+
+func (cnt *CodeNameTitle) jsonaudience() (jo json.Object) {
+	if cnt.Code != "" {
+		jo.AddString("code", strings.ToLower(cnt.Code))
+	}
+	if cnt.Name != "" {
+		jo.AddString("name", cnt.Name)
+	}
+	if cnt.Title != "" {
+		jo.AddString("type", cnt.Title)
+	}
+	return
+}
+
+func (cn *CodeName) jsonservice() (jo json.Object) {
+	if cn.Code == "_apservice" && cn.Name != "" {
+		jo.AddString("apservice", cn.Name)
+	} else {
+		if cn.Code != "" {
+			jo.AddString("code", strings.ToLower(cn.Code))
+		}
+		if cn.Name != "" {
+			jo.AddString("apsales", cn.Name)
+		}
+	}
 	return
 }
 

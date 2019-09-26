@@ -34,6 +34,7 @@ type Document struct {
 	RefersTo                string
 	Outs                    []string
 	SpecialInstructions     string
+	EditorialID             string
 	EditorialTypes          []string
 	ItemStartDateTime       *time.Time
 	ItemStartDateTimeActual *time.Time
@@ -92,15 +93,19 @@ type Document struct {
 	Companies               []Company
 	Places                  []Place
 	Events                  []Event
-
-	EditorialID string
-	Filings     []Filing
-
-	Story                  *Text
-	Caption                *Text
-	Script                 *Text
-	Shotlist               *Text
-	PublishableEditorNotes *Text
+	Audiences               []CodeNameTitle
+	Services                []CodeName
+	Perceptions             []Perception
+	ThirdParties            []ThirdParty
+	Filings                 []Filing
+	Story                   *Text
+	Caption                 *Text
+	Script                  *Text
+	Shotlist                *Text
+	PublishableEditorNotes  *Text
+	Renditions              []Rendition
+	Parts                   []Rendition
+	Shots                   []PhotoShot
 
 	XML *xml.Node
 	//JSON *json.Object
@@ -264,7 +269,7 @@ type Subject struct {
 	Name      string
 	Creator   string
 	Rels      []string
-	ParentIds []string
+	ParentIDs []string
 	TopParent *bool
 	rels      uniqueStrings
 	ids       uniqueStrings
@@ -277,7 +282,7 @@ type Person struct {
 	Creator string
 	Rels    []string
 	Types   []string
-	Ids     []string
+	IDs     []string
 	Teams   []CodeName
 	States  []CodeName
 	Events  []CodeName
@@ -300,6 +305,7 @@ type Company struct {
 	rels       uniqueStrings
 	symbols    uniqueStrings
 	tickers    uniqueCodeNames
+	industries uniqueCodeNames
 	exchanges  map[string]string
 }
 
@@ -309,7 +315,7 @@ type Place struct {
 	Name         string
 	Creator      string
 	Rels         []string
-	ParentIds    []string
+	ParentIDs    []string
 	TopParent    *bool
 	LocationType *CodeName
 	Geo          *Geo
@@ -327,12 +333,58 @@ type Event struct {
 	props       uniqueCodeNames
 }
 
+//Perception struct
+type Perception struct {
+	Code    string
+	Name    string
+	Creator string
+	Rel     string
+}
+
+//ThirdParty struct
+type ThirdParty struct {
+	Code            string
+	Name            string
+	Creator         string
+	Vocabulary      string
+	VocabularyOwner string
+}
+
 //Filing APPL filing
 type Filing struct {
-	Source      string
-	Category    string
-	Slugline    string
-	ForeignKeys []ForeignKey
+	ID                     string
+	ArrivalDateTime        *time.Time
+	Cycle                  string
+	TransmissionReference  string
+	TransmissionFilename   string
+	TransmissionContent    string
+	ServiceLevelDesignator string
+	Selector               string
+	Format                 string
+	Source                 string
+	Category               string
+	Routings               map[string][]string
+	Slugline               string
+	OriginalMediaID        string
+	ImportFolder           string
+	ImportWarnings         string
+	LibraryTwinCheck       string
+	LibraryRequestID       string
+	SpecialFieldAttn       string
+	Feedline               string
+	LibraryRequestLogin    string
+	Products               []int
+	Priorityline           string
+	ForeignKeys            []ForeignKey
+	Countries              []string
+	Regions                []string
+	Subjects               []string
+	Topics                 []string
+	OnlineCode             string
+	DistributionScope      string
+	BreakingNews           string
+	Style                  string
+	Junkline               string
 }
 
 //ForeignKey APPL foreign key
@@ -345,6 +397,57 @@ type ForeignKey struct {
 type Text struct {
 	Body  string
 	Words int
+}
+
+//Rendition struct
+type Rendition struct {
+	Title                     string
+	Rel                       string
+	Code                      string
+	MediaType                 string
+	TapeNumber                string
+	FileExtension             string
+	Scene                     string
+	SceneID                   string
+	BroadcastFormat           string
+	PresentationSystem        string
+	PresentationFrame         string
+	PresentationFrameLocation string
+	ByteSize                  int
+	Width                     int
+	Height                    int
+	FrameRate                 float64
+	Resolution                int
+	ResolutionUnits           string
+	TotalDuration             int
+	PhysicalType              string
+	ForeignKeys               []ForeignKey
+	Attributes                map[string]string
+	Characteristics           map[string]string
+	//FramesTotal               int
+	//AverageBitRate            float64
+	//DataRate                  int
+	//DurationFrameValue        int
+	//Resolution                int
+	//ResolutionUnits           string
+	//TotalDuration             int
+	//InTimeCode                int
+	//InTimeFrameValue          int
+	//PixelDepth                int
+	//Rotation                  int
+	//SampleRate                float64
+	//SampleSize                int
+	//Words                     int
+}
+
+//PhotoShot struct
+type PhotoShot struct {
+	Sequence  int
+	Href      string
+	Width     int
+	Height    int
+	StartTime int
+	EndTime   int
 }
 
 //Parse create new Document from byte stream
@@ -365,6 +468,8 @@ func Parse(scanner io.ByteScanner) (doc Document, err error) {
 }
 
 func (doc *Document) parse() (err error) {
+	var rp renditionParser
+
 	for _, nd := range doc.XML.Nodes {
 		switch nd.Name {
 		case "Identification":
@@ -380,7 +485,9 @@ func (doc *Document) parse() (err error) {
 		case "DescriptiveMetadata":
 			doc.parseDescriptiveMetadata(nd)
 		case "FilingMetadata":
+			doc.parseFilingMetadata(nd)
 		case "PublicationComponent":
+			doc.parsePublicationComponent(nd, &rp)
 		}
 	}
 

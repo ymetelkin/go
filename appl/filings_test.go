@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ymetelkin/go/json"
+	"github.com/ymetelkin/go/xml"
 )
 
 func TestFilings(t *testing.T) {
@@ -64,26 +64,86 @@ func TestFilings(t *testing.T) {
 			<Product>3</Product>
 			<Product>1</Product>
 		</Products>
-		<ForeignKeys System="Desk">
-		<Keys Id="DB6KLMU01" Field="AccessionNumber"></Keys>
+		<ForeignKeys System="Story">
+			<Keys Field="ID" Id="Qtst147558" />
+		</ForeignKeys>
+		<ForeignKeys System="mosPayload">
+			<Keys Field="StoryNumber" Id="Qtst147558" />
+			<Keys Field="MOSObjSlugs" Id="08-05T1359_gvw 1359-1458" />
+			<Keys Field="MOSItemDurations" Id="20" />
+			<Keys Field="StoryFormat" Id="NR-VO" />
+			<Keys Field="approvidermetadata" Id="Video_Heartbeat_efd58abf-5d4a-488b-b685-1c5e08242756" />
+		</ForeignKeys>
+		<ForeignKeys System="VideoHubG2">
+			<Keys Field="service" Id="apservicecode:videoheartbeat" />
+			<Keys Field="service" Id="apservicecode:1" />
+			<Keys Field="service" Id="apservicecode:International" />
+			<Keys Field="approvidermetadata" Id="Video_Heartbeat_efd58abf-5d4a-488b-b685-1c5e08242756" />
+			<Keys Field="newsitemguid" Id="Qtst147558-text" />
 		</ForeignKeys>
 		<FilingCountry>United States</FilingCountry>
 		<FilingSubject>General</FilingSubject>
 		<BreakingNews>Breaking</BreakingNews>
 	</FilingMetadata>
 </Publication>`
-	doc, _ := parseXML(strings.NewReader(s))
-	jo := json.Object{}
 
-	filings := json.Array{}
-	for _, f := range doc.Filings {
-		filings.AddObject(f.JSON)
-	}
-	jo.AddArray("filings", filings)
-
-	if _, err := jo.GetArray("filings"); err != nil {
-		t.Error("[filings] is expected")
+	xml, err := xml.ParseString(s)
+	if err != nil {
+		t.Error(err.Error())
 	}
 
-	fmt.Printf("%s\n", jo.String())
+	doc := new(Document)
+
+	for _, nd := range xml.Nodes {
+		doc.parseFilingMetadata(nd)
+	}
+
+	if len(doc.Filings) != 2 {
+		t.Error("Invalid Filings")
+	}
+	if doc.Filings[0].ForeignKeys[0].Field != "storyid" {
+		t.Error("Invalid Filings[0].ForeignKeys[0].Field")
+	}
+}
+
+func temp() {
+	name := "f"
+	s := `ArrivalDateTime        *time.Time
+	Cycle                  string
+	TransmissionReference  string
+	TransmissionFilename   string
+	TransmissionContent    string
+	ServiceLevelDesignator string
+	Selector               string
+	Format                 string
+	Source                 string
+	Category               string
+	Routing                string
+	Slugline               string
+	OriginalMediaID        string
+	ImportFolder           string
+	ImportWarnings         string
+	LibraryTwinCheck       string
+	LibraryRequestID       string
+	SpecialFieldAttn       string
+	Feedline               string
+	LibraryRequestLogin    string
+	Products               string
+	Priorityline           string
+	ForeignKeys            []ForeignKey
+	Country                string
+	Region                 string
+	Subject                string
+	Topic                  string
+	OnlineCode             string
+	DistributionScope      string
+	BreakingNews           string
+	Style                  string
+	Junkline               string`
+	for _, tok := range strings.Split(s, "\n") {
+		toks := strings.Split(strings.TrimSpace(tok), " ")
+		f := strings.TrimSpace(toks[0])
+		jo := strings.ToLower(f)
+		fmt.Printf("if %s.%s != \"\" {\n\tjo.AddString(\"%s\", %s.%s)\n}\n", name, f, jo, name, f)
+	}
 }

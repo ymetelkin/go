@@ -124,7 +124,7 @@ func TestTextContentItem(t *testing.T) {
 	doc := new(Document)
 
 	for _, nd := range xml.Nodes {
-		doc.parsePublicationComponent(nd)
+		doc.parsePublicationComponent(nd, nil)
 	}
 
 	fmt.Println(doc.Story.Body)
@@ -159,4 +159,373 @@ func TestTextContentItem(t *testing.T) {
 	if doc.PublishableEditorNotes.Words != 10 {
 		t.Error("Invalid PublishableEditorNotes.Words")
 	}
+}
+
+func TestPhotoContentItem(t *testing.T) {
+	s := `
+<Publication>
+  <PublicationComponent Role="Main" MediaType="Photo">
+    <PhotoContentItem Id="8940d6f6e3c6493796751c4a84fae083" Href="\20080224\Main\77EE9F437837495B82FFECC14750D1B7.jpg" BinaryPath="File">
+        <Characteristics MimeType="image/jpeg" Format="JPEG Baseline" FileExtension="jpg" SizeInBytes="264471" Digest="180e91f5fd8494568cccd0bf4b71c7c0" OriginalFileName="CORRECTION TURKEY IRAQ.JPEG">
+            <Width>1470</Width>
+            <Height>1084</Height>
+            <PhotoType>Horizontal</PhotoType>
+        </Characteristics>
+    </PhotoContentItem>
+  </PublicationComponent>
+  <PublicationComponent Role="Thumbnail" MediaType="Photo">
+    <PhotoContentItem Id="f5a4081c7b044a9facbbff946e7c5b69" Href="\20080224\Thumbnail\77EE9F437837495B82FFECC14750D1B7.jpg" BinaryPath="File">
+        <Characteristics MimeType="image/jpeg" Format="JPEG Baseline" FileExtension="jpg" Digest="61dd31519d2078735e9a5b301d9bdc55" OriginalFileName="CORRECTION TURKEY IRAQ.JPEG">
+            <Width>128</Width>
+            <Height>94</Height>
+        </Characteristics>
+    </PhotoContentItem>
+  </PublicationComponent>
+  <PublicationComponent Role="Thumbnail" MediaType="Photo">
+    <PhotoContentItem Id="1f42bab189c8cf0d2f0f6a706700515c" Href="\20130422\Thumbnail\4d72e25be8ac4200acfc49e458408f32_105x070.jpg" ArrivedInFilingId="2322633d39de489d809ec565d013457e" BinaryPath="File">
+        <BinaryLocation To="2013-05-13T19:42:48" BinaryPath="Akamai" Sequence="0">jpg\2013\20130422\23\1f42bab189c8cf0d2f0f6a706700515c.jpg</BinaryLocation>
+        <BinaryLocation To="9999-12-31T23:59:59" BinaryPath="URL" Sequence="1">http://docs.core.prod.s3.amazonaws.com/eaacffa2cfe24e5bafdc13b29a2058e2/components/thumbnail02.jpg</BinaryLocation>
+        <Characteristics MimeType="image/jpeg" Format="JPEG Baseline" FileExtension="jpg" SizeInBytes="3234" OriginalFileName="0422apvus_boston_wrap_105x070.jpg">
+            <Width>105</Width>
+            <Height>70</Height>
+        </Characteristics>
+    </PhotoContentItem>
+  </PublicationComponent>
+  <PublicationComponent Role="Thumbnail" MediaType="Photo">
+      <PhotoContentItem Id="1f42faf489c8cf0d2f0f6a706700f5a3" Href="\20130422\Thumbnail\4d72e25be8ac4200acfc49e458408f32_180x135.jpg" ArrivedInFilingId="d1ffa4e116b144aebd748d028bded4ed" BinaryPath="File">
+          <BinaryLocation To="2013-05-13T19:42:50" BinaryPath="Akamai" Sequence="0">jpg\2013\20130422\23\1f42faf489c8cf0d2f0f6a706700f5a3.jpg</BinaryLocation>
+          <BinaryLocation To="9999-12-31T23:59:59" BinaryPath="URL" Sequence="1">http://docs.core.prod.s3.amazonaws.com/eaacffa2cfe24e5bafdc13b29a2058e2/components/thumbnail03.jpg</BinaryLocation>
+          <Characteristics MimeType="image/jpeg" Format="JPEG Baseline" FileExtension="jpg" SizeInBytes="7039" OriginalFileName="0422apvus_boston_wrap_180x135.jpg">
+              <Width>180</Width>
+              <Height>135</Height>
+          </Characteristics>
+      </PhotoContentItem>
+  </PublicationComponent>
+  <PublicationComponent Role="Preview" MediaType="Photo">
+    <PhotoContentItem Id="515507acc6be4177954f8dfb415aba35" Href="\20080224\Preview\77EE9F437837495B82FFECC14750D1B7.jpg" BinaryPath="File">
+        <Characteristics MimeType="image/jpeg" Format="JPEG Baseline" FileExtension="jpg" Digest="e87a50b721cbeb54d97bbe12b4c59ed5" OriginalFileName="CORRECTION TURKEY IRAQ.JPEG">
+            <Width>512</Width>
+            <Height>377</Height>
+        </Characteristics>
+    </PhotoContentItem>
+  </PublicationComponent>
+</Publication>`
+
+	xml, err := xml.ParseString(s)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	doc := new(Document)
+	doc.MediaType = "photo"
+	parser := &renditionParser{}
+	for _, nd := range xml.Nodes {
+		doc.parsePublicationComponent(nd, parser)
+	}
+
+	if len(doc.Renditions) != 3 {
+		t.Error("Invalid Renditions")
+	}
+
+	doc = new(Document)
+	doc.MediaType = "video"
+	parser = &renditionParser{}
+	for _, nd := range xml.Nodes {
+		doc.parsePublicationComponent(nd, parser)
+	}
+
+	if len(doc.Renditions) != 4 {
+		t.Error("Invalid Renditions")
+	}
+	if doc.Renditions[2].Title != "Thumbnail (JPG 180x135)" {
+		t.Error("Renditions[3].Title")
+	}
+}
+
+func TestVideoContentItem(t *testing.T) {
+	s := `
+<Publication>
+  <PublicationComponent Role="PhysicalMain" MediaType="Video">
+      <VideoContentItem Id="5b810c44e160455fb2c6950fdff1d376" Href="PATH_UNKNOWN" ArrivedInFilingId="5a5c571cefd14ae99a40de7a7cfa7899" BinaryPath="None">
+          <Characteristics MimeType="video/quicktime" Format="Quicktime" FileExtension="mov">
+              <AverageBitRate>25000000.000000</AverageBitRate>
+              <TotalDuration>228000</TotalDuration>
+              <Width>720</Width>
+              <Height>576</Height>
+              <VideoCoder>DV PAL</VideoCoder>
+              <FrameRate>25.000000</FrameRate>
+              <SampleRate>25000000.000000</SampleRate>
+              <PhysicalType>Primary Datatape</PhysicalType>
+          </Characteristics>
+      </VideoContentItem>
+  </PublicationComponent>
+  <PublicationComponent Role="PhysicalMain" MediaType="Video">
+      <VideoContentItem Id="1b4af4b154ef4deea977994442355044" Href="PATH_UNKNOWN" ArrivedInFilingId="5a5c571cefd14ae99a40de7a7cfa7899" BinaryPath="None">
+          <Characteristics MimeType="video/quicktime" Format="Quicktime" FileExtension="mov">
+              <AverageBitRate>25000000.000000</AverageBitRate>
+              <TotalDuration>228000</TotalDuration>
+              <Width>720</Width>
+              <Height>576</Height>
+              <VideoCoder>DV PAL</VideoCoder>
+              <FrameRate>25.000000</FrameRate>
+              <SampleRate>25000000.000000</SampleRate>
+              <PhysicalType>Backup Datatape</PhysicalType>
+          </Characteristics>
+      </VideoContentItem>
+  </PublicationComponent>
+  <PublicationComponent Role="PhysicalMain" MediaType="Video">
+      <VideoContentItem Id="e0dbb770807245aabe68113367b754ef" Href="EF02/0987" ArrivedInFilingId="5a5c571cefd14ae99a40de7a7cfa7899" BinaryPath="None">
+          <ForeignKeys System="Tape">
+              <Keys Id="EF02/0987" Field="Number" />
+          </ForeignKeys>
+          <Characteristics MimeType="Video" Format="Flash Video">
+              <TotalDuration>228000</TotalDuration>
+              <ManualInTimeCode>07:21:20:00</ManualInTimeCode>
+              <PhysicalType>Legacy Videotape</PhysicalType>
+          </Characteristics>
+      </VideoContentItem>
+  </PublicationComponent>
+  <PublicationComponent Role="Main" MediaType="Video">
+    <VideoContentItem Id="2df2bc22e61c48e28f96225fbc79f7aa" ArrivedInFilingId="3ae59dda139640dfa9b2a3cf5cfaf75b" BinaryPath="None">
+      <Characteristics MimeType="text/plain" Format="IIM" FileExtension="txt" SizeInBytes="0" OriginalFileName="dummy.txt"/>
+  </VideoContentItem>
+  </PublicationComponent>
+<PublicationComponent Role="Main" MediaType="Video">
+  <VideoContentItem Id="dbef488fd4016f13150f776d76004d1d" Href="\20120715\Main\cb804fb5a166498f8a48b8e044a52d2b_x080b.wmv" ArrivedInFilingId="12e4418fdf76416983b427546dc76417" BinaryPath="File">
+    <ExpireDateTime>2012-08-14T15:54:30</ExpireDateTime>
+    <BinaryLocation To="2012-08-05T11:54:30" BinaryPath="Akamai" Sequence="0">wmv\2012\20120715\15\dbef488fd4016f13150f776d76004d1d.wmv</BinaryLocation>
+    <BinaryLocation To="9999-12-31T23:59:59" BinaryPath="URL" Sequence="1">http://docs.core.prod.s3.amazonaws.com/c01188dea35745b8be1a874dc9adc804/components/secured/x080b.wmv</BinaryLocation>
+    <Characteristics MimeType="video/x-ms-wmv" Format="Windows Media" FileExtension="wmv" SizeInBytes="17843088" OriginalFileName="0715dv_aurora_borealis_x080b.wmv">
+        <AverageBitRate>1500.000000</AverageBitRate>
+        <Width>856</Width>
+        <Height>480</Height>
+        <VideoCoder>Microsoft Windows Media Video</VideoCoder>
+        <SampleRate>44000.000000</SampleRate>
+        <ProducedAspectRatio>original</ProducedAspectRatio>
+    </Characteristics>
+  </VideoContentItem>
+</PublicationComponent>
+<PublicationComponent Role="Main" MediaType="Video">
+  <VideoContentItem Id="d6eecc5cd4036f13150f776d7600343a" Href="\20120715\Main\cb804fb5a166498f8a48b8e044a52d2b_x070c.wmv" ArrivedInFilingId="4d2a172c370741cda1ed1fb97dd9caf2" BinaryPath="File">
+      <ExpireDateTime>2012-08-14T15:56:40</ExpireDateTime>
+      <BinaryLocation To="2012-08-05T11:56:40" BinaryPath="Akamai" Sequence="0">wmv\2012\20120715\15\d6eecc5cd4036f13150f776d7600343a.wmv</BinaryLocation>
+      <BinaryLocation To="9999-12-31T23:59:59" BinaryPath="URL" Sequence="1">http://docs.core.prod.s3.amazonaws.com/c01188dea35745b8be1a874dc9adc804/components/secured/x070c.wmv</BinaryLocation>
+      <Characteristics MimeType="video/x-ms-wmv" Format="Windows Media" FileExtension="wmv" SizeInBytes="16251248" OriginalFileName="0715dv_aurora_borealis_x070c.wmv">
+          <AverageBitRate>850.000000</AverageBitRate>
+          <Width>856</Width>
+          <Height>480</Height>
+          <VideoCoder>Microsoft Windows Media Video</VideoCoder>
+          <SampleRate>44000.000000</SampleRate>
+          <ProducedAspectRatio>original</ProducedAspectRatio>
+      </Characteristics>
+    </VideoContentItem>
+  </PublicationComponent>
+</Publication>`
+
+	xml, err := xml.ParseString(s)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	doc := new(Document)
+	doc.MediaType = "video"
+	parser := &renditionParser{}
+	for _, nd := range xml.Nodes {
+		doc.parsePublicationComponent(nd, parser)
+	}
+
+	if len(doc.Renditions) != 5 {
+		t.Error("Invalid Renditions")
+	}
+}
+
+func TestRandom(t *testing.T) {
+	s := `
+  <Publication>
+  <PublicationComponent MediaType="Text" Role="Main">
+    <TextContentItem ArrivedInFilingId="19dca1475f1942fda35c61f336b29de0" Id="83380d0d5e534163a1045898efcb33bb">
+      <DataContent>
+        <nitf>
+          <head>
+            <meta content="1" name="fid" />
+            <docdata>
+              <du-key key="AP-Scorecard" />
+            </docdata>
+          </head>
+          <body>
+            <body.head>
+              <hedline>
+                <hl1 id="headline">AP-Scorecard</hl1>
+              </hedline>
+              <byline>By The Associated Press</byline>
+              <distributor>The Associated Press</distributor>
+            </body.head>
+            <body.content>
+              <block class="block-lead">
+                <p class="lead" lede="true">Here are the latest scores from today's sports events:</p>
+                <p class="text-divider">___</p>
+              </block>
+              <block class="upcoming-cycle-block" id="upcoming-cycle-block-interleague-baseball">
+                <hl2 class="table-title">INTERLEAGUE</hl2>
+                <table class="scheduled" id="interleague-baseball-notstarted">
+                  <tbody>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Atlanta</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">Kansas City</td>
+                      <td class="col-event-start-time">8:15 p.m.</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p class="text-divider">___</p>
+              </block>
+              <block class="upcoming-cycle-block" id="upcoming-cycle-block-americanleague-baseball">
+                <hl2 class="table-title">AMERICAN LEAGUE</hl2>
+                <table class="scheduled" id="americanleague-baseball-notstarted">
+                  <tbody>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Minnesota</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">Detroit</td>
+                      <td class="col-event-start-time">6:40 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Baltimore</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">Toronto</td>
+                      <td class="col-event-start-time">7:07 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">N-Y Yankees</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">Tampa Bay</td>
+                      <td class="col-event-start-time">7:10 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Boston</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">Texas</td>
+                      <td class="col-event-start-time">8:05 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Cleveland</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">Chi White Sox</td>
+                      <td class="col-event-start-time">8:10 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Oakland</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">L-A Angels</td>
+                      <td class="col-event-start-time">10:07 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Houston</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">Seattle</td>
+                      <td class="col-event-start-time">10:10 p.m.</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p class="text-divider">___</p>
+              </block>
+              <block class="upcoming-cycle-block" id="upcoming-cycle-block-nationalleague-baseball">
+                <hl2 class="table-title">NATIONAL LEAGUE</hl2>
+                <table class="scheduled" id="nationalleague-baseball-notstarted">
+                  <tbody>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Milwaukee</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">Cincinnati</td>
+                      <td class="col-event-start-time">6:40 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Chi Cubs</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">Pittsburgh</td>
+                      <td class="col-event-start-time">7:05 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Philadelphia</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">Washington</td>
+                      <td class="col-event-start-time">7:05 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Miami</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">N-Y Mets</td>
+                      <td class="col-event-start-time">7:10 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">St. Louis</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">Arizona</td>
+                      <td class="col-event-start-time">9:40 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Colorado</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">San Francisco</td>
+                      <td class="col-event-start-time">9:45 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">L-A Dodgers</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">San Diego</td>
+                      <td class="col-event-start-time">10:10 p.m.</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <table class="on-going" id="upcoming-cycle-nationalleague-baseball">
+                  <tbody>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Philadelphia</td>
+                      <td class="col-awayteam-score">1</td>
+                      <td class="col-name-hometeam">Washington</td>
+                      <td class="col-hometeam-score">0</td>
+                      <td class="col-messages">(Bot 2nd, 1st game)</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p class="text-divider">___</p>
+              </block>
+            </body.content>
+            <body.end />
+          </body>
+        </nitf>
+      </DataContent>
+      <Characteristics FileExtension="xml" Format="XHTML" MimeType="text/xml" />
+    </TextContentItem>
+  </PublicationComponent>
+</Publication>`
+
+	xml, err := xml.ParseString(s)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	doc := new(Document)
+
+	for _, nd := range xml.Nodes {
+		doc.parsePublicationComponent(nd, nil)
+	}
+
+	fmt.Println(doc.Story.Body)
 }

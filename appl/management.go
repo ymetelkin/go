@@ -225,7 +225,7 @@ func parseFirstCreated(nd xml.Node) *FirstCreated {
 }
 
 func parseLastModified(nd xml.Node) *LastModified {
-	if nd.Attributes == nil {
+	if nd.Text == "" {
 		return nil
 	}
 
@@ -236,8 +236,10 @@ func parseLastModified(nd xml.Node) *LastModified {
 		lm.Date = &ts
 	}
 
-	ua := parseUserAccount(nd)
-	lm.User = &ua
+	if nd.Attributes != nil {
+		ua := parseUserAccount(nd)
+		lm.User = &ua
+	}	
 
 	return &lm
 }
