@@ -275,10 +275,10 @@ func (xp *xParser) StartNode() (nd Node, closed bool, err error) {
 
 func (xp *xParser) EndNode(nd *Node) (err error) {
 	var (
-		c        byte
-		nodes    []Node
-		sb       strings.Builder
-		txt, nds bool
+		c          byte
+		nodes      []Node
+		sb, spaces strings.Builder
+		txt, nds   bool
 	)
 
 	c, err = xp.SkipWS()
@@ -362,7 +362,7 @@ func (xp *xParser) EndNode(nd *Node) (err error) {
 			}
 
 			if txt {
-				s, _ := n.InlineString()
+				s := n.InlineString()
 				sb.WriteString(s)
 
 				c, err = xp.r.ReadByte()
@@ -374,21 +374,22 @@ func (xp *xParser) EndNode(nd *Node) (err error) {
 				n.parent = nd
 				nodes = append(nodes, n)
 
-				c, err = xp.SkipWS()
+				c, spaces, err = xp.CheckWS()
 				if err != nil {
 					break
 				}
 			}
 		} else {
 			if nds {
-				for i, n := range nodes {
-					if i > 0 {
-						sb.WriteByte(' ')
-					}
-					s, _ := n.InlineString()
-					sb.WriteString(s)
+				for _, n := range nodes {
+					sb.WriteString(n.InlineString())
 				}
 				nds = false
+			}
+
+			if spaces.Len() > 0 {
+				sb.WriteString(spaces.String())
+				spaces.Reset()
 			}
 
 			sb.WriteByte(c)
@@ -418,6 +419,18 @@ func (xp *xParser) SkipWS() (c byte, err error) {
 		if err != nil || !isWS(c) {
 			break
 		}
+	}
+
+	return
+}
+
+func (xp *xParser) CheckWS() (c byte, sb strings.Builder, err error) {
+	for {
+		c, err = xp.r.ReadByte()
+		if err != nil || !isWS(c) {
+			break
+		}
+		sb.WriteByte(c)
 	}
 
 	return
@@ -500,5 +513,5 @@ func isNodeName(c byte) bool {
 }
 
 func isAttribute(c byte) bool {
-	return isAlpha(c) || c == ':' || c == '_' || c =='-' || isDigit(c)
+	return isAlpha(c) || c == ':' || c == '_' || c == '-' || isDigit(c)
 }

@@ -66,11 +66,8 @@ func (nd *Node) String() string {
 }
 
 //InlineString method serializes Node into condenced XML string
-func (nd *Node) InlineString() (string, bool) {
-	var (
-		sb strings.Builder
-		f  bool
-	)
+func (nd *Node) InlineString() string {
+	var sb strings.Builder
 
 	sb.WriteByte('<')
 	if nd.Name == "!" {
@@ -81,7 +78,6 @@ func (nd *Node) InlineString() (string, bool) {
 		sb.WriteByte('-')
 		sb.WriteByte('-')
 		sb.WriteByte('>')
-		f = true
 	} else {
 		sb.WriteString(nd.Name)
 		if nd.Attributes != nil {
@@ -97,16 +93,12 @@ func (nd *Node) InlineString() (string, bool) {
 		sb.WriteByte('>')
 		if nd.Nodes != nil {
 			for _, n := range nd.Nodes {
-				s, t := n.InlineString()
+				s := n.InlineString()
 				sb.WriteString(s)
-				if t {
-					f = true
-				}
 			}
 		}
 		if nd.Text != "" {
-			sb.WriteString(nd.Text)
-			f = true
+			sb.WriteString(strings.TrimSpace(nd.Text))
 		}
 		sb.WriteByte('<')
 		sb.WriteByte('/')
@@ -114,7 +106,7 @@ func (nd *Node) InlineString() (string, bool) {
 		sb.WriteByte('>')
 	}
 
-	return sb.String(), f
+	return sb.String()
 }
 
 func (nd *Node) toString(level int) string {

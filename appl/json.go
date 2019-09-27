@@ -686,6 +686,9 @@ func (sbj *Subject) json() (jo json.Object) {
 	jo.AddString("name", sbj.Name)
 	if sbj.Creator != "" {
 		jo.AddString("creator", sbj.Creator)
+		if sbj.Creator == "Editorial" {
+			jo.AddString("editorial_subject", sbj.Name)
+		}
 	}
 	addStringArray("rels", sbj.Rels, &jo)
 	addStringArray("parentids", sbj.ParentIDs, &jo)
@@ -705,6 +708,9 @@ func (p *Person) json() (jo json.Object) {
 	jo.AddString("name", p.Name)
 	if p.Creator != "" {
 		jo.AddString("creator", p.Creator)
+	}
+	if p.IsFeatured {
+		jo.AddString("person_featured", p.Name)
 	}
 	addStringArray("rels", p.Rels, &jo)
 	addStringArray("types", p.Types, &jo)
@@ -1111,7 +1117,10 @@ func addStringArray(name string, values []string, jo *json.Object) {
 	if values != nil && len(values) > 0 {
 		var ja json.Array
 		for _, value := range values {
-			ja.AddString(value)
+			clean := strings.TrimSpace(value)
+			if clean != "" {
+				ja.AddString(clean)
+			}
 		}
 		jo.AddArray(name, ja)
 	}

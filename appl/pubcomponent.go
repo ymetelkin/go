@@ -95,21 +95,12 @@ func (doc *Document) parseTextContentItem(node xml.Node, role string) {
 	for _, block := range bc.Nodes {
 		if block.Name == "block" {
 			if block.Nodes != nil {
-				var (
-					txt strings.Builder
-					add bool
-				)
+				var txt strings.Builder
 				for _, p := range block.Nodes {
-					s, b := p.InlineString()
-					if b {
-						add = true
-					}
+					s := p.InlineString()
 					txt.WriteString(s)
 				}
-
-				if add {
-					sb.WriteString(txt.String())
-				}
+				sb.WriteString(txt.String())
 			}
 
 			if block.Text != "" {

@@ -8,146 +8,19 @@ import (
 
 func TestXml(t *testing.T) {
 	s := `	
-  <Publication xmlns="http://ap.org/schemas/03/2005/appl" Version="5.3.2">
-  <YM name="Back & White" />
-  <PublicationComponent MediaType="Text" Role="Main">
-    <TextContentItem ArrivedInFilingId="8e7c84199d734f7183ff0b47198f4304" Id="ebafd746085148928e851f6c67411978">
-      <DataContent>
-        <nitf>
-          <body.content>
-            <block>
-              <hl2>Google wins case over reach of EU 'right to be forgotten'</hl2>
-              <media media-type="text">
-                <media-metadata name="LinkType" value="Item" />
-                <media-metadata name="CompositionType" value="StandardText" />
-                <media-reference data-location="EU--Europe-Google" name="MetaLabel" />
-                <media-reference data-location="EU--Europe-Google" name="MetaKey" />
-                <media-reference data-location="4e2be78d6ad34d34a87ab15cc1806eb5" name="NormalizedLink" />
-              </media>
-            </block>
-            <block>
-              <hl2>US home prices rise at slowest pace in 7 years</hl2>
-              <media media-type="text">
-                <media-metadata name="LinkType" value="Item" />
-                <media-metadata name="CompositionType" value="StandardText" />
-                <media-reference data-location="US--Home Prices" name="MetaLabel" />
-                <media-reference data-location="US--Home Prices" name="MetaKey" />
-                <media-reference data-location="071f2594ba2c40cbaf820b7441b442d6" name="NormalizedLink" />
-              </media>
-            </block>
-            <block>
-              <hl2>Volkswagen bosses charged in Germany over diesel scandal</hl2>
-              <media media-type="text">
-                <media-metadata name="LinkType" value="Item" />
-                <media-metadata name="CompositionType" value="StandardText" />
-                <media-reference data-location="EU--Germany-Volkswagen" name="MetaLabel" />
-                <media-reference data-location="EU--Germany-Volkswagen" name="MetaKey" />
-                <media-reference data-location="48fe9cf4337a4cc3a6b3366e2f47bc70" name="NormalizedLink" />
-              </media>
-            </block>
-            <block>
-              <hl2>Feds: Engineer manipulated diesel emissions at Fiat Chrysler</hl2>
-              <media media-type="text">
-                <media-metadata name="LinkType" value="Item" />
-                <media-metadata name="CompositionType" value="StandardText" />
-                <media-reference data-location="APFN-US--Fiat Chrysler-Diesel" name="MetaLabel" />
-                <media-reference data-location="APFN-US--Fiat Chrysler-Diesel" name="MetaKey" />
-                <media-reference data-location="bd21ecaf14b14e149132928757d961aa" name="NormalizedLink" />
-              </media>
-            </block>
-            <block>
-              <hl2>Weak consumer confidence pulls stocks lower</hl2>
-              <media media-type="text">
-                <media-metadata name="LinkType" value="Item" />
-                <media-metadata name="CompositionType" value="StandardText" />
-                <media-reference data-location="Financial Markets" name="MetaLabel" />
-                <media-reference data-location="Financial Markets" name="MetaKey" />
-                <media-reference data-location="138544dc9c4a4438910af152cc875fb5" name="NormalizedLink" />
-              </media>
-            </block>
-            <block>
-              <hl2>US consumer confidence drops as economic uncertainties rise</hl2>
-              <media media-type="text">
-                <media-metadata name="LinkType" value="Item" />
-                <media-metadata name="CompositionType" value="StandardText" />
-                <media-reference data-location="APFN-US--Consumer Confidence" name="MetaLabel" />
-                <media-reference data-location="APFN-US--Consumer Confidence" name="MetaKey" />
-                <media-reference data-location="da1176f1645648568faf413db348af38" name="NormalizedLink" />
-              </media>
-            </block>
-            <block>
-              <hl2>Top UK court: Johnson's suspension of Parliament was illegal</hl2>
-              <media media-type="text">
-                <media-metadata name="LinkType" value="Item" />
-                <media-metadata name="CompositionType" value="StandardText" />
-                <media-reference data-location="EU--Brexit-Supreme Court" name="MetaLabel" />
-                <media-reference data-location="EU--Brexit-Supreme Court" name="MetaKey" />
-                <media-reference data-location="6c86bdb652ce4066996817aec04cd51a" name="NormalizedLink" />
-              </media>
-            </block>
-            <block>
-              <hl2>Investigator says FAA training inspectors weren't qualified</hl2>
-              <media media-type="text">
-                <media-metadata name="LinkType" value="Item" />
-                <media-metadata name="CompositionType" value="StandardText" />
-                <media-reference data-location="US--Boeing Plane-Training" name="MetaLabel" />
-                <media-reference data-location="US--Boeing Plane-Training" name="MetaKey" />
-                <media-reference data-location="df95532694ed484fbfba7bcf090902ce" name="NormalizedLink" />
-              </media>
-            </block>
-            <block>
-              <hl2>Fox apologizes for 'disgraceful' comment about Thunberg</hl2>
-              <media media-type="text">
-                <media-metadata name="LinkType" value="Item" />
-                <media-metadata name="CompositionType" value="StandardText" />
-                <media-reference data-location="APFN-US--Media-Fox-Thunberg" name="MetaLabel" />
-                <media-reference data-location="APFN-US--Media-Fox-Thunberg" name="MetaKey" />
-                <media-reference data-location="b7aaa301943846d08d72eafd00d54b15" name="NormalizedLink" />
-              </media>
-            </block>
-            <block>
-              <hl2>Thomas Cook repatriation ramps up as bosses slammed over pay</hl2>
-              <media media-type="text">
-                <media-metadata name="LinkType" value="Item" />
-                <media-metadata name="CompositionType" value="StandardText" />
-                <media-reference data-location="EU--Britain-Thomas Cook" name="MetaLabel" />
-                <media-reference data-location="EU--Britain-Thomas Cook" name="MetaKey" />
-                <media-reference data-location="9418da2924e54c03bfefdb1506d71281" name="NormalizedLink" />
-              </media>
-            </block>
-          </body.content>
-        </nitf>
-      </DataContent>
-      <Characteristics FileExtension="xml" Format="IIM" MimeType="text/xml" SizeInBytes="1329">
-        <Words>168</Words>
-      </Characteristics>
-    </TextContentItem>
-  </PublicationComponent>
-  <PublicationComponent MediaType="Text" Role="Main">
-    <TextContentItem ArrivedInFilingId="8e7c84199d734f7183ff0b47198f4304" Id="644a1d9b3192469499d63c0304c6a778">
-      <DataContent>
-        <anpa>¥´9004¤ ¥AP-Top-Business-Headlines¤,0168¤
-%headline(¥AP Top Business News at 1:38 p.m. EDT¤¤%)
-%strytype(ContentType:HeadlinePackage; ContentElement:Other;%)
-%endtag(%)
-¥Google wins case over reach of EU 'right to be forgotten'
-¥US home prices rise at slowest pace in 7 years
-¥Volkswagen bosses charged in Germany over diesel scandal
-¥Feds: Engineer manipulated diesel emissions at Fiat Chrysler
-¥Weak consumer confidence pulls stocks lower
-¥US consumer confidence drops as economic uncertainties rise
-¥Top UK court: Johnson's suspension of Parliament was illegal
-¥Investigator says FAA training inspectors weren't qualified
-¥Fox apologizes for 'disgraceful' comment about Thunberg
-¥Thomas Cook repatriation ramps up as bosses slammed over pay
-</anpa>
-      </DataContent>
-      <Characteristics FileExtension="txt" Format="ANPA1312" MimeType="text/plain" SizeInBytes="744">
-        <Words>101</Words>
-      </Characteristics>
-    </TextContentItem>
-  </PublicationComponent>
-</Publication>`
+	<block>
+	<p>Sales of Imcon Edge Connectivity Solutions in India to Commence in 4th Quarter</p> <p>
+	  ATLANTA, GA / ACCESSWIRE / September 26, 2019 / <a href="http://pr.report/K6gtGIs4">Imcon International Inc.</a>, the developer of the Internet Backpack, an immediate connectivity solution that allows users to communicate from almost any location on the planet, has commenced sales of its proprietary <a href="http://pr.report/2e0njFdg">Internet Backpack and Edge Connectivity Solutions</a> to South Asia and Oceania through its exclusive reseller <a href="http://pr.report/mz47c0wM">Universal Tree Tech</a>. Over 500 units are expected to be shipped to the region within the next twelve months.
+	</p> <p>
+	  Today's announcement follows the agreement announced earlier this year that <a href="http://pr.report/f-C3rlqZ">Imcon had named Universal Tree Tech its exclusive distribution partner for ASEAN countries including India and Oceania as well as Australia and New Zealand.</a>
+	</p> <p>"3.5 billion people, approximately half of the world's population, does not have internet connectivity, including over 750 million people in India alone," said Rob Loud, CEO of Imcon International. "This agreement brings Imcon another step closer to our goal of connecting these populations and leveling the playing field in terms of access to basic, essential human services including educational opportunities, health care, and social services"</p> <p>
+	  Imcon's aggressive growth in this region reflects and supports several regional initiatives by governments to address the digital divide in their countries. These initiatives include <a href="http://pr.report/7SyAkIth">Bharat Broadband Network Limited</a> (Bharatnet), the telecom infrastructure provider established by the government of India which recently committed to connecting an additional 250,000 Indian villages through 2020 that do not currently have access to the internet and Australia's <a href="http://pr.report/QfRpTBri">Universal Services Guarantee</a> program that seeks to connect rural and indigenous communities. It is estimated that Bharatnet will add approximately US$68B per year to India's GDP.
+	</p> <p>Randeep Dhillon, CEO, of Universal Tree Tech added, "Universal Tree Tech is thrilled to partner with Imcon to help make universal digital connectivity a reality. "We have already seen the positive effect that the Internet Backpack can have on communities in diverse, underserved and remote locations around the world and expect it to make a profound and long-lasting impact on all the communities we are reaching."</p> <p>This announcement is the latest milestone in Imcon's rapidly expanding global sales and distribution footprint, following new agreements with sales agents in Guatemala (for government and military use) and to Florida-based insurance companies where claims adjusters are leveraging the unique functionality of the Internet Backpack in the field to provide expedited claims assistance to homeowners after natural disasters.</p> <p>
+	  Other recent deals include a global agreement with <a href="http://pr.report/2MlcIawG">Orbsat Corp</a> (OTCQB:OSAT) to market an array of immediate connectivity solutions utilizing Orbsat's expertise in satellite-based hardware, services and global sales and distribution capability. Imcon has also launched Imcon Latin America Corp with a regional hub in Costa Rica and appointed <a href="http://pr.report/qVfKu5lY">MDS Seguridad SpA</a> as its exclusive reseller for the Republic of Chile in a deal that also includes non-exclusive rights for all other territories in South America.
+	</p> <p>About Universal Tree</p> <p>
+	  Universal Tree specializes in development and distribution of Innovative Solutions for the Developing world. The challenges of the developing countries are complex and unique, requiring dynamism and astute integration of technology, products and services. We summon coherence of our vast experience across several verticals integrating technology and a myriad of services including Sales, Distribution, Product Development, Manufacturing and Assembly to build solutions that balance the technology ecosystem while improving the life of the citizens as well as the environment of our planet. Universal Tree enables leading innovative start-ups to scale their business models and introducing their products and services to solve unique problems in green field markets. Please visit <a href="http://pr.report/FltfQIG7">www.universaltree.tech</a> for more information.
+	</p> <p>About Imcon International</p> <p>Imcon International, Inc., is an immediate connectivity solutions provider with the ability to provide mobile Internet connections on over 90% of the globe. The Internet Backpack is a remote connectivity solution which allows users to be able to communicate and have computing resources from almost every location on the planet. The Internet Backpack also allows users to create internal wireless networks with large coverage areas. Imcon is developing Edge Connectivity Solutions providing users the ability to harness the power of the Internet in the most remote places and extreme of conditions. Please visit http://imconintl.com for more information.</p> <p>CONTACTS:</p> <p>For Imcon International:</p> <p>Rob Loud</p> <p>Imcon International, Inc.</p> <p>470-210-0760</p> <p>Alan Winnikoff</p> <p>Sayles & Winnikoff Communications</p> <p>212-725-5200 x111</p> <p>For Universal Tree Tech:</p> <p>Randeep Dhillon</p> <p>61 421 715 915</p> <p>SOURCE: Imcon International, Inc.</p>View source version on accesswire.com: <a href="https://www.accesswire.com/561159/Imcon-International-Commences-Sales-and-Shipments-of-Proprietary-Internet-Backpack-to-South-Asia-and-Australia-Through-Exclusive-Reseller-Universal-Tree-Tech">https://www.accesswire.com/561159/Imcon-International-Commences-Sales-and-Shipments-of-Proprietary-Internet-Backpack-to-South-Asia-and-Australia-Through-Exclusive-Reseller-Universal-Tree-Tech</a>
+  </block>`
 
 	//s = `<Identification><HeadLine>Vikings, Sage Rosenfels agree to 2-year contract</HeadLine></Identification>`
 
@@ -159,6 +32,6 @@ func TestXml(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	fmt.Printf("%s\n", nd.String())
+	fmt.Printf("%s\n", nd.InlineString())
 	fmt.Printf("Duration: %v\n", ts)
 }

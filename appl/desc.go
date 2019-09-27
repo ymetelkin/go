@@ -402,7 +402,9 @@ func (parser *subjectParser) parseSubject(node xml.Node) {
 				subject.Rels = subject.rels.Values()
 				subject.ParentIDs = subject.ids.Values()
 
-				if !ok {
+				if ok {
+					parser.Subjects[i] = subject
+				} else {
 					parser.Subjects = append(parser.Subjects, subject)
 					parser.keys[key] = len(parser.Subjects) - 1
 				}
@@ -465,6 +467,7 @@ func (parser *entityParser) parsePerson(node xml.Node) {
 							if key == "partytype" {
 								if strings.EqualFold(va, "PERSON_FEATURED") {
 									person.rels.Append(va)
+									person.IsFeatured = true
 									if person.Creator == "" {
 										person.Creator = "Editorial"
 									}
@@ -492,7 +495,9 @@ func (parser *entityParser) parsePerson(node xml.Node) {
 			person.States = person.states.Values()
 			person.Events = person.events.Values()
 
-			if !ok {
+			if ok {
+				parser.Persons[i] = person
+			} else {
 				parser.Persons = append(parser.Persons, person)
 				parser.pkeys[key] = len(parser.Persons) - 1
 			}
@@ -603,7 +608,9 @@ func (parser *entityParser) parseCompany(node xml.Node) {
 			company.Industries = company.industries.Values()
 			company.Symbols = company.symbols.Values()
 
-			if !ok {
+			if ok {
+				parser.Companies[i] = company
+			} else {
 				parser.Companies = append(parser.Companies, company)
 				parser.ckeys[key] = len(parser.Companies) - 1
 			}
@@ -722,7 +729,9 @@ func (parser *entityParser) parsePlace(node xml.Node) {
 				place.Rels = place.rels.Values()
 				place.ParentIDs = place.ids.Values()
 
-				if !ok {
+				if ok {
+					parser.Places[i] = place
+				} else {
 					parser.Places = append(parser.Places, place)
 					parser.lkeys[key] = len(parser.Places) - 1
 				}

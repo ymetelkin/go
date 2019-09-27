@@ -277,21 +277,22 @@ type Subject struct {
 
 //Person struct
 type Person struct {
-	Code    string
-	Name    string
-	Creator string
-	Rels    []string
-	Types   []string
-	IDs     []string
-	Teams   []CodeName
-	States  []CodeName
-	Events  []CodeName
-	rels    uniqueStrings
-	types   uniqueStrings
-	ids     uniqueStrings
-	teams   uniqueCodeNames
-	states  uniqueCodeNames
-	events  uniqueCodeNames
+	Code       string
+	Name       string
+	Creator    string
+	IsFeatured bool
+	Rels       []string
+	Types      []string
+	IDs        []string
+	Teams      []CodeName
+	States     []CodeName
+	Events     []CodeName
+	rels       uniqueStrings
+	types      uniqueStrings
+	ids        uniqueStrings
+	teams      uniqueCodeNames
+	states     uniqueCodeNames
+	events     uniqueCodeNames
 }
 
 //Company struct
