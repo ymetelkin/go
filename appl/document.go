@@ -77,6 +77,7 @@ type Document struct {
 	Workgroup               string
 	DistributionChannels    []string
 	InPackages              []string
+	ConsumerReady           string
 	EditorialRole           string
 	Fixture                 *CodeName
 	Ratings                 []Rating
@@ -494,6 +495,7 @@ func (doc *Document) parse() (err error) {
 
 	doc.setReferenceID()
 	doc.setHeadline()
+	doc.parseNewsContent()
 
 	return
 }

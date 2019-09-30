@@ -16,15 +16,15 @@ func (doc *Document) parseRightsMetadata(node xml.Node) {
 		switch nd.Name {
 		case "Copyright":
 			if nd.Attributes != nil {
-				for k, v := range nd.Attributes {
-					switch k {
+				for _, a := range nd.Attributes {
+					switch a.Name {
 					case "Holder":
 						if doc.Copyright == nil {
 							doc.Copyright = &Copyright{}
 						}
-						doc.Copyright.Holder = v
+						doc.Copyright.Holder = a.Value
 					case "Date":
-						year, err := strconv.Atoi(v)
+						year, err := strconv.Atoi(a.Value)
 						if err == nil && year > 0 {
 							if doc.Copyright == nil {
 								doc.Copyright = &Copyright{}
@@ -71,12 +71,12 @@ func (doc *Document) parseRightsMetadata(node xml.Node) {
 					case "Group":
 						var grp CodeNameTitle
 						if n.Attributes != nil {
-							for k, v := range n.Attributes {
-								switch k {
+							for _, a := range n.Attributes {
+								switch a.Name {
 								case "Type":
-									grp.Title = v
+									grp.Title = a.Value
 								case "Id":
-									grp.Code = v
+									grp.Code = a.Value
 								}
 							}
 						}

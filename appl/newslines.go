@@ -211,14 +211,14 @@ func (doc *Document) setBylines(bylines []xml.Node, bylinesoriginal []xml.Node) 
 
 func getBylineAttributes(nd xml.Node) (id string, title string, pm string) {
 	if nd.Attributes != nil {
-		for k, v := range nd.Attributes {
-			switch k {
+		for _, a := range nd.Attributes {
+			switch a.Name {
 			case "Id":
-				id = v
+				id = a.Value
 			case "Title":
-				title = v
+				title = a.Value
 			case "Parametric":
-				pm = v
+				pm = a.Value
 			}
 		}
 	}

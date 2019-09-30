@@ -53,16 +53,16 @@ func (doc *Document) parseFilingMetadata(node xml.Node) {
 			if nd.Attributes != nil {
 				var t, e, o string
 
-				for k, v := range nd.Attributes {
-					switch k {
+				for _, a := range nd.Attributes {
+					switch a.Name {
 					case "Type":
-						t = v
+						t = a.Value
 					case "Expanded":
-						if v == "true" {
+						if a.Value == "true" {
 							e = "expanded"
 						}
 					case "Outed":
-						if v == "true" {
+						if a.Value == "true" {
 							o = "out"
 						} else {
 							o = "add"
@@ -148,7 +148,7 @@ func (doc *Document) parseFilingMetadata(node xml.Node) {
 		f.Regions = rs.Values()
 	}
 	if !ss.IsEmpty() {
-		f.Subjects = cs.Values()
+		f.Subjects = ss.Values()
 	}
 	if !ts.IsEmpty() {
 		f.Topics = ts.Values()
@@ -182,12 +182,12 @@ func parseForeignKeys(nd xml.Node) (fks []ForeignKey) {
 		for _, k := range nd.Nodes {
 			if k.Attributes != nil {
 				var id, fld string
-				for k, v := range k.Attributes {
-					switch k {
+				for _, a := range k.Attributes {
+					switch a.Name {
 					case "Id":
-						id = v
+						id = a.Value
 					case "Field":
-						fld = v
+						fld = a.Value
 					}
 				}
 				if id != "" && fld != "" {

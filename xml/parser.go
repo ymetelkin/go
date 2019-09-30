@@ -190,8 +190,6 @@ func (xp *xParser) StartNode() (nd Node, closed bool, err error) {
 		return
 	}
 
-	attrs := make(map[string]string)
-
 	sb.Reset()
 	sb.WriteByte(c)
 
@@ -229,7 +227,7 @@ func (xp *xParser) StartNode() (nd Node, closed bool, err error) {
 					return
 				}
 
-				attrs[name] = value
+				nd.Attributes = append(nd.Attributes, Attribute{Name: name, Value: value})
 
 				c, err = xp.SkipWS()
 				if err != nil {
@@ -264,10 +262,6 @@ func (xp *xParser) StartNode() (nd Node, closed bool, err error) {
 			err = fmt.Errorf("Expected '=', found '%c'", c)
 			return
 		}
-	}
-
-	if len(attrs) > 0 {
-		nd.Attributes = attrs
 	}
 
 	return

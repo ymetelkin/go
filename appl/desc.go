@@ -119,20 +119,26 @@ func (doc *Document) parseDatelineLocation(node xml.Node) {
 	var (
 		loc Location
 		geo Geo
+		ok  bool
 	)
 
 	for _, nd := range node.Nodes {
 		switch nd.Name {
 		case "City":
 			loc.City = nd.Text
+			ok = true
 		case "CountryArea":
 			loc.CountryAreaCode = nd.Text
+			ok = true
 		case "CountryAreaName":
 			loc.CountryAreaName = nd.Text
+			ok = true
 		case "Country":
 			loc.CountryCode = nd.Text
+			ok = true
 		case "CountryName":
 			loc.CountryName = nd.Text
+			ok = true
 		case "LatitudeDD":
 			f, err := strconv.ParseFloat(nd.Text, 64)
 			if err == nil {
@@ -148,9 +154,12 @@ func (doc *Document) parseDatelineLocation(node xml.Node) {
 
 	if geo.Longitude != 0 && geo.Latitude != 0 {
 		loc.Geo = &geo
+		ok = true
 	}
 
-	doc.DateLineLocation = &loc
+	if ok {
+		doc.DateLineLocation = &loc
+	}
 
 	return
 }
@@ -238,12 +247,12 @@ func parseAudenceClassification(node xml.Node, audiences *audienceParser) {
 
 	var auth, system string
 
-	for k, v := range node.Attributes {
-		switch k {
+	for _, a := range node.Attributes {
+		switch a.Name {
 		case "Authority":
-			auth = v
+			auth = a.Value
 		case "System":
-			system = v
+			system = a.Value
 		}
 	}
 
@@ -253,12 +262,12 @@ func parseAudenceClassification(node xml.Node, audiences *audienceParser) {
 				var id, value string
 
 				if o.Attributes != nil {
-					for k, v := range o.Attributes {
-						switch k {
+					for _, a := range o.Attributes {
+						switch a.Name {
 						case "Id":
-							id = v
+							id = a.Value
 						case "Value":
-							value = v
+							value = a.Value
 						}
 					}
 				}
@@ -309,26 +318,26 @@ func (doc *Document) parseThirdParty(node xml.Node) {
 	var tp ThirdParty
 
 	if node.Attributes != nil {
-		for k, v := range node.Attributes {
-			switch k {
+		for _, a := range node.Attributes {
+			switch a.Name {
 			case "System":
-				tp.Creator = v
+				tp.Creator = a.Value
 			case "Vocabulary":
-				tp.Vocabulary = v
+				tp.Vocabulary = a.Value
 			case "VocabularyOwner":
-				tp.VocabularyOwner = v
+				tp.VocabularyOwner = a.Value
 			}
 		}
 	}
 
 	o := node.Node("Occurrence")
 	if o.Attributes != nil {
-		for k, v := range o.Attributes {
-			switch k {
+		for _, a := range o.Attributes {
+			switch a.Name {
 			case "Id":
-				tp.Code = v
+				tp.Code = a.Value
 			case "Value":
-				tp.Name = v
+				tp.Name = a.Value
 			}
 		}
 	}
@@ -350,24 +359,20 @@ func (parser *subjectParser) parseSubject(node xml.Node) {
 				match, tp       *bool
 			)
 
-			for k, v := range nd.Attributes {
-				switch k {
+			for _, a := range nd.Attributes {
+				switch a.Name {
 				case "Id":
-					code = v
+					code = a.Value
 				case "Value":
-					name = v
+					name = a.Value
 				case "ActualMatch":
-					if v != "" {
-						test := strings.EqualFold(v, "true")
-						match = &test
-					}
+					test := strings.EqualFold(a.Value, "true")
+					match = &test
 				case "ParentId":
-					pid = v
+					pid = a.Value
 				case "TopParent":
-					if v != "" {
-						test := strings.EqualFold(v, "true")
-						tp = &test
-					}
+					test := strings.EqualFold(a.Value, "true")
+					tp = &test
 				}
 			}
 
@@ -451,14 +456,14 @@ func (parser *entityParser) parsePerson(node xml.Node) {
 				for _, p := range nd.Nodes {
 					if p.Name == "Property" && p.Attributes != nil {
 						var id, nm, va string
-						for k, v := range p.Attributes {
-							switch k {
+						for _, a := range p.Attributes {
+							switch a.Name {
 							case "Id":
-								id = v
+								id = a.Value
 							case "Name":
-								nm = v
+								nm = a.Value
 							case "Value":
-								va = v
+								va = a.Value
 							}
 						}
 
@@ -543,16 +548,16 @@ func (parser *entityParser) parseCompany(node xml.Node) {
 				for _, p := range nd.Nodes {
 					if p.Name == "Property" && p.Attributes != nil {
 						var id, pid, nm, va string
-						for k, v := range p.Attributes {
-							switch k {
+						for _, a := range p.Attributes {
+							switch a.Name {
 							case "Id":
-								id = v
+								id = a.Value
 							case "Name":
-								nm = v
+								nm = a.Value
 							case "Value":
-								va = v
+								va = a.Value
 							case "ParentId":
-								pid = v
+								pid = a.Value
 							}
 						}
 
@@ -632,24 +637,20 @@ func (parser *entityParser) parsePlace(node xml.Node) {
 				match, tp       *bool
 			)
 
-			for k, v := range nd.Attributes {
-				switch k {
+			for _, a := range nd.Attributes {
+				switch a.Name {
 				case "Id":
-					code = v
+					code = a.Value
 				case "Value":
-					name = v
+					name = a.Value
 				case "ActualMatch":
-					if v != "" {
-						test := strings.EqualFold(v, "true")
-						match = &test
-					}
+					test := strings.EqualFold(a.Value, "true")
+					match = &test
 				case "ParentId":
-					pid = v
+					pid = a.Value
 				case "TopParent":
-					if v != "" {
-						test := strings.EqualFold(v, "true")
-						tp = &test
-					}
+					test := strings.EqualFold(a.Value, "true")
+					tp = &test
 				}
 			}
 
@@ -685,14 +686,14 @@ func (parser *entityParser) parsePlace(node xml.Node) {
 					for _, p := range nd.Nodes {
 						if p.Name == "Property" && p.Attributes != nil {
 							var id, nm, va string
-							for k, v := range p.Attributes {
-								switch k {
+							for _, a := range p.Attributes {
+								switch a.Name {
 								case "Id":
-									id = v
+									id = a.Value
 								case "Name":
-									nm = v
+									nm = a.Value
 								case "Value":
-									va = v
+									va = a.Value
 								}
 							}
 
@@ -774,12 +775,12 @@ func (parser *entityParser) parseEvent(node xml.Node) {
 				for _, p := range nd.Nodes {
 					if p.Attributes != nil {
 						var nm, va string
-						for k, v := range p.Attributes {
-							switch k {
+						for _, a := range p.Attributes {
+							switch a.Name {
 							case "Name":
-								nm = v
+								nm = a.Value
 							case "Value":
-								va = v
+								va = a.Value
 							}
 						}
 
@@ -831,12 +832,12 @@ func (parser *entityParser) parseEvent(node xml.Node) {
 }
 
 func getAuthorities(node xml.Node) (auth string, authv string) {
-	for k, v := range node.Attributes {
-		switch k {
+	for _, a := range node.Attributes {
+		switch a.Name {
 		case "Authority":
-			auth = v
+			auth = a.Value
 		case "AuthorityVersion":
-			authv = v
+			authv = a.Value
 		}
 	}
 	return
@@ -845,12 +846,12 @@ func getAuthorities(node xml.Node) (auth string, authv string) {
 func getOccurrenceCodeName(node xml.Node) (string, string) {
 	var code, name string
 	if node.Name == "Occurrence" && node.Attributes != nil {
-		for k, v := range node.Attributes {
-			switch k {
+		for _, a := range node.Attributes {
+			switch a.Name {
 			case "Id":
-				code = v
+				code = a.Value
 			case "Value":
-				name = v
+				name = a.Value
 			}
 		}
 	}

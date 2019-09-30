@@ -8,19 +8,181 @@ import (
 
 func TestXml(t *testing.T) {
 	s := `	
-	<block>
-	<p>Sales of Imcon Edge Connectivity Solutions in India to Commence in 4th Quarter</p> <p>
-	  ATLANTA, GA / ACCESSWIRE / September 26, 2019 / <a href="http://pr.report/K6gtGIs4">Imcon International Inc.</a>, the developer of the Internet Backpack, an immediate connectivity solution that allows users to communicate from almost any location on the planet, has commenced sales of its proprietary <a href="http://pr.report/2e0njFdg">Internet Backpack and Edge Connectivity Solutions</a> to South Asia and Oceania through its exclusive reseller <a href="http://pr.report/mz47c0wM">Universal Tree Tech</a>. Over 500 units are expected to be shipped to the region within the next twelve months.
-	</p> <p>
-	  Today's announcement follows the agreement announced earlier this year that <a href="http://pr.report/f-C3rlqZ">Imcon had named Universal Tree Tech its exclusive distribution partner for ASEAN countries including India and Oceania as well as Australia and New Zealand.</a>
-	</p> <p>"3.5 billion people, approximately half of the world's population, does not have internet connectivity, including over 750 million people in India alone," said Rob Loud, CEO of Imcon International. "This agreement brings Imcon another step closer to our goal of connecting these populations and leveling the playing field in terms of access to basic, essential human services including educational opportunities, health care, and social services"</p> <p>
-	  Imcon's aggressive growth in this region reflects and supports several regional initiatives by governments to address the digital divide in their countries. These initiatives include <a href="http://pr.report/7SyAkIth">Bharat Broadband Network Limited</a> (Bharatnet), the telecom infrastructure provider established by the government of India which recently committed to connecting an additional 250,000 Indian villages through 2020 that do not currently have access to the internet and Australia's <a href="http://pr.report/QfRpTBri">Universal Services Guarantee</a> program that seeks to connect rural and indigenous communities. It is estimated that Bharatnet will add approximately US$68B per year to India's GDP.
-	</p> <p>Randeep Dhillon, CEO, of Universal Tree Tech added, "Universal Tree Tech is thrilled to partner with Imcon to help make universal digital connectivity a reality. "We have already seen the positive effect that the Internet Backpack can have on communities in diverse, underserved and remote locations around the world and expect it to make a profound and long-lasting impact on all the communities we are reaching."</p> <p>This announcement is the latest milestone in Imcon's rapidly expanding global sales and distribution footprint, following new agreements with sales agents in Guatemala (for government and military use) and to Florida-based insurance companies where claims adjusters are leveraging the unique functionality of the Internet Backpack in the field to provide expedited claims assistance to homeowners after natural disasters.</p> <p>
-	  Other recent deals include a global agreement with <a href="http://pr.report/2MlcIawG">Orbsat Corp</a> (OTCQB:OSAT) to market an array of immediate connectivity solutions utilizing Orbsat's expertise in satellite-based hardware, services and global sales and distribution capability. Imcon has also launched Imcon Latin America Corp with a regional hub in Costa Rica and appointed <a href="http://pr.report/qVfKu5lY">MDS Seguridad SpA</a> as its exclusive reseller for the Republic of Chile in a deal that also includes non-exclusive rights for all other territories in South America.
-	</p> <p>About Universal Tree</p> <p>
-	  Universal Tree specializes in development and distribution of Innovative Solutions for the Developing world. The challenges of the developing countries are complex and unique, requiring dynamism and astute integration of technology, products and services. We summon coherence of our vast experience across several verticals integrating technology and a myriad of services including Sales, Distribution, Product Development, Manufacturing and Assembly to build solutions that balance the technology ecosystem while improving the life of the citizens as well as the environment of our planet. Universal Tree enables leading innovative start-ups to scale their business models and introducing their products and services to solve unique problems in green field markets. Please visit <a href="http://pr.report/FltfQIG7">www.universaltree.tech</a> for more information.
-	</p> <p>About Imcon International</p> <p>Imcon International, Inc., is an immediate connectivity solutions provider with the ability to provide mobile Internet connections on over 90% of the globe. The Internet Backpack is a remote connectivity solution which allows users to be able to communicate and have computing resources from almost every location on the planet. The Internet Backpack also allows users to create internal wireless networks with large coverage areas. Imcon is developing Edge Connectivity Solutions providing users the ability to harness the power of the Internet in the most remote places and extreme of conditions. Please visit http://imconintl.com for more information.</p> <p>CONTACTS:</p> <p>For Imcon International:</p> <p>Rob Loud</p> <p>Imcon International, Inc.</p> <p>470-210-0760</p> <p>Alan Winnikoff</p> <p>Sayles & Winnikoff Communications</p> <p>212-725-5200 x111</p> <p>For Universal Tree Tech:</p> <p>Randeep Dhillon</p> <p>61 421 715 915</p> <p>SOURCE: Imcon International, Inc.</p>View source version on accesswire.com: <a href="https://www.accesswire.com/561159/Imcon-International-Commences-Sales-and-Shipments-of-Proprietary-Internet-Backpack-to-South-Asia-and-Australia-Through-Exclusive-Reseller-Universal-Tree-Tech">https://www.accesswire.com/561159/Imcon-International-Commences-Sales-and-Shipments-of-Proprietary-Internet-Backpack-to-South-Asia-and-Australia-Through-Exclusive-Reseller-Universal-Tree-Tech</a>
-  </block>`
+	<Publication xmlns="http://ap.org/schemas/03/2005/appl" Version="5.3.2">
+	<Identification>
+	  <ItemId>0d7d337e70684e039fb8b761d5989e3c</ItemId>
+	  <RecordId>0999a4574d224f9cb435eef55a5ee7e6</RecordId>
+	  <CompositeId>f034a956c7f64f76a73c273b8722e743</CompositeId>
+	  <CompositionType>StandardText</CompositionType>
+	  <MediaType>Text</MediaType>
+	  <Priority>4</Priority>
+	  <EditorialPriority>r</EditorialPriority>
+	  <DefaultLanguage>de</DefaultLanguage>
+	  <RecordSequenceNumber>0</RecordSequenceNumber>
+	  <FriendlyKey>2855929986412794</FriendlyKey>
+	</Identification>
+	<PublicationManagement>
+	  <RecordType>Change</RecordType>
+	  <FilingType>Text</FilingType>
+	  <IsDistributionReady>true</IsDistributionReady>
+	  <ArrivalDateTime>2019-09-26T18:22:16</ArrivalDateTime>
+	  <FirstCreated Day="26" Month="9" Time="22:21:47" Year="2019" />
+	  <LastModifiedDateTime>2019-09-26T22:21:47</LastModifiedDateTime>
+	  <Status>Usable</Status>
+	  <ReleaseDateTime>2019-09-26T18:22:09</ReleaseDateTime>
+	  <ItemStartDateTime>2019-09-26T18:22:09</ItemStartDateTime>
+	  <ItemStartDateTimeActual>2019-09-26T18:22:09</ItemStartDateTimeActual>
+	  <ItemExpireDateTime Scope="Item">2019-10-01T18:22:09</ItemExpireDateTime>
+	</PublicationManagement>
+	<NewsLines>
+	  <Title>Youtube-Szene feiert in Berlin - mit Frank Elstner</Title>
+	  <HeadLine>Youtube-Szene feiert in Berlin - mit Frank Elstner</HeadLine>
+	  <OriginalHeadLine>Youtube-Szene feiert in Berlin - mit Frank Elstner</OriginalHeadLine>
+	  <ByLine>bockc</ByLine>
+	  <DateLine>Berlin (dpa) - </DateLine>
+	  <CopyrightLine>(c) 2019 dpa Deutsche Presse Agentur GmbH</CopyrightLine>
+	  <KeywordLine>Youtube-Szene feiert in Berlin - mit Frank Elstner</KeywordLine>
+	  <KeywordLine>Internet</KeywordLine>
+	</NewsLines>
+	<AdministrativeMetadata>
+	  <Provider Id="DPA9999" Type="ThirdParty">Deutsche Presse Agentur</Provider>
+	  <Source City="Hamburg" Country="DEU" Id="DPA9999" Type="ThirdParty" Url="http://www.dpa.de">Deutsche Presse Agentur</Source>
+	  <TransmissionSource>NotMemberFeed</TransmissionSource>
+	  <TransmissionSource>Ingestion Manager</TransmissionSource>
+	  <TransmissionSource>JagRoars</TransmissionSource>
+	  <TransmissionSource>IngestionManager</TransmissionSource>
+	  <TransmissionSource>Monarch</TransmissionSource>
+	  <TransmissionSource>JagRoars</TransmissionSource>
+	  <ProductSource>Basisdienst Inland</ProductSource>
+	  <ProductSource>DataFeatures</ProductSource>
+	  <ConsumerReady>TRUE</ConsumerReady>
+	</AdministrativeMetadata>
+	<RightsMetadata>
+	  <Copyright Date="2019" Holder="Deutsche Presse-Agentur GmbH" />
+	</RightsMetadata>
+	<DescriptiveMetadata>
+	  <DateLineLocation>
+		<LatitudeDD>0.000000000</LatitudeDD>
+		<LongitudeDD>0.000000000</LongitudeDD>
+	  </DateLineLocation>
+	  <ThirdPartyMeta Vocabulary="IngestionManagerMetadata" VocabularyOwner="cv.ap.org">
+		<Occurrence Id="FeedID/5145" Value="5145" />
+		<Occurrence Id="FeedName/DPANewsMessage" Value="DPA NewsMessage" />
+		<Occurrence Id="TraceID/4981b31f5b03482d969be64b2e24deb4.0.0" Value="4981b31f5b03482d969be64b2e24deb4.0.0" />
+	  </ThirdPartyMeta>
+	</DescriptiveMetadata>
+	<FilingMetadata>
+	  <Id>bbeb1f08450f4b7fabd34d757fb64f0c</Id>
+	  <ArrivalDateTime>2019-09-26T18:22:16</ArrivalDateTime>
+	  <Cycle>BC</Cycle>
+	  <TransmissionContent>All</TransmissionContent>
+	  <ServiceLevelDesignator>dpa</ServiceLevelDesignator>
+	  <Source>dpain</Source>
+	  <SlugLine>Medien/Berlin/Deutschland</SlugLine>
+	  <Products>
+		<Product>101589</Product>
+		<Product>101588</Product>
+		<Product>101587</Product>
+		<Product>101586</Product>
+		<Product>101585</Product>
+		<Product>101583</Product>
+		<Product>101582</Product>
+		<Product>101581</Product>
+		<Product>101580</Product>
+		<Product>101579</Product>
+		<Product>101578</Product>
+		<Product>101577</Product>
+		<Product>101576</Product>
+		<Product>101574</Product>
+		<Product>101572</Product>
+		<Product>101571</Product>
+		<Product>101564</Product>
+		<Product>101547</Product>
+		<Product>101546</Product>
+		<Product>47102</Product>
+		<Product>47101</Product>
+		<Product>47100</Product>
+		<Product>46954</Product>
+		<Product>46952</Product>
+		<Product>46950</Product>
+		<Product>46949</Product>
+		<Product>46946</Product>
+		<Product>46941</Product>
+		<Product>46549</Product>
+		<Product>46547</Product>
+		<Product>46546</Product>
+		<Product>46545</Product>
+		<Product>46399</Product>
+		<Product>46394</Product>
+		<Product>46393</Product>
+		<Product>46392</Product>
+		<Product>46391</Product>
+		<Product>46385</Product>
+		<Product>46384</Product>
+		<Product>46383</Product>
+		<Product>46379</Product>
+		<Product>46376</Product>
+		<Product>46365</Product>
+		<Product>46362</Product>
+		<Product>46313</Product>
+		<Product>46206</Product>
+		<Product>46205</Product>
+		<Product>46204</Product>
+		<Product>46203</Product>
+		<Product>46202</Product>
+		<Product>46201</Product>
+		<Product>46200</Product>
+		<Product>46197</Product>
+		<Product>46196</Product>
+		<Product>46181</Product>
+		<Product>46170</Product>
+		<Product>46168</Product>
+		<Product>46159</Product>
+		<Product>45956</Product>
+		<Product>45486</Product>
+		<Product>45147</Product>
+		<Product>44698</Product>
+		<Product>44653</Product>
+		<Product>43848</Product>
+		<Product>3</Product>
+		<Product>1</Product>
+	  </Products>
+	</FilingMetadata>
+	<PublicationComponent MediaType="Text" Role="Main">
+	  <TextContentItem ArrivedInFilingId="bbeb1f08450f4b7fabd34d757fb64f0c" Id="e68258256b064de98c2ef85c097aea4a">
+		<DataContent>
+		  <nitf>
+			<body.content>
+			  <block>
+				<p>Berlin (dpa) - Von Fernsehgrößen wie Frank Elstner und Kai Pflaume über Die Fantastischen Vier bis zu Internetgrößen wie Ischtar Isik: In Berlin wurde am Donnerstagabend der Youtube Goldene Kamera Digital Award verliehen. Bei dem Internet-Preis gibt es acht Kategorien. Die erste Trophäe ging an Joseph DeChangeman in der Sparte Comedy &amp; Entertainment. </p>
+				<p>Die Show im Kraftwerk wurde von Linda Zervakis («Tagesschau») und dem Comedian Daniele Rizzo moderiert. Zwei von Internet-Nutzern gekürte Preisträger standen schon fest: Wincent Weiss («Best Music Act») und Nintendo-Fachmann Domtendo («Let's Play &amp; Gaming»). Andere Gewinner wurden von einer Jury gekürt.</p>
+				<p>Mit dem Digital Award würdigen die Funke Mediengruppe und Youtube die «originellsten und bewegendsten Internetproduktionen». Frank Elstner war mit seinem Youtube-Kanal («Wetten, das war's..?») in einer für ihn ungewöhnlichen Kategorie nominiert - als Newcomer. </p>
+				<p />
+				<p>#Notizblock</p>
+				<p>##Redaktionelle Hinweise</p>
+				<p>-Die Veranstaltung läuft noch. Sie erhalten bis 2200 einen Überblick und bis 2330 eine Zusammenfassung als Autorenbericht.</p>
+				<p>##Internet</p>
+				<p>-Über den Award</p>
+				<p>##Orte</p>
+				<p>-[Show im Kraftwerk](Köpenicker Str. 70, 10179 Berlin, Deutschland)</p>
+				<p>Die folgenden Informationen sind nicht zur Veröffentlichung bestimmt</p>
+				<p>##Ansprechpartner</p>
+				<p>-Goldene Kamera, Presse, Jutta Rottmann, +49 162 234 66 18, &lt;presse@goldenekamera.de&gt;</p>
+				<p>##Kontakte</p>
+				<p>-Autorin: Caroline Bock (Berlin), +49 30 285231240, &lt;bock.caroline@dpa.com&gt;</p>
+				<p>-Redaktion: Christof Bock (Berlin), +49 30 2852 32292, &lt;panorama@dpa.com&gt;</p>
+				<p>-Foto: Newsdesk, +49 30 285231515, &lt;foto@dpa.com&gt;</p>
+				<p>dpa ca yybb n1 bok</p>
+			  </block>
+			</body.content>
+		  </nitf>
+		</DataContent>
+		<Characteristics FileExtension="xml" Format="IIM" MimeType="text/xml" SizeInBytes="1568">
+		  <Words>195</Words>
+		</Characteristics>
+	  </TextContentItem>
+	</PublicationComponent>
+  </Publication>`
 
 	//s = `<Identification><HeadLine>Vikings, Sage Rosenfels agree to 2-year contract</HeadLine></Identification>`
 

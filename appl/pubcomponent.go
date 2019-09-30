@@ -19,12 +19,12 @@ func (doc *Document) parsePublicationComponent(node xml.Node, parser *renditionP
 
 	var role, mediatype string
 
-	for k, v := range node.Attributes {
-		switch k {
+	for _, a := range node.Attributes {
+		switch a.Name {
 		case "Role":
-			role = v
+			role = a.Value
 		case "MediaType":
-			mediatype = strings.ToLower(v)
+			mediatype = strings.ToLower(a.Value)
 		}
 	}
 
@@ -165,10 +165,7 @@ func (doc *Document) parsePhotoContentItem(node xml.Node, role string, mediatype
 		r.parse(node)
 	case "video":
 		switch role {
-		case "Preview":
-			r.parse(node)
-			r.setExtTitle("Preview")
-		case "Thumbnail":
+		case "Preview", "Thumbnail":
 			r.parse(node)
 			r.setDimensionsTitle(role)
 		default:
@@ -433,14 +430,14 @@ func bodyContentNode(node xml.Node) *xml.Node {
 
 func (r *Rendition) parse(node xml.Node) {
 	if node.Attributes != nil {
-		for k, v := range node.Attributes {
-			if k == "Id" {
-				r.Code = strings.ToLower(v)
+		for _, a := range node.Attributes {
+			if a.Name == "Id" {
+				r.Code = a.Value
 			} else {
 				if r.Attributes == nil {
 					r.Attributes = make(map[string]string)
 				}
-				r.Attributes[k] = v
+				r.Attributes[a.Name] = a.Value
 			}
 		}
 	}
@@ -459,12 +456,12 @@ func (r *Rendition) parse(node xml.Node) {
 								ok bool
 								id string
 							)
-							for k, v := range n.Attributes {
-								switch k {
+							for _, a := range n.Attributes {
+								switch a.Name {
 								case "Field":
-									ok = strings.EqualFold(v, "Number")
+									ok = strings.EqualFold(a.Value, "Number")
 								case "Id":
-									id = v
+									id = a.Value
 								}
 							}
 							if ok && id != "" {
@@ -483,12 +480,12 @@ func (r *Rendition) parse(node xml.Node) {
 			r.PresentationSystem = n.Attribute("System")
 			ch := n.Node("Characteristics")
 			if ch.Attributes != nil {
-				for k, v := range ch.Attributes {
-					switch k {
+				for _, a := range ch.Attributes {
+					switch a.Name {
 					case "Frame":
-						r.PresentationFrame = v
+						r.PresentationFrame = a.Value
 					case "FrameLocation":
-						r.PresentationFrameLocation = v
+						r.PresentationFrameLocation = a.Value
 					}
 				}
 			}
@@ -507,17 +504,17 @@ func (r *Rendition) parse(node xml.Node) {
 
 	chars := node.Node("Characteristics")
 	if chars.Attributes != nil {
-		for k, v := range chars.Attributes {
-			switch k {
+		for _, a := range chars.Attributes {
+			switch a.Name {
 			case "FileExtension":
-				r.FileExtension = v
+				r.FileExtension = a.Value
 			case "SizeInBytes":
-				r.ByteSize, _ = strconv.Atoi(v)
+				r.ByteSize, _ = strconv.Atoi(a.Value)
 			default:
 				if r.Characteristics == nil {
 					r.Characteristics = make(map[string]string)
 				}
-				r.Characteristics[k] = v
+				r.Characteristics[a.Name] = a.Value
 			}
 		}
 	}

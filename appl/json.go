@@ -123,13 +123,13 @@ func (doc *Document) JSON() (jo json.Object) {
 	addStringArray("signals", doc.Signals, &jo)
 
 	//Newslines
-	jo.AddString("title", doc.Title)
-	jo.AddString("headline", doc.Headline)
+	jo.AddString("title", strings.TrimSpace(doc.Title))
+	jo.AddString("headline", strings.TrimSpace(doc.Headline))
 	if doc.Summary != "" {
-		jo.AddString("summary", doc.Summary)
+		jo.AddString("summary", strings.TrimSpace(doc.Summary))
 	}
 	if doc.ExtendedHeadline != "" {
-		jo.AddString("headline_extended", doc.ExtendedHeadline)
+		jo.AddString("headline_extended", strings.TrimSpace(doc.ExtendedHeadline))
 	}
 	if doc.Bylines != nil && len(doc.Bylines) > 0 {
 		var ja json.Array
@@ -246,6 +246,13 @@ func (doc *Document) JSON() (jo json.Object) {
 		jo.AddObject("fixture", doc.Fixture.json())
 	}
 	addStringArray("inpackages", doc.InPackages, &jo)
+	if doc.Ratings != nil && len(doc.Ratings) > 0 {
+		var ja json.Array
+		for _, r := range doc.Ratings {
+			ja.AddObject(r.json())
+		}
+		jo.AddArray("ratings", ja)
+	}
 
 	//RightsMetadata
 	if doc.UsageRights != nil && len(doc.UsageRights) > 0 {
@@ -892,7 +899,7 @@ func (f *Filing) json() (jo json.Object) {
 		jo.AddObject("routings", routings)
 	}
 	if f.Slugline != "" {
-		jo.AddString("slugline", f.Slugline)
+		jo.AddString("slugline", strings.TrimSpace(f.Slugline))
 	}
 	if f.OriginalMediaID != "" {
 		jo.AddString("originalmediaid", f.OriginalMediaID)
