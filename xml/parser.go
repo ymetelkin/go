@@ -89,9 +89,8 @@ func (xp *xParser) Parse() (nd Node, err error) {
 
 func (xp *xParser) StartNode() (nd Node, closed bool, err error) {
 	var (
-		c    byte
-		sb   strings.Builder
-		exit bool
+		c  byte
+		sb strings.Builder
 	)
 
 	c, err = xp.SkipWS()
@@ -151,18 +150,25 @@ func (xp *xParser) StartNode() (nd Node, closed bool, err error) {
 			break
 		} else if c == '>' {
 			nd.Name = sb.String()
-			exit = true
-			break
+			return
+		} else if c == '/' {
+			c, err = xp.SkipWS()
+			if err != nil {
+				return
+			}
+			if c == '>' {
+				nd.Name = sb.String()
+				closed = true
+				return
+			}
+			err = fmt.Errorf("Expected '>', found '%c'", c)
+			return
 		} else if !isNodeName(c) {
 			err = fmt.Errorf("Expected alpha character, found '%c'", c)
 			return
 		} else {
 			sb.WriteByte(c)
 		}
-	}
-
-	if exit {
-		return
 	}
 
 	c, err = xp.SkipWS()

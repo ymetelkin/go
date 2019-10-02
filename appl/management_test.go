@@ -14,7 +14,7 @@ func TestManagement(t *testing.T) {
 		<FilingType>Text</FilingType>
 		<IsDistributionReady>true</IsDistributionReady>
 		<ArrivalDateTime>2012-03-12T20:54:44</ArrivalDateTime>
-		<FirstCreated UserAccount="APGBL" UserAccountSystem="APADS" UserName="APGBL\wweissert" Year="2019" Month="4" Day="29" Time="13:07:36" ToolVersion="ELVIS 1.24.4.3" UserLocation="Austin, TX" UserWorkgroup="USA Central"></FirstCreated>
+		<FirstCreated UserAccount="APGBL" UserAccountSystem="APADS" UserName="APGBL\wweissert" Year="2019" Month="4" Day="29" Time="00:07:36" ToolVersion="ELVIS 1.24.4.3" UserLocation="Austin, TX" UserWorkgroup="USA Central"></FirstCreated>
 		<LastModifiedDateTime UserName="APGBL\dzelio" UserAccount="APGBL" UserAccountSystem="APADS"
 			>2012-03-12T20:54:37</LastModifiedDateTime>
 		<ReleaseDateTime>2012-03-12T20:54:44</ReleaseDateTime>
@@ -24,11 +24,9 @@ func TestManagement(t *testing.T) {
 		<Instruction Type="Outing">MOBILE</Instruction>
 		<Instruction Type="Outing">INTERNET</Instruction>
 		<RefersTo>YM</RefersTo>
-		<Editorial LeadNum="0" AddNum="0">
+		<Editorial AddNum="0" LeadNum="2">
 			<Type>Advance</Type>
-		</Editorial>
-		<Editorial LeadNum="0" AddNum="0">
-			<Type>YM</Type>
+			<Type>Lead</Type>
 		</Editorial>
 		<AssociatedWith LinkType="Item" CompositionType="StandardText" MetaLabel="x" MetaKey="a">00000000000000000000000000000000</AssociatedWith>
 		<AssociatedWith LinkType="Item" CompositionType="StandardText" MetaLabel="y" MetaKey="b">00000000000000000000000000000010</AssociatedWith>

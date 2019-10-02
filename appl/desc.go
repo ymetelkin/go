@@ -88,27 +88,13 @@ func (doc *Document) parseDescriptiveMetadata(node xml.Node) {
 		doc.AlertCategories = subjects.Alerts.Values()
 	}
 	doc.Subjects = subjects.Subjects
-	doc.Persons = entities.Persons
+	doc.Persons = append(doc.Persons, entities.Persons...)
 	doc.Organizations = entities.Organizations.Subjects
 	doc.Companies = entities.Companies
 	doc.Places = entities.Places
 	doc.Events = entities.Events
 	doc.Audiences = audiences.Audiences
 	doc.Services = services.Values()
-
-	/*
-		if geo && doc.Filings != nil {
-			for _, f := range doc.Filings {
-				if strings.EqualFold(f.Category, "n") {
-					state := getState(f.Source)
-					if state != nil {
-						auds.AddObject(state.Code, state.ToJSON())
-					}
-				}
-			}
-		}
-
-	*/
 }
 
 func (doc *Document) parseDatelineLocation(node xml.Node) {

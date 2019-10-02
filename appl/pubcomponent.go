@@ -255,12 +255,25 @@ func (doc *Document) parseGraphicContentItem(node xml.Node, role string, mediaty
 
 		nd := node.Node("RelatedBinaries")
 		if nd.Attribute("Name") == "MatteFileName" {
-			matte := Rendition{
-				Rel:       role,
-				MediaType: mediatype,
+			matte := Rendition{}
+			matte.parse(nd)
+			matte.Width = r.Width
+			matte.Height = r.Height
+			if matte.Attributes != nil {
+				v, ok := matte.Attributes["FileExtension"]
+				if ok {
+					matte.FileExtension = v
+					delete(matte.Attributes, "FileExtension")
+				}
+				v, ok = matte.Attributes["SizeInBytes"]
+				if ok {
+					matte.ByteSize, _ = strconv.Atoi(v)
+					delete(matte.Attributes, "SizeInBytes")
+				}
 			}
-			matte.parse(node)
 			matte.setDimensionsTitle("Full Resolution Matte")
+			matte.Width = 0
+			matte.Height = 0
 			doc.Renditions = append(doc.Renditions, matte)
 		}
 	case "complexdata":
@@ -368,7 +381,7 @@ func (doc *Document) parsePhotoCollectionContentItem(node xml.Node, role string,
 		case "Characteristics":
 			if nd.Nodes != nil {
 				for _, n := range nd.Nodes {
-					switch nd.Name {
+					switch n.Name {
 					case "Width":
 						w, _ = strconv.Atoi(n.Text)
 					case "Height":

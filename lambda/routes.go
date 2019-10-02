@@ -45,6 +45,7 @@ type Request struct {
 	ResourcePath string
 	Proxy        string
 	Path         string
+	Headers      map[string]string
 	Parameters   map[string]string
 	Body         string
 	handler      Handler
@@ -104,6 +105,7 @@ func (rt *Router) GetRequest(req events.APIGatewayProxyRequest, proxy bool) (Req
 	r, ok := rt.routes.Match(path, req.HTTPMethod)
 	if ok {
 		r.Body = req.Body
+		r.Headers = req.Headers
 	} else {
 		if !strings.HasPrefix(path, "/") {
 			path = "/" + path

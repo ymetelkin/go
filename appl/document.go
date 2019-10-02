@@ -62,7 +62,6 @@ type Document struct {
 	Rightsline              string
 	Seriesline              string
 	OutCue                  string
-	Namelines               []Nameline
 	Locationline            string
 	Provider                *Provider
 	Creator                 string
@@ -131,6 +130,7 @@ type FirstCreated struct {
 	Minute int
 	Second int
 	Date   *time.Time
+	Time   string
 	User   *UserAccount
 }
 
@@ -182,12 +182,6 @@ type Copyright struct {
 	Notice string
 	Holder string
 	Year   int
-}
-
-//Nameline struct
-type Nameline struct {
-	Name       string
-	IsFeatured bool
 }
 
 //Provider struct
@@ -281,6 +275,7 @@ type Person struct {
 	Code       string
 	Name       string
 	Creator    string
+	IsNameline bool
 	IsFeatured bool
 	Rels       []string
 	Types      []string

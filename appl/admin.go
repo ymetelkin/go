@@ -204,7 +204,7 @@ func (doc *Document) parseRating(nd xml.Node) {
 			case "ScaleUnit":
 				r.ScaleUnit = a.Value
 			case "Raters":
-				r.Value, _ = strconv.Atoi(a.Value)
+				r.Raters, _ = strconv.Atoi(a.Value)
 			case "RaterType":
 				r.RaterType = a.Value
 			case "Creator":

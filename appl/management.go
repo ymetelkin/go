@@ -73,14 +73,16 @@ func (doc *Document) parsePublicationManagement(node xml.Node) {
 		case "SpecialInstructions":
 			doc.SpecialInstructions = nd.Text
 		case "Editorial":
-			n := nd.Node("Type")
-			s := n.Text
-			if s != "" {
-				types.Append(s)
+			if nd.Nodes != nil {
+				for _, n := range nd.Nodes {
+					if n.Name == "Type" && n.Text != "" {
+						types.Append(n.Text)
 
-				if !embargo {
-					if strings.EqualFold(s, "Advance") || strings.EqualFold(s, "HoldForRelease") {
-						embargo = true
+						if !embargo {
+							if strings.EqualFold(n.Text, "Advance") || strings.EqualFold(n.Text, "HoldForRelease") {
+								embargo = true
+							}
+						}
 					}
 				}
 			}
@@ -166,6 +168,10 @@ func (doc *Document) parsePublicationManagement(node xml.Node) {
 	if len(asswith) > 0 {
 		doc.Associations = parseAssociations(asswith)
 	}
+
+	if doc.ItemEndDateTime != nil && (doc.ItemExpireDateTime == nil || (*doc.ItemEndDateTime).Before(*doc.ItemExpireDateTime)) {
+		doc.ItemExpireDateTime = doc.ItemEndDateTime
+	}
 }
 
 func getPubStatus(s string) string {
@@ -206,6 +212,7 @@ func parseFirstCreated(nd xml.Node) *FirstCreated {
 		case "Time":
 			ts, err := parseTime(a.Value)
 			if err == nil {
+				fc.Time = a.Value
 				fc.Hour = ts.Hour()
 				fc.Minute = ts.Minute()
 				fc.Second = ts.Second()

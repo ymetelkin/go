@@ -50,11 +50,12 @@ func (doc *Document) parseNewsLines(node xml.Node) {
 			doc.OutCue = nd.Text
 		case "NameLine":
 			if nd.Text != "" {
-				person := Nameline{
+				person := Person{
 					Name:       nd.Text,
+					IsNameline: true,
 					IsFeatured: strings.EqualFold(nd.Attribute("Parametric"), "PERSON_FEATURED"),
 				}
-				doc.Namelines = append(doc.Namelines, person)
+				doc.Persons = append(doc.Persons, person)
 			}
 		case "LocationLine":
 			doc.Locationline = nd.Text
