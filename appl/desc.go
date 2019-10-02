@@ -666,7 +666,7 @@ func (parser *entityParser) parsePlace(node xml.Node) {
 
 				if place.Creator == "" || strings.EqualFold(system, "Editorial") {
 					place.Creator = "Editorial"
-				}
+				}				
 
 				if nd.Nodes != nil {
 					for _, p := range nd.Nodes {
@@ -708,6 +708,10 @@ func (parser *entityParser) parsePlace(node xml.Node) {
 
 				if geo.Longitude != 0 && geo.Latitude != 0 {
 					place.Geo = &geo
+				}
+
+				if tp != nil && place.TopParent == nil {
+					place.TopParent = tp
 				}
 
 				place.rels.AppendRel(system, match)
