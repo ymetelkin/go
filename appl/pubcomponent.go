@@ -10,6 +10,7 @@ import (
 
 type renditionParser struct {
 	pm, pp, pt bool
+	audio      map[string]bool
 }
 
 func (doc *Document) parsePublicationComponent(node xml.Node, parser *renditionParser) {
@@ -37,7 +38,7 @@ func (doc *Document) parsePublicationComponent(node xml.Node, parser *renditionP
 		case "VideoContentItem":
 			doc.parseVideoContentItem(nd, role, mediatype)
 		case "AudioContentItem":
-			doc.parseAudioContentItem(nd, role, mediatype)
+			doc.parseAudioContentItem(nd, role, mediatype, parser)
 		case "PhotoCollectionContentItem":
 			doc.parsePhotoCollectionContentItem(nd, role, mediatype)
 		case "GraphicContentItem":
@@ -222,7 +223,7 @@ func (doc *Document) parseVideoContentItem(node xml.Node, role string, mediatype
 	doc.Renditions = append(doc.Renditions, r)
 }
 
-func (doc *Document) parseAudioContentItem(node xml.Node, role string, mediatype string) {
+func (doc *Document) parseAudioContentItem(node xml.Node, role string, mediatype string, parser *renditionParser) {
 	if mediatype != "audio" || role != "Main" {
 		return
 	}
@@ -233,6 +234,17 @@ func (doc *Document) parseAudioContentItem(node xml.Node, role string, mediatype
 	}
 
 	r.parse(node)
+
+	if parser.audio == nil {
+		parser.audio = make(map[string]bool)
+	} else {
+		_, ok := parser.audio[r.FileExtension]
+		if ok {
+			return
+		}
+	}
+	parser.audio[r.FileExtension] = true
+
 	r.setExtTitle("Full Resolution")
 	doc.Renditions = append(doc.Renditions, r)
 }
