@@ -1,0 +1,229 @@
+<Publication xmlns="http://ap.org/schemas/03/2005/appl" Version="5.3.1">
+        <Identification>
+          <ItemId>0007ead7ef0b81832cea8905d397eb4c</ItemId>
+          <RecordId>3beb9e08552d1b5095acaf4e3b07ed61</RecordId>
+          <CompositeId>00000000000000000000000000000000</CompositeId>
+          <CompositionType>StandardBroadcastVideo</CompositionType>
+          <MediaType>Text</MediaType>
+          <Priority>4</Priority>
+          <EditorialPriority>r</EditorialPriority>
+          <DefaultLanguage>ar</DefaultLanguage>
+          <RecordSequenceNumber>0</RecordSequenceNumber>
+          <FriendlyKey>7666392953</FriendlyKey>
+        </Identification>
+        <PublicationManagement>
+          <RecordType>Change</RecordType>
+          <FilingType>Text</FilingType>
+          <IsDistributionReady>true</IsDistributionReady>
+          <ArrivalDateTime>2019-09-20T16:41:07</ArrivalDateTime>
+          <FirstCreated Day="20" Month="9" Time="16:41:06" Year="2019" />
+          <LastModifiedDateTime>2019-09-20T16:41:06</LastModifiedDateTime>
+          <Status>Usable</Status>
+          <EditorialId>5198469</EditorialId>
+          <ItemStartDateTime>2019-09-20T16:41:06</ItemStartDateTime>
+          <ItemStartDateTimeActual>2019-09-20T16:41:06</ItemStartDateTimeActual>
+          <ItemExpireDateTime Scope="Record">2019-09-27T16:41:07</ItemExpireDateTime>
+          <Function>BroadcastVideo</Function>
+        </PublicationManagement>
+        <NewsLines>
+          <Title>كرة قدم: السد</Title>
+          <HeadLine>السد يحقق انتصاره الثالث تواليا في دوري نجوم قطر على حساب أم صلال </HeadLine>
+          <OriginalHeadLine>السد يحقق انتصاره الثالث تواليا في دوري نجوم قطر على حساب أم صلال </OriginalHeadLine>
+          <DownstyleHeadLine>السد يحقق انتصاره الثالث تواليا في دوري نجوم قطر على حساب أم صلال </DownstyleHeadLine>
+          <DateLine>20th September 2019 - Al Wakrah, Qatar</DateLine>
+          <CopyrightLine>Copyright 2019 The Associated Press. All rights reserved. This material may not be published, broadcast, rewritten or redistributed.</CopyrightLine>
+          <RightsLine>International: SNTV Clients Only, See Script</RightsLine>
+          <LocationLine>Al Wakrah, Qatar</LocationLine>
+        </NewsLines>
+        <AdministrativeMetadata>
+          <Provider Type="AP">AP</Provider>
+          <Source Type="ThirdParty">Al Kass</Source>
+          <TransmissionSource>NotMemberFeed</TransmissionSource>
+          <TransmissionSource>ENPS</TransmissionSource>
+          <TransmissionSource>ENPSCAME01</TransmissionSource>
+          <TransmissionSource>FoxFeed</TransmissionSource>
+          <TransmissionSource>JagRoars</TransmissionSource>
+          <TransmissionSource>JagRoars</TransmissionSource>
+          <ProductSource>sntv-arabic</ProductSource>
+          <ConsumerReady>true</ConsumerReady>
+          <Signal>NewsroomReady</Signal>
+          <Signal>DigitalCleared</Signal>
+        </AdministrativeMetadata>
+        <RightsMetadata />
+        <DescriptiveMetadata>
+          <AudienceClassification Authority="AP Audience" System="Editorial">
+            <Occurrence ActualMatch="true" Id="8654b3ed3d8347029bf1282f8646b8b7" Value="News">
+              <Property Id="9699051c250541eca11b07fc6a14082a" Name="AudienceType" Value="AUDSUBJECT" />
+            </Occurrence>
+          </AudienceClassification>
+          <Comment>sntv Arabic</Comment>
+        </DescriptiveMetadata>
+        <FilingMetadata>
+          <Id>c5ef940ebef64b20bc0232e0840d3579</Id>
+          <ArrivalDateTime>2019-09-20T16:41:07</ArrivalDateTime>
+          <Cycle>AP</Cycle>
+          <TransmissionReference>vt6006</TransmissionReference>
+          <TransmissionContent>All</TransmissionContent>
+          <ServiceLevelDesignator>vt</ServiceLevelDesignator>
+          <Selector>1snqs</Selector>
+          <Format>bx</Format>
+          <Source>ext</Source>
+          <Category>t</Category>
+          <Routing Expanded="false" Outed="false" Type="Passcode">1snqs</Routing>
+          <SlugLine>AP-SNTV-1641: كرة قدم: السد</SlugLine>
+          <Products>
+            <Product>101589</Product>
+            <Product>101588</Product>
+            <Product>101587</Product>
+            <Product>101586</Product>
+            <Product>101585</Product>
+            <Product>101583</Product>
+            <Product>101582</Product>
+            <Product>101581</Product>
+            <Product>101580</Product>
+            <Product>101579</Product>
+            <Product>101578</Product>
+            <Product>101577</Product>
+            <Product>101576</Product>
+            <Product>101574</Product>
+            <Product>101572</Product>
+            <Product>101571</Product>
+            <Product>101564</Product>
+            <Product>101547</Product>
+            <Product>101546</Product>
+            <Product>47102</Product>
+            <Product>47101</Product>
+            <Product>46954</Product>
+            <Product>46952</Product>
+            <Product>46950</Product>
+            <Product>46949</Product>
+            <Product>46946</Product>
+            <Product>46941</Product>
+            <Product>46549</Product>
+            <Product>46547</Product>
+            <Product>46546</Product>
+            <Product>46545</Product>
+            <Product>46399</Product>
+            <Product>46394</Product>
+            <Product>46393</Product>
+            <Product>46392</Product>
+            <Product>46391</Product>
+            <Product>46385</Product>
+            <Product>46384</Product>
+            <Product>46383</Product>
+            <Product>46379</Product>
+            <Product>46376</Product>
+            <Product>46365</Product>
+            <Product>46362</Product>
+            <Product>46313</Product>
+            <Product>46206</Product>
+            <Product>46205</Product>
+            <Product>46204</Product>
+            <Product>46203</Product>
+            <Product>46202</Product>
+            <Product>46201</Product>
+            <Product>46200</Product>
+            <Product>46197</Product>
+            <Product>46196</Product>
+            <Product>46181</Product>
+            <Product>46170</Product>
+            <Product>46168</Product>
+            <Product>46159</Product>
+            <Product>45956</Product>
+            <Product>45486</Product>
+            <Product>45445</Product>
+            <Product>45429</Product>
+            <Product>45319</Product>
+            <Product>45147</Product>
+            <Product>44698</Product>
+            <Product>43848</Product>
+            <Product>33602</Product>
+            <Product>3</Product>
+            <Product>1</Product>
+          </Products>
+          <ForeignKeys System="Story">
+            <Keys Field="ID" Id="5198469" />
+          </ForeignKeys>
+          <ForeignKeys System="mosPayload">
+            <Keys Field="StoryNumber" Id="5198469" />
+            <Keys Field="LanguageType" Id="Nat sound" />
+            <Keys Field="MOSObjSlugs" Id="SOC QS SADD 20190920SH" />
+            <Keys Field="MOSItemDurations" Id="123.84" />
+            <Keys Field="StoryFormat" Id="NR-VOSOT" />
+            <Keys Field="DigitalCleared" Id="1" />
+            <Keys Field="ArabicSlug" Id="كرة قدم: السد" />
+            <Keys Field="approvidermetadata" Id="SOC QS SADD 20190920SH" />
+          </ForeignKeys>
+          <ForeignKeys System="VideoHubG2">
+            <Keys Field="service" Id="apservicecode:sntvArabic" />
+            <Keys Field="approvidermetadata" Id="SOC QS SADD 20190920SH" />
+            <Keys Field="newsitemguid" Id="5198469-text" />
+          </ForeignKeys>
+        </FilingMetadata>
+        <PublicationComponent MediaType="Text" Role="Main">
+          <TextContentItem ArrivedInFilingId="c5ef940ebef64b20bc0232e0840d3579" Id="da07cd855ca2428696b4681efbb17554">
+            <DataContent>
+              <nitf>
+                <body.content>
+                  <block>
+                    <p>STORY: كرة قدم: السد - السد يحقق انتصاره الثالث تواليا في دوري نجوم قطر على حساب أم صلال </p>
+                    <p>LENGTH: 02:03</p>
+                    <p>FIRST RUN: </p>
+                    <p>RESTRICTIONS: SNTV Clients Only, See Script</p>
+                    <p>TYPE: Nat sound</p>
+                    <p>SOURCE: Al Kass</p>
+                    <p>STORY NUMBER: 5198469</p>
+                    <p>DATELINE: 20th September 2019 - Al Wakrah, Qatar</p>
+                    <p />
+                    <p />
+                    <p>كرة قدم: السد</p>
+                    <p>الرجاء مراجعة قيود البث والنشر أدناه قبل استخدام الموضوع</p>
+                    <p>RESTRICTIONS: SNTV clients only. Use on broadcast and digital channels, including social. Available worldwide. Use within 14 days. All usage subject to rights licensed in contract. For any questions regarding rights restrictions please contact planning@sntv.com. </p>
+                    <p>SHOTLIST: Al Janoub Stadium, Al Wakrah, Qatar. 20th September, 2019.</p>
+                    <p>Al Sadd (blue) vs Umm Salal (black)</p>
+                    <p>1. 00:00 Players shaking hands before the game</p>
+                    <p>2. 00:10 Al Sadd's coach Xavi Hernandez</p>
+                    <p>3. 00:16 GOAL: Yannick Sagbo opens the scoring for Umm Salal, 9th minute, 0-1</p>
+                    <p>4. 00:47 Replay of Sagbo's goal </p>
+                    <p>5. 00:53 GOAL: Akram Afif equalises for Al Sadd,19th minute, 1-1</p>
+                    <p>6. 01:17 Various replays of Afif's goal </p>
+                    <p>7. 01:29 Slo-mo of penalty incident with Al Sadd's Baghdad Bounedjah going down under Adil Rhaili's challenge, 33rd minute</p>
+                    <p>8. 01:35 GOAL: Baghdad Bounedjah converts the penalty, 34th minute, 2-1</p>
+                    <p>9. 01:53 Hassan Al Haydous misses a chance, 90+2nd minute</p>
+                    <p>SOURCE: Al Kass TV</p>
+                    <p>DURATION: 02:03</p>
+                    <p>نص مقترح:</p>
+                    <p>حقق السد انتصاره الثالث تواليا في دوري نجوم قطر بعد فوزه على أم صلال بهدفين لواحد في الجولة الرابعة.</p>
+                    <p>في ملعب الجنوب المونديالي واجه السد فريق أم صلال لحساب الجولة الرابعة لدوري نجوم قطر لكرة القدم وعينه على الانتصار الثالث تواليا </p>
+                    <p>السد الذي له مباراة مؤجلة تلقى هدفا مبكرا صنعه السوري محمود المواس وسجله الإيفواري يانيك ساغبو في الدقيقة التاسعة</p>
+                    <p>تقدم أم صلال لم يدم سوى عشر دقائق حتى أدرك بعدها أكرم عفيف التعادل لحامل لقب الدوري </p>
+                    <p>بعدها تحصل السد على ركلة جزاء بعد سقوط الجزائري بغداد بونجاح في منطقة الجزاء إثر عرقلة المغربي عادل رحيلي</p>
+                    <p>بونجاح انبرى للركلة وسجل منها الهدف الثاني في الدقيقة الرابعة والثلاثين </p>
+                    <p>في الشوط الثاني لم تتغير النتيجة رغم محاولات الفريقين وانتصر السد بهدفين لواحد ورفع رصيده لتسع نقاط فيما تجمد رصيد أم صلال عند نقطة وحيدة </p>
+                  </block>
+                </body.content>
+              </nitf>
+            </DataContent>
+            <Characteristics FileExtension="xml" Format="NITF" MimeType="text/xml" SizeInBytes="1766">
+              <Words>294</Words>
+            </Characteristics>
+          </TextContentItem>
+        </PublicationComponent>
+        <PublicationComponent MediaType="Text" Role="Caption">
+          <TextContentItem ArrivedInFilingId="c5ef940ebef64b20bc0232e0840d3579" Id="c7b5dcab77dc4d90bb918653b482a0f8">
+            <DataContent>
+              <nitf>
+                <body.content>
+                  <block>
+                    <p>السد يحقق انتصاره الثالث تواليا في دوري نجوم قطر على حساب أم صلال </p>
+                  </block>
+                </body.content>
+              </nitf>
+            </DataContent>
+            <Characteristics FileExtension="xml" Format="NITF" MimeType="text/xml" SizeInBytes="66">
+              <Words>11</Words>
+            </Characteristics>
+          </TextContentItem>
+        </PublicationComponent>
+      </Publication>
+    

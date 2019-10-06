@@ -1,0 +1,201 @@
+<Publication xmlns="http://ap.org/schemas/03/2005/appl" Version="5.1.5">
+        <Identification>
+          <ItemId>000f83997f6c44cb961613d0c848175c</ItemId>
+          <RecordId>9b4bae49ced349a28ca5baf4c8b2d922</RecordId>
+          <CompositeId>523c12fe70e142bb8cadbda37a8afe71</CompositeId>
+          <CompositionType>StandardText</CompositionType>
+          <MediaType>Text</MediaType>
+          <Priority>4</Priority>
+          <EditorialPriority>r</EditorialPriority>
+          <DefaultLanguage>es</DefaultLanguage>
+          <RecordSequenceNumber>0</RecordSequenceNumber>
+          <FriendlyKey>157385048240232</FriendlyKey>
+        </Identification>
+        <PublicationManagement>
+          <RecordType>Change</RecordType>
+          <FilingType>Text</FilingType>
+          <IsDistributionReady>true</IsDistributionReady>
+          <ArrivalDateTime>2019-09-24T14:57:42</ArrivalDateTime>
+          <FirstCreated Day="24" Month="9" Time="16:03:35" Year="2019" />
+          <Status>Usable</Status>
+          <ReleaseDateTime>2019-09-24T14:57:46</ReleaseDateTime>
+          <ItemStartDateTime>2019-09-24T14:57:46</ItemStartDateTime>
+          <ItemStartDateTimeActual>2019-09-24T14:57:46</ItemStartDateTimeActual>
+        </PublicationManagement>
+        <NewsLines>
+          <Title>Las Comunidades piden a Turismo incentivos fiscales y ayudas al sector tras la quiebra de Thomas Cook</Title>
+          <HeadLine>Las Comunidades piden a Turismo incentivos fiscales y ayudas al sector tras la quiebra de Thomas Cook</HeadLine>
+          <OriginalHeadLine>Las Comunidades piden a Turismo incentivos fiscales y ayudas al sector tras la quiebra de Thomas Cook</OriginalHeadLine>
+          <DateLine>MADRID</DateLine>
+          <CopyrightLine>Europa Press</CopyrightLine>
+        </NewsLines>
+        <AdministrativeMetadata>
+          <Provider Id="z00005" Type="ThirdParty">Europa Press</Provider>
+          <Source City="Barcelona" Country="ESP" Id="z00005" Type="ThirdParty" Url="http://www.europapress.es/">Europa Press</Source>
+          <TransmissionSource>NotMemberFeed</TransmissionSource>
+          <TransmissionSource>IngestionManager</TransmissionSource>
+          <TransmissionSource>Monarch</TransmissionSource>
+          <TransmissionSource>JagRoars</TransmissionSource>
+          <ConsumerReady>TRUE</ConsumerReady>
+        </AdministrativeMetadata>
+        <RightsMetadata>
+          <Copyright Date="2019" Holder="Europa Press" />
+          <UsageRights>
+            <UsageType>APInternalOnly</UsageType>
+          </UsageRights>
+        </RightsMetadata>
+        <DescriptiveMetadata>
+          <DateLineLocation>
+            <City>Madrid</City>
+            <CountryAreaName>Madrid</CountryAreaName>
+            <CountryName>Spain</CountryName>
+            <LatitudeDD>40.416500000</LatitudeDD>
+            <LongitudeDD>-3.702560000</LongitudeDD>
+          </DateLineLocation>
+          <SubjectClassification Authority="AP Category Code" System="Editorial">
+            <Occurrence Id="i" Value="i" />
+          </SubjectClassification>
+          <ThirdPartyMeta Vocabulary="ExtendedDeskInfo" VocabularyOwner="http://cv.ap.org">
+            <Occurrence Id="IPTCFormat" Value="false" />
+            <Occurrence Id="InternalFormat" Value="36" />
+            <Occurrence Id="ExtendedFlags" Value="8192" />
+            <Occurrence Id="Routing" Value="europa" />
+          </ThirdPartyMeta>
+          <ThirdPartyMeta System="Editorial" Vocabulary="servicio" VocabularyOwner="europa">
+            <Occurrence Id="europaservicio:MA" Value="MA" />
+          </ThirdPartyMeta>
+          <ThirdPartyMeta System="Editorial" Vocabulary="seccion" VocabularyOwner="europa">
+            <Occurrence Id="europaseccion:POL" Value="POL" />
+          </ThirdPartyMeta>
+          <ThirdPartyMeta System="Editorial" Vocabulary="tipoinfo" VocabularyOwner="europa">
+            <Occurrence Id="europatipoinfo:PLT" Value="PLT" />
+          </ThirdPartyMeta>
+          <ThirdPartyMeta Vocabulary="IngestionManagerMetadata" VocabularyOwner="cv.ap.org">
+            <Occurrence Id="FeedID/2583" Value="2583" />
+            <Occurrence Id="FeedName/EuropaPressFeed" Value="Europa Press Feed" />
+            <Occurrence Id="TraceID/45b42900b29846ac8304d3c27d280a38.0.0" Value="45b42900b29846ac8304d3c27d280a38.0.0" />
+          </ThirdPartyMeta>
+        </DescriptiveMetadata>
+        <FilingMetadata>
+          <Id>088a380948364ce58e0f3f8b3c258804</Id>
+          <ArrivalDateTime>2019-09-24T14:57:42</ArrivalDateTime>
+          <Cycle>BC</Cycle>
+          <TransmissionContent>All</TransmissionContent>
+          <ServiceLevelDesignator>EUP</ServiceLevelDesignator>
+          <Selector>-----</Selector>
+          <Format>bx</Format>
+          <Source>europa</Source>
+          <Category>i</Category>
+          <SlugLine>Las Comunidades piden a Turismo incentivos fiscales y ayudas al sector tras la quiebra de Thomas Cook</SlugLine>
+          <Products>
+            <Product>101589</Product>
+            <Product>101588</Product>
+            <Product>101587</Product>
+            <Product>101586</Product>
+            <Product>101585</Product>
+            <Product>101583</Product>
+            <Product>101582</Product>
+            <Product>101581</Product>
+            <Product>101580</Product>
+            <Product>101579</Product>
+            <Product>101578</Product>
+            <Product>101577</Product>
+            <Product>101576</Product>
+            <Product>101574</Product>
+            <Product>101572</Product>
+            <Product>101571</Product>
+            <Product>101564</Product>
+            <Product>101547</Product>
+            <Product>101546</Product>
+            <Product>47102</Product>
+            <Product>47101</Product>
+            <Product>47100</Product>
+            <Product>46955</Product>
+            <Product>46954</Product>
+            <Product>46952</Product>
+            <Product>46950</Product>
+            <Product>46949</Product>
+            <Product>46946</Product>
+            <Product>46941</Product>
+            <Product>46549</Product>
+            <Product>46547</Product>
+            <Product>46546</Product>
+            <Product>46545</Product>
+            <Product>46399</Product>
+            <Product>46394</Product>
+            <Product>46393</Product>
+            <Product>46392</Product>
+            <Product>46391</Product>
+            <Product>46385</Product>
+            <Product>46384</Product>
+            <Product>46383</Product>
+            <Product>46379</Product>
+            <Product>46376</Product>
+            <Product>46365</Product>
+            <Product>46362</Product>
+            <Product>46313</Product>
+            <Product>46206</Product>
+            <Product>46205</Product>
+            <Product>46204</Product>
+            <Product>46203</Product>
+            <Product>46202</Product>
+            <Product>46201</Product>
+            <Product>46200</Product>
+            <Product>46197</Product>
+            <Product>46196</Product>
+            <Product>46181</Product>
+            <Product>46170</Product>
+            <Product>46168</Product>
+            <Product>46159</Product>
+            <Product>45956</Product>
+            <Product>45486</Product>
+            <Product>45147</Product>
+            <Product>44698</Product>
+            <Product>44653</Product>
+            <Product>43848</Product>
+            <Product>43618</Product>
+            <Product>43228</Product>
+            <Product>39333</Product>
+            <Product>37588</Product>
+            <Product>30016</Product>
+            <Product>3</Product>
+            <Product>1</Product>
+          </Products>
+          <ForeignKeys System="Europa">
+            <Keys Field="EntryId" Id="20190924160335" />
+            <Keys Field="ManagementId" Id="20190924160335" />
+          </ForeignKeys>
+        </FilingMetadata>
+        <PublicationComponent MediaType="Text" Role="Main">
+          <TextContentItem ArrivedInFilingId="088a380948364ce58e0f3f8b3c258804" Id="44691ede642e4698aabd2c8566a47258">
+            <DataContent>
+              <nitf>
+                <body.content>
+                  <block>
+                    <p>   MADRID, 24 (EUROPA PRESS)</p>
+                    <p>   Los Gobiernos de distintas Comunidades Autónomas han pedido este martes al Ministerio de Turismo que estudie la aprobación de ayudas e incentivos fiscales para las empresas del sector, especialmente hoteleras, afectadas por la quiebra del touroperador Thomas Cook.</p>
+                    <p>   El Ministerio se ha reunido con las consejerías del ramo en Madrid para abordar la situación. Por parte de Canarias, la consejera de Turismo, Yaiza Castilla, ha recordado que la empresa que ha cerrado supone más del 80 por ciento de las conexiones del archipiélago por lo que las islas afrontan "la mayor crisis turística del archipiélago".</p>
+                    <p>   Castilla ha pedido medidas urgentes para asegurar los vuelos a las puertas de la temporada alta en la Comunidad, que arranca el 1 de octubre, y que se estudie la posible exención de tasas aéreas o establecimiento de vuelos adicionales, siempre "con carácter excepcional y puntual conforme a la gravedad de la crisis".</p>
+                    <p>   La consejera ha hablado también de que se ayude al mantenimiento de puestos de trabajo, que se tomen medidas sobre la deuda y se planteen créditos ICO que ayuden a las empresas a superar la situación.</p>
+                    <p>   Pero especialmente, la responsable de Turismo de Canarias ha subrayad la importancia de que se ayude a los clientes afectados, "que tengan la sensación de España, de Canarias, de un destino de amabilidad, de seguridad, de confianza, que les haga regresar al archipiélago".</p>
+                    <p>   Sobre este mismo asunto ha incidido el secretario autonómico de Turismo de la Generalitat Valenciana, Francesc Colomer, para quien es importante generar la percepción de que España es un destino "seguro, fiable, que sabe tratar bien, mantener niveles siempre de hospitalidad".</p>
+                    <p>   En su opinión, la desaparición de este "histórico" del turismo se puede convertir así en "una oportunidad para que la Marca España salga fortalecida".</p>
+                    <p>   Colomer ha reclamado también al Ministerio que se trabaje en cubrir el hueco que deja Thomas Cook porque la demanda "va a persistir aunque esa intermediación desaparezca". En su opinión, el Gobierno tiene que trabajar para que ese hueco se cubra y que la industria turística no se resienta. Y en cuanto a los incentivos a las empresas, ha dicho que le parece una "opción plausible".</p>
+                    <p>BALEARES PIDE APOYO A LAS EMPRESAS</p>
+                    <p>   Más contundente sobre la necesidad de apoyo económico se ha mostrado el consejero de Turismo de Baleares, Iago Negueruela, para quien una situación excepcional requiere también medidas excepcionales. "Hablamos de la principal industria de Baleares y una de las principales de España. Esperamos del Gobierno mecanismos que den protección a empresas, que den tranquilidad, que ayuden a mantener la conectividad", ha dicho.</p>
+                    <p>   El consejero, que no ha querido adelantar las pérdidas causadas en Baleares por esta quiebra, ha pedido apoyo por ejemplo para muchos hoteles que no tienen asegurados los cobros y una "garantía para mantener las empresas".</p>
+                    <p>CATALUÑA ACUDE AL ENCUENTRO</p>
+                    <p>   Por parte de Cataluña, Octavi Bono, director general de Turismo, se ha sumado al encuentro pese a las reticencias de la Generalitat a participar en reuniones multilaterales con otras autonomías. Bono ha explicado que lo han hecho porque ven necesaria la "coordinación" en este caso y por poner en común datos.</p>
+                    <p>   En Cataluña, son unas 5.000 las personas que pueden estar afectadas por la quiebra de Thomas Cook y ha asegurado que se ha gestionado "con corrección" por parte de Aena la salida en varios vuelos de pasajeros. Con respecto a las pérdidas causadas en su comunidad, ha dicho que no será la misma que en otras autonomías porque en los últimos años "ha habido un ejercicio de redistribución del riesgo" y de la comercialización.</p>
+                    <p>   Por Andalucía, Manuel Muñoz, secretario general de Turismo, ha explicado que su gobierno trabaja para conocer el número de turistas que están en la comunidad afectados por la situación, "para que puedan volver a casa lo más rápido posible" y mantener "la reputación" de Andalucía como destino turístico.</p>
+                  </block>
+                </body.content>
+              </nitf>
+            </DataContent>
+            <Characteristics FileExtension="xml" Format="IIM" MimeType="text/xml" SizeInBytes="5037">
+              <Words>840</Words>
+            </Characteristics>
+          </TextContentItem>
+        </PublicationComponent>
+      </Publication>
+    

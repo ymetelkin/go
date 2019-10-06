@@ -172,7 +172,7 @@ func (ja *Array) SetParams(props map[string]value) (modified bool) {
 
 func setTextParams(s string, params map[string]value) (jv value, text string, modified bool) {
 	p := &parser{
-		r: strings.NewReader(s),
+		r: newReader(s),
 	}
 
 	var (

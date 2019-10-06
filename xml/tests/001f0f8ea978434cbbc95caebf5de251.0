@@ -1,0 +1,267 @@
+<Publication xmlns="http://ap.org/schemas/03/2005/appl" Version="5.3.0">
+        <Identification>
+          <ItemId>001f0f8ea978434cbbc95caebf5de251</ItemId>
+          <RecordId>001f0f8ea978434cbbc95caebf5de251</RecordId>
+          <CompositeId>00000000000000000000000000000000</CompositeId>
+          <CompositionType>StandardPrintPhoto</CompositionType>
+          <MediaType>Photo</MediaType>
+          <Priority>5</Priority>
+          <EditorialPriority>d</EditorialPriority>
+          <DefaultLanguage>en-us</DefaultLanguage>
+          <RecordSequenceNumber>0</RecordSequenceNumber>
+          <FriendlyKey>19263718046698</FriendlyKey>
+        </Identification>
+        <PublicationManagement>
+          <RecordType>Change</RecordType>
+          <FilingType>PrintPhoto</FilingType>
+          <ItemKey>Photo|SIPAPRE|Global climate strike in London, UK - 20 Sep 2019</ItemKey>
+          <IsDistributionReady>true</IsDistributionReady>
+          <ArrivalDateTime>2019-09-20T19:57:04</ArrivalDateTime>
+          <FirstCreated Day="20" Month="9" Time="19:56:47" Year="2019" />
+          <LastModifiedDateTime ToolVersion="ePix v20190725.2">2019-09-20T19:57:04</LastModifiedDateTime>
+          <Status>Usable</Status>
+          <SpecialInstructions>*** World Rights *** *** May not be licensed in Europe *** Minimum Rate Applies *** For editorial use only. Please contact your AP representative for commercial use. 27480570</SpecialInstructions>
+          <ItemStartDateTime>2019-09-20T19:57:04</ItemStartDateTime>
+          <ItemStartDateTimeActual>2019-09-20T19:57:04</ItemStartDateTimeActual>
+        </PublicationManagement>
+        <NewsLines>
+          <Title>Global climate strike in London, UK - 20 Sep 2019</Title>
+          <HeadLine>Global climate strike in London, UK - 20 Sep 2019</HeadLine>
+          <OriginalHeadLine>Global climate strike in London, UK - 20 Sep 2019</OriginalHeadLine>
+          <ByLine Id="CTR" Parametric="PHOTOGRAPHER" Title="CONTRIBUTOR">Andres Pantoja / SOPA Images</ByLine>
+          <ByLine Parametric="CAPTIONWRITER" Title="Caption Writer">Andres Pantoja</ByLine>
+          <OverLine>Global climate strike in London, UK - 20 Sep 2019</OverLine>
+          <CreditLine>Sipa USA via AP</CreditLine>
+          <CopyrightLine>Sipa USA</CopyrightLine>
+          <KeywordLine>fossil fuels</KeywordLine>
+          <KeywordLine>demand</KeywordLine>
+          <KeywordLine>urgent action</KeywordLine>
+          <KeywordLine>climate change</KeywordLine>
+          <KeywordLine>save</KeywordLine>
+          <KeywordLine>planet</KeywordLine>
+          <KeywordLine>climate</KeywordLine>
+          <KeywordLine>global warming</KeywordLine>
+          <KeywordLine>strike</KeywordLine>
+          <KeywordLine>protest</KeywordLine>
+          <KeywordLine>demo</KeywordLine>
+          <KeywordLine>demonstration</KeywordLine>
+          <KeywordLine>rally</KeywordLine>
+          <KeywordLine>demonstrator</KeywordLine>
+          <KeywordLine>protester</KeywordLine>
+          <KeywordLine>demonstrators</KeywordLine>
+          <KeywordLine>gas mask</KeywordLine>
+          <KeywordLine>sign</KeywordLine>
+          <KeywordLine>27480570</KeywordLine>
+        </NewsLines>
+        <AdministrativeMetadata>
+          <Provider>AP</Provider>
+          <Source Type="ThirdParty">SIPAPRE</Source>
+          <TransmissionSource>NotMemberFeed</TransmissionSource>
+          <TransmissionSource>ePix</TransmissionSource>
+          <TransmissionSource>LivePhoto</TransmissionSource>
+          <TransmissionSource>JagRoars</TransmissionSource>
+          <TransmissionSource>JagRoars</TransmissionSource>
+          <ProductSource>SIPA</ProductSource>
+          <ProductSource>NoRouting</ProductSource>
+          <ConsumerReady>True</ConsumerReady>
+          <Rating Creator="Inbound" RaterType="Editorial" Raters="1" ScaleMax="5" ScaleMin="1" ScaleUnit="Stars" Value="1" />
+          <Property Name="EAI:ROUTING" />
+        </AdministrativeMetadata>
+        <DescriptiveMetadata>
+          <DateLineLocation>
+            <City>London</City>
+            <CountryAreaName>GREATER LONDON</CountryAreaName>
+            <Country>GBR</Country>
+            <CountryName>UNITED KINGDOM</CountryName>
+            <LatitudeDD>51.508530000</LatitudeDD>
+            <LongitudeDD>-0.125740000</LongitudeDD>
+          </DateLineLocation>
+          <SubjectClassification Authority="AP Category Code" System="Editorial">
+            <Occurrence Id="A" Value="Domestic News" />
+          </SubjectClassification>
+          <SubjectClassification Authority="AP Supplemental Category Code" System="Editorial">
+            <Occurrence Id="'" Value="'" />
+          </SubjectClassification>
+          <SubjectClassification Authority="AP Subject" AuthorityVersion="7835" System="Teragram" SystemVersion="1">
+            <Occurrence ActualMatch="true" Count="8" Id="0e8cf338896510048024d56c852d093e" ParentId="2bae705e15fc487fba00746f63b682dc" Value="Protests and demonstrations" />
+          </SubjectClassification>
+          <SubjectClassification Authority="AP Subject" AuthorityVersion="7835" System="Teragram" SystemVersion="1">
+            <Occurrence ActualMatch="false" Id="2bae705e15fc487fba00746f63b682dc" ParentId="f25af2d07e4e100484f5df092526b43e" Value="Political and civil unrest" />
+          </SubjectClassification>
+          <SubjectClassification Authority="AP Subject" AuthorityVersion="7835" System="Teragram" SystemVersion="1">
+            <Occurrence ActualMatch="false" Id="f25af2d07e4e100484f5df092526b43e" TopParent="true" Value="General news" />
+          </SubjectClassification>
+          <SubjectClassification Authority="AP Subject" AuthorityVersion="7835" System="Teragram" SystemVersion="1">
+            <Occurrence ActualMatch="true" Count="14" Id="5cee087d041e4f3bb181f0a8d1c86627" ParentId="8783d248894710048286ba0a2b2ca13e" Value="Climate" />
+          </SubjectClassification>
+          <SubjectClassification Authority="AP Subject" AuthorityVersion="7835" System="Teragram" SystemVersion="1">
+            <Occurrence ActualMatch="false" Id="8783d248894710048286ba0a2b2ca13e" TopParent="true" Value="Environment and nature" />
+          </SubjectClassification>
+          <SubjectClassification Authority="AP Subject" AuthorityVersion="7835" System="Teragram" SystemVersion="1">
+            <Occurrence ActualMatch="true" Count="16" Id="26f2da8f387f4b6891fcbaa64c135e45" ParentId="22a65cf4682b44739e700d361791ee67" Value="Climate change" />
+          </SubjectClassification>
+          <SubjectClassification Authority="AP Subject" AuthorityVersion="7835" System="Teragram" SystemVersion="1">
+            <Occurrence ActualMatch="true" Count="9" Id="22a65cf4682b44739e700d361791ee67" ParentId="38284d5088e8100485efba0a2b2ca13e" Value="Environmental concerns" />
+          </SubjectClassification>
+          <SubjectClassification Authority="AP Subject" AuthorityVersion="7835" System="Teragram" SystemVersion="1">
+            <Occurrence ActualMatch="false" Id="38284d5088e8100485efba0a2b2ca13e" ParentId="8783d248894710048286ba0a2b2ca13e" Value="Environment" />
+          </SubjectClassification>
+          <SubjectClassification Authority="AP Subject" AuthorityVersion="7835" System="Teragram" SystemVersion="1">
+            <Occurrence ActualMatch="true" Count="16" Id="26f2da8f387f4b6891fcbaa64c135e45" ParentId="5cee087d041e4f3bb181f0a8d1c86627" Value="Climate change" />
+          </SubjectClassification>
+          <EntityClassification Authority="AP Party" System="Teragram" SystemVersion="1">
+            <Occurrence Count="1" Value="Andres Pantoja / SOPA Images">
+              <Property Name="PartyType" Value="PHOTOGRAPHER" />
+              <Position Phrase="Andres Pantoja / SOPA Images" Value="Publication/NewsLines/ByLine" />
+            </Occurrence>
+          </EntityClassification>
+          <EntityClassification Authority="AP Party" System="Teragram" SystemVersion="1">
+            <Occurrence Count="1" Value="Andres Pantoja">
+              <Property Name="PartyType" Value="CAPTIONWRITER" />
+              <Position Phrase="Andres Pantoja" Value="Publication/NewsLines/ByLine" />
+            </Occurrence>
+          </EntityClassification>
+          <EntityClassification Authority="AP Geography" AuthorityVersion="7798" System="Teragram" SystemVersion="1">
+            <Occurrence ActualMatch="true" Count="56" Id="66219fb07d5b100482e2c076b8e3055c" ParentId="6618c9f87d5b10048202c076b8e3055c" Value="United Kingdom">
+              <Property Id="01f56e0e654841eca2e69bf2cbcc0526" Name="LocationType" Permission="Premium" Value="Nation" />
+              <Property Name="CentroidLatitude" Permission="Premium" Value="54" />
+              <Property Name="CentroidLongitude" Permission="Premium" Value="-4" />
+            </Occurrence>
+          </EntityClassification>
+          <EntityClassification Authority="AP Geography" AuthorityVersion="7798" System="Teragram" SystemVersion="1">
+            <Occurrence ActualMatch="false" Id="6618c9f87d5b10048202c076b8e3055c" ParentId="661850e07d5b100481f4c076b8e3055c" Value="Western Europe">
+              <Property Id="424cdfcd69d64fa6869055f7ebf10be4" Name="LocationType" Permission="Premium" Value="World region" />
+            </Occurrence>
+          </EntityClassification>
+          <EntityClassification Authority="AP Geography" AuthorityVersion="7798" System="Teragram" SystemVersion="1">
+            <Occurrence ActualMatch="false" Id="661850e07d5b100481f4c076b8e3055c" TopParent="true" Value="Europe">
+              <Property Id="976d112cd5c3497ea180aeecab922c6b" Name="LocationType" Permission="Premium" Value="Continent" />
+              <Property Name="CentroidLatitude" Permission="Premium" Value="48.69096" />
+              <Property Name="CentroidLongitude" Permission="Premium" Value="9.14062" />
+            </Occurrence>
+          </EntityClassification>
+          <EntityClassification Authority="AP Geography" AuthorityVersion="7798" System="Teragram" SystemVersion="1">
+            <Occurrence ActualMatch="true" Count="30" Id="7a55e0187eff10048492df092526b43e" ParentId="df4691387d6b10048fdeba7fa5283c3e" Value="London">
+              <Property Id="9d26a20b35f0484a891740f8189d4c7b" Name="LocationType" Permission="Premium" Value="City" />
+              <Property Name="CentroidLatitude" Permission="Premium" Value="51.50853" />
+              <Property Name="CentroidLongitude" Permission="Premium" Value="-0.12574" />
+            </Occurrence>
+          </EntityClassification>
+          <EntityClassification Authority="AP Geography" AuthorityVersion="7798" System="Teragram" SystemVersion="1">
+            <Occurrence ActualMatch="false" Id="df4691387d6b10048fdeba7fa5283c3e" ParentId="66219fb07d5b100482e2c076b8e3055c" Value="England">
+              <Property Id="d83e15f769714aab9d49a03eab919128" Name="LocationType" Permission="Premium" Value="Constituent country" />
+              <Property Name="CentroidLatitude" Permission="Premium" Value="52.16045" />
+              <Property Name="CentroidLongitude" Permission="Premium" Value="-0.70312" />
+            </Occurrence>
+          </EntityClassification>
+        </DescriptiveMetadata>
+        <FilingMetadata>
+          <Id>50f2b186914e45338b553f71f7055c4e</Id>
+          <ArrivalDateTime>2019-09-20T19:57:04</ArrivalDateTime>
+          <Cycle>AP</Cycle>
+          <TransmissionReference>SIPAPRE</TransmissionReference>
+          <TransmissionContent>All</TransmissionContent>
+          <Selector>-----</Selector>
+          <Source>SIPAPRE</Source>
+          <Category>A</Category>
+          <SlugLine>Global climate strike in London, UK - 20 Sep 2019</SlugLine>
+          <Products>
+            <Product>101589</Product>
+            <Product>101588</Product>
+            <Product>101587</Product>
+            <Product>101586</Product>
+            <Product>101585</Product>
+            <Product>101583</Product>
+            <Product>101582</Product>
+            <Product>101581</Product>
+            <Product>101580</Product>
+            <Product>101579</Product>
+            <Product>101578</Product>
+            <Product>101577</Product>
+            <Product>101576</Product>
+            <Product>101574</Product>
+            <Product>101572</Product>
+            <Product>101571</Product>
+            <Product>101564</Product>
+            <Product>101551</Product>
+            <Product>101536</Product>
+            <Product>46971</Product>
+            <Product>46199</Product>
+            <Product>46198</Product>
+            <Product>46174</Product>
+            <Product>46170</Product>
+            <Product>46160</Product>
+            <Product>45956</Product>
+            <Product>45882</Product>
+            <Product>45656</Product>
+            <Product>45486</Product>
+            <Product>45148</Product>
+            <Product>44696</Product>
+            <Product>44695</Product>
+            <Product>44569</Product>
+            <Product>43848</Product>
+            <Product>39342</Product>
+            <Product>37585</Product>
+            <Product>30015</Product>
+            <Product>10092</Product>
+            <Product>10003</Product>
+            <Product>10</Product>
+            <Product>2</Product>
+            <Product>1</Product>
+          </Products>
+          <ForeignKeys System="ePix">
+            <Keys Field="PublicationItem" Id="001f0f8ea978434cbbc95caebf5de251" />
+            <Keys Field="PublicationRecord" Id="001f0f8ea978434cbbc95caebf5de251" />
+          </ForeignKeys>
+        </FilingMetadata>
+        <PublicationComponent MediaType="Photo" Role="Main">
+          <PhotoContentItem ArrivedInFilingId="50f2b186914e45338b553f71f7055c4e" BinaryPath="None" Href="\\nyceapxfilevr.dmzext.local\repository\main\2019\20190920\19\e679eee1469d45c8b5ed8afea40d5b09.jpg" Id="e679eee1469d45c8b5ed8afea40d5b09">
+            <BinaryLocation BinaryPath="Akamai" Sequence="0">None</BinaryLocation>
+            <BinaryLocation BinaryPath="URL" Sequence="1" To="9999-12-31T23:59:59">http://mrs.appl.qa.s3.amazonaws.com/001f0f8ea978434cbbc95caebf5de251/components/versions/secured/main-v00.jpg</BinaryLocation>
+            <Characteristics Digest="ce92fc9db4798f628ec200b4a57fad48" FileExtension="jpg" Format="JPEG Baseline" MimeType="image/jpeg" OriginalFileName="Global_climate_strike_in_London,_UK_-_20_Sep_2019_46698.jpg" SizeInBytes="3640210">
+              <Width>3008</Width>
+              <Height>2000</Height>
+              <PhotoType>Horizontal</PhotoType>
+            </Characteristics>
+          </PhotoContentItem>
+        </PublicationComponent>
+        <PublicationComponent MediaType="Photo" Role="Preview">
+          <PhotoContentItem ArrivedInFilingId="50f2b186914e45338b553f71f7055c4e" BinaryPath="None" Href="\\nyceapxfilevr.dmzext.local\repository\preview\2019\20190920\19\a4140e29a15747debd4c2a148df5aaca.jpg" Id="a4140e29a15747debd4c2a148df5aaca">
+            <BinaryLocation BinaryPath="Akamai" Sequence="0">None</BinaryLocation>
+            <BinaryLocation BinaryPath="URL" Sequence="1" To="9999-12-31T23:59:59">http://mrs.appl.qa.s3.amazonaws.com/001f0f8ea978434cbbc95caebf5de251/components/versions/preview-v00.jpg</BinaryLocation>
+            <Characteristics Digest="c1e337b8f15ba167d000f3a8126c76c8" FileExtension="jpg" Format="JPEG Baseline" MimeType="image/jpeg" OriginalFileName="Global_climate_strike_in_London,_UK_-_20_Sep_2019_46698.jpg" SizeInBytes="60083">
+              <Width>512</Width>
+              <Height>340</Height>
+              <PhotoType>Horizontal</PhotoType>
+            </Characteristics>
+          </PhotoContentItem>
+        </PublicationComponent>
+        <PublicationComponent MediaType="Photo" Role="Thumbnail">
+          <PhotoContentItem ArrivedInFilingId="50f2b186914e45338b553f71f7055c4e" BinaryPath="None" Href="\\nyceapxfilevr.dmzext.local\repository\thumbnail\2019\20190920\19\59572c7a35b74be8bb06468f6b80d6fd.jpg" Id="59572c7a35b74be8bb06468f6b80d6fd">
+            <BinaryLocation BinaryPath="Akamai" Sequence="0">None</BinaryLocation>
+            <BinaryLocation BinaryPath="URL" Sequence="1" To="9999-12-31T23:59:59">http://mrs.appl.qa.s3.amazonaws.com/001f0f8ea978434cbbc95caebf5de251/components/versions/thumbnail-v00.jpg</BinaryLocation>
+            <Characteristics Digest="06612a27010839386369346633239b9c" FileExtension="jpg" Format="JPEG Baseline" MimeType="image/jpeg" OriginalFileName="Global_climate_strike_in_London,_UK_-_20_Sep_2019_46698.jpg" SizeInBytes="10475">
+              <Width>125</Width>
+              <Height>83</Height>
+              <PhotoType>Horizontal</PhotoType>
+            </Characteristics>
+          </PhotoContentItem>
+        </PublicationComponent>
+        <PublicationComponent MediaType="Text" Role="Caption">
+          <TextContentItem ArrivedInFilingId="50f2b186914e45338b553f71f7055c4e" Id="cb7bf067de684e5fbde3261fb881418e">
+            <DataContent>
+              <nitf>
+                <body.content>
+                  <block>
+                    <p>A protester wearing a gas mask holds a STOP sign during the demonstration. Adult and youth walking out of work and schools to demand for an end to the use of fossil fuels and demanding urgent action on climate change to save the planet. (Photo by Andres Pantoja / SOPA Images/Sipa USA)(Sipa via AP Images)</p>
+                  </block>
+                </body.content>
+              </nitf>
+            </DataContent>
+            <Characteristics FileExtension="xml" Format="NITF" MimeType="text/xml" SizeInBytes="305">
+              <Words>55</Words>
+            </Characteristics>
+          </TextContentItem>
+        </PublicationComponent>
+      </Publication>
+    
