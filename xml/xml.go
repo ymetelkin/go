@@ -38,7 +38,7 @@ func ParseString(xml string) (Node, error) {
 	}
 
 	xp := &xParser{
-		r: strings.NewReader(xml),
+		r: newReader(xml),
 	}
 
 	return xp.Parse()
