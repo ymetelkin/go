@@ -8,7 +8,7 @@ import (
 
 //Object represents JSON object
 type Object struct {
-	names      []string	
+	names      []string
 	pnames     map[string]int
 	Properties map[string]value
 }
@@ -267,6 +267,51 @@ func (jo *Object) IsEmpty() bool {
 //Names returns all field names
 func (jo *Object) Names() []string {
 	return jo.names
+}
+
+//Matches compares two objects
+func (jo *Object) Matches(other *Object) (match bool, s string) {
+	if jo == nil {
+		s = "Left is nil"
+		return
+	}
+	if other == nil {
+		s = "Right is nil"
+		return
+	}
+
+	props := make(map[string][]value)
+
+	for k, l := range jo.Properties {
+		r, ok := other.Properties[k]
+		if ok {
+			props[k] = []value{l, r}
+		} else {
+			s = fmt.Sprintf("Extra property: %s", k)
+			return
+		}
+	}
+
+	for k := range other.Properties {
+		_, ok := jo.Properties[k]
+		if !ok {
+			s = fmt.Sprintf("Missing property: %s", k)
+			return
+		}
+	}
+
+	for k, v := range props {
+		l := &v[0]
+		r := &v[1]
+		match, s = l.Matches(r)
+		if !match {
+			s = fmt.Sprintf("Mismatched property \"%s\": %s", k, s)
+			return
+		}
+	}
+
+	match = true
+	return
 }
 
 //ToString returns pretty serialization

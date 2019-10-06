@@ -62,7 +62,6 @@ type Document struct {
 	Rightsline              string
 	Seriesline              string
 	OutCue                  string
-	Namelines               []Nameline
 	Locationline            string
 	Provider                *Provider
 	Creator                 string
@@ -77,6 +76,7 @@ type Document struct {
 	Workgroup               string
 	DistributionChannels    []string
 	InPackages              []string
+	ConsumerReady           string
 	EditorialRole           string
 	Fixture                 *CodeName
 	Ratings                 []Rating
@@ -95,6 +95,7 @@ type Document struct {
 	Events                  []Event
 	Audiences               []CodeNameTitle
 	Services                []CodeName
+	Perceptions             []Perception
 	ThirdParties            []ThirdParty
 	Filings                 []Filing
 	Story                   *Text
@@ -129,6 +130,7 @@ type FirstCreated struct {
 	Minute int
 	Second int
 	Date   *time.Time
+	Time   string
 	User   *UserAccount
 }
 
@@ -180,12 +182,6 @@ type Copyright struct {
 	Notice string
 	Holder string
 	Year   int
-}
-
-//Nameline struct
-type Nameline struct {
-	Name       string
-	IsFeatured bool
 }
 
 //Provider struct
@@ -276,21 +272,23 @@ type Subject struct {
 
 //Person struct
 type Person struct {
-	Code    string
-	Name    string
-	Creator string
-	Rels    []string
-	Types   []string
-	IDs     []string
-	Teams   []CodeName
-	States  []CodeName
-	Events  []CodeName
-	rels    uniqueStrings
-	types   uniqueStrings
-	ids     uniqueStrings
-	teams   uniqueCodeNames
-	states  uniqueCodeNames
-	events  uniqueCodeNames
+	Code       string
+	Name       string
+	Creator    string
+	IsNameline bool
+	IsFeatured bool
+	Rels       []string
+	Types      []string
+	IDs        []string
+	Teams      []CodeName
+	States     []CodeName
+	Events     []CodeName
+	rels       uniqueStrings
+	types      uniqueStrings
+	ids        uniqueStrings
+	teams      uniqueCodeNames
+	states     uniqueCodeNames
+	events     uniqueCodeNames
 }
 
 //Company struct
@@ -330,6 +328,14 @@ type Event struct {
 	ExternalIDs []CodeName
 	Properties  []CodeName
 	props       uniqueCodeNames
+}
+
+//Perception struct
+type Perception struct {
+	Code    string
+	Name    string
+	Creator string
+	Rel     string
 }
 
 //ThirdParty struct
@@ -484,6 +490,7 @@ func (doc *Document) parse() (err error) {
 
 	doc.setReferenceID()
 	doc.setHeadline()
+	doc.parseNewsContent()
 
 	return
 }

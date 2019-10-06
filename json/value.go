@@ -177,12 +177,16 @@ func (jv *value) GetInt() (int, error) {
 }
 
 func (jv *value) GetFloat() (float64, error) {
-	if jv.Type == jsonFloat || jv.Type == jsonInt {
+	if jv.Type == jsonFloat {
 		f, ok := jv.Value.(float64)
 		if ok {
 			return f, nil
 		}
-		return 0, fmt.Errorf("Unsupported integer type: %T", jv.Value)
+	} else if jv.Type == jsonInt {
+		i, ok := jv.Value.(int)
+		if ok {
+			return float64(i), nil
+		}		
 	} else if jv.Type == jsonString {
 		s, ok := jv.Value.(string)
 		if ok {
@@ -247,6 +251,60 @@ func (jv *value) GetArray() (Array, error) {
 	}
 
 	return Array{}, fmt.Errorf("Unsupported value type: %d", jv.Type)
+}
+
+func (jv *value) Matches(other *value) (match bool, s string) {
+	tp := jv.Type
+	if tp != other.Type {
+		if (tp == jsonInt && other.Type == jsonFloat) || (tp == jsonFloat && other.Type == jsonInt) {
+			tp = jsonFloat
+		} else {
+			s = fmt.Sprintf("Type mismatch: [ %v ] vs [ %v ]", jv.Type, other.Type)
+			return
+		}
+	}
+
+	switch tp {
+	case jsonString:
+		lv, _ := jv.GetString()
+		rv, _ := other.GetString()
+		if lv != rv {
+			s = fmt.Sprintf("String mismatch: [ %v ] vs [ %v ]", lv, rv)
+			return
+		}
+	case jsonInt:
+		lv, _ := jv.GetInt()
+		rv, _ := other.GetInt()
+		if lv != rv {
+			s = fmt.Sprintf("Integer mismatch: [ %v ] vs [ %v ]", lv, rv)
+			return
+		}
+	case jsonBool:
+		lv, _ := jv.GetBool()
+		rv, _ := other.GetBool()
+		if lv != rv {
+			s = fmt.Sprintf("Boolean mismatch: [ %v ] vs [ %v ]", lv, rv)
+			return
+		}
+	case jsonFloat:
+		lv, _ := jv.GetFloat()
+		rv, _ := other.GetFloat()
+		if lv != rv {
+			s = fmt.Sprintf("Float mismatch: [ %v ] vs [ %v ]", lv, rv)
+			return
+		}
+	case jsonObject:
+		lv, _ := jv.GetObject()
+		rv, _ := other.GetObject()
+		return lv.Matches(&rv)
+	case jsonArray:
+		lv, _ := jv.GetArray()
+		rv, _ := other.GetArray()
+		return lv.Matches(&rv)
+	}
+
+	match = true
+	return
 }
 
 func (jv *value) String(pretty bool, level int) string {

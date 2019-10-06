@@ -64,8 +64,22 @@ func TestFilings(t *testing.T) {
 			<Product>3</Product>
 			<Product>1</Product>
 		</Products>
-		<ForeignKeys System="Desk">
-		<Keys Id="DB6KLMU01" Field="AccessionNumber"></Keys>
+		<ForeignKeys System="Story">
+			<Keys Field="ID" Id="Qtst147558" />
+		</ForeignKeys>
+		<ForeignKeys System="mosPayload">
+			<Keys Field="StoryNumber" Id="Qtst147558" />
+			<Keys Field="MOSObjSlugs" Id="08-05T1359_gvw 1359-1458" />
+			<Keys Field="MOSItemDurations" Id="20" />
+			<Keys Field="StoryFormat" Id="NR-VO" />
+			<Keys Field="approvidermetadata" Id="Video_Heartbeat_efd58abf-5d4a-488b-b685-1c5e08242756" />
+		</ForeignKeys>
+		<ForeignKeys System="VideoHubG2">
+			<Keys Field="service" Id="apservicecode:videoheartbeat" />
+			<Keys Field="service" Id="apservicecode:1" />
+			<Keys Field="service" Id="apservicecode:International" />
+			<Keys Field="approvidermetadata" Id="Video_Heartbeat_efd58abf-5d4a-488b-b685-1c5e08242756" />
+			<Keys Field="newsitemguid" Id="Qtst147558-text" />
 		</ForeignKeys>
 		<FilingCountry>United States</FilingCountry>
 		<FilingSubject>General</FilingSubject>

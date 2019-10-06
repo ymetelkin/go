@@ -338,3 +338,194 @@ func TestVideoContentItem(t *testing.T) {
 		t.Error("Invalid Renditions")
 	}
 }
+
+func TestRandom(t *testing.T) {
+	s := `
+  <Publication>
+  <PublicationComponent MediaType="Text" Role="Main">
+    <TextContentItem ArrivedInFilingId="19dca1475f1942fda35c61f336b29de0" Id="83380d0d5e534163a1045898efcb33bb">
+      <DataContent>
+        <nitf>
+          <head>
+            <meta content="1" name="fid" />
+            <docdata>
+              <du-key key="AP-Scorecard" />
+            </docdata>
+          </head>
+          <body>
+            <body.head>
+              <hedline>
+                <hl1 id="headline">AP-Scorecard</hl1>
+              </hedline>
+              <byline>By The Associated Press</byline>
+              <distributor>The Associated Press</distributor>
+            </body.head>
+            <body.content>
+              <block class="block-lead">
+                <p class="lead" lede="true">Here are the latest scores from today's sports events:</p>
+                <p class="text-divider">___</p>
+              </block>
+              <block class="upcoming-cycle-block" id="upcoming-cycle-block-interleague-baseball">
+                <hl2 class="table-title">INTERLEAGUE</hl2>
+                <table class="scheduled" id="interleague-baseball-notstarted">
+                  <tbody>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Atlanta</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">Kansas City</td>
+                      <td class="col-event-start-time">8:15 p.m.</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p class="text-divider">___</p>
+              </block>
+              <block class="upcoming-cycle-block" id="upcoming-cycle-block-americanleague-baseball">
+                <hl2 class="table-title">AMERICAN LEAGUE</hl2>
+                <table class="scheduled" id="americanleague-baseball-notstarted">
+                  <tbody>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Minnesota</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">Detroit</td>
+                      <td class="col-event-start-time">6:40 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Baltimore</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">Toronto</td>
+                      <td class="col-event-start-time">7:07 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">N-Y Yankees</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">Tampa Bay</td>
+                      <td class="col-event-start-time">7:10 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Boston</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">Texas</td>
+                      <td class="col-event-start-time">8:05 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Cleveland</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">Chi White Sox</td>
+                      <td class="col-event-start-time">8:10 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Oakland</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">L-A Angels</td>
+                      <td class="col-event-start-time">10:07 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Houston</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">Seattle</td>
+                      <td class="col-event-start-time">10:10 p.m.</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p class="text-divider">___</p>
+              </block>
+              <block class="upcoming-cycle-block" id="upcoming-cycle-block-nationalleague-baseball">
+                <hl2 class="table-title">NATIONAL LEAGUE</hl2>
+                <table class="scheduled" id="nationalleague-baseball-notstarted">
+                  <tbody>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Milwaukee</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">Cincinnati</td>
+                      <td class="col-event-start-time">6:40 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Chi Cubs</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">Pittsburgh</td>
+                      <td class="col-event-start-time">7:05 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Philadelphia</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">Washington</td>
+                      <td class="col-event-start-time">7:05 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Miami</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">N-Y Mets</td>
+                      <td class="col-event-start-time">7:10 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">St. Louis</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">Arizona</td>
+                      <td class="col-event-start-time">9:40 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Colorado</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">San Francisco</td>
+                      <td class="col-event-start-time">9:45 p.m.</td>
+                    </tr>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">L-A Dodgers</td>
+                      <td class="col-text">at</td>
+                      <td class="col-name-hometeam">San Diego</td>
+                      <td class="col-event-start-time">10:10 p.m.</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <table class="on-going" id="upcoming-cycle-nationalleague-baseball">
+                  <tbody>
+                    <tr>
+                      <td class="col-event-stage" />
+                      <td class="col-name-awayteam">Philadelphia</td>
+                      <td class="col-awayteam-score">1</td>
+                      <td class="col-name-hometeam">Washington</td>
+                      <td class="col-hometeam-score">0</td>
+                      <td class="col-messages">(Bot 2nd, 1st game)</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p class="text-divider">___</p>
+              </block>
+            </body.content>
+            <body.end />
+          </body>
+        </nitf>
+      </DataContent>
+      <Characteristics FileExtension="xml" Format="XHTML" MimeType="text/xml" />
+    </TextContentItem>
+  </PublicationComponent>
+</Publication>`
+
+	xml, err := xml.ParseString(s)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	doc := new(Document)
+
+	for _, nd := range xml.Nodes {
+		doc.parsePublicationComponent(nd, nil)
+	}
+
+	fmt.Println(doc.Story.Body)
+}

@@ -41,8 +41,8 @@ func TestNewslines(t *testing.T) {
 	if doc.Keywordlines[0] != "Vikings-Free Agency" {
 		t.Error("Invalid Keywordlines")
 	}
-	if doc.Namelines[0].Name != "Magdalena Neuner" {
-		t.Error("Invalid Persons.Nameline[0].Name")
+	if doc.Persons[0].Name != "Magdalena Neuner" {
+		t.Error("Invalid Persons.Persons[0].Name")
 	}
 	if doc.Bylines[0].By != "By DAVE CAMPBELL" {
 		t.Error("Invalid Bylines")

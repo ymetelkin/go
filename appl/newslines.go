@@ -50,11 +50,12 @@ func (doc *Document) parseNewsLines(node xml.Node) {
 			doc.OutCue = nd.Text
 		case "NameLine":
 			if nd.Text != "" {
-				person := Nameline{
+				person := Person{
 					Name:       nd.Text,
+					IsNameline: true,
 					IsFeatured: strings.EqualFold(nd.Attribute("Parametric"), "PERSON_FEATURED"),
 				}
-				doc.Namelines = append(doc.Namelines, person)
+				doc.Persons = append(doc.Persons, person)
 			}
 		case "LocationLine":
 			doc.Locationline = nd.Text
@@ -211,14 +212,14 @@ func (doc *Document) setBylines(bylines []xml.Node, bylinesoriginal []xml.Node) 
 
 func getBylineAttributes(nd xml.Node) (id string, title string, pm string) {
 	if nd.Attributes != nil {
-		for k, v := range nd.Attributes {
-			switch k {
+		for _, a := range nd.Attributes {
+			switch a.Name {
 			case "Id":
-				id = v
+				id = a.Value
 			case "Title":
-				title = v
+				title = a.Value
 			case "Parametric":
-				pm = v
+				pm = a.Value
 			}
 		}
 	}

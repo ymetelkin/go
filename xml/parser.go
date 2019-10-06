@@ -119,9 +119,8 @@ func (xp *xParser) Parse() (nd Node, err error) {
 
 func (xp *xParser) StartNode() (nd Node, closed bool, err error) {
 	var (
-		c    byte
-		sb   strings.Builder
-		exit bool
+		c  byte
+		sb strings.Builder
 	)
 
 	c, err = xp.SkipWS()
@@ -181,18 +180,25 @@ func (xp *xParser) StartNode() (nd Node, closed bool, err error) {
 			break
 		} else if c == '>' {
 			nd.Name = sb.String()
-			exit = true
-			break
+			return
+		} else if c == '/' {
+			c, err = xp.SkipWS()
+			if err != nil {
+				return
+			}
+			if c == '>' {
+				nd.Name = sb.String()
+				closed = true
+				return
+			}
+			err = fmt.Errorf("Expected '>', found '%c'", c)
+			return
 		} else if !isNodeName(c) {
 			err = fmt.Errorf("Expected alpha character, found '%c'", c)
 			return
 		} else {
 			sb.WriteByte(c)
 		}
-	}
-
-	if exit {
-		return
 	}
 
 	c, err = xp.SkipWS()
@@ -219,8 +225,6 @@ func (xp *xParser) StartNode() (nd Node, closed bool, err error) {
 		err = fmt.Errorf("Expected '>', found '%c'", c)
 		return
 	}
-
-	attrs := make(map[string]string)
 
 	sb.Reset()
 	sb.WriteByte(c)
@@ -259,7 +263,7 @@ func (xp *xParser) StartNode() (nd Node, closed bool, err error) {
 					return
 				}
 
-				attrs[name] = value
+				nd.Attributes = append(nd.Attributes, Attribute{Name: name, Value: value})
 
 				c, err = xp.SkipWS()
 				if err != nil {
@@ -296,19 +300,15 @@ func (xp *xParser) StartNode() (nd Node, closed bool, err error) {
 		}
 	}
 
-	if len(attrs) > 0 {
-		nd.Attributes = attrs
-	}
-
 	return
 }
 
 func (xp *xParser) EndNode(nd *Node) (err error) {
 	var (
-		c        byte
-		nodes    []Node
-		sb       strings.Builder
-		txt, nds bool
+		c          byte
+		nodes      []Node
+		sb, spaces strings.Builder
+		txt, nds   bool
 	)
 
 	c, err = xp.SkipWS()
@@ -392,7 +392,7 @@ func (xp *xParser) EndNode(nd *Node) (err error) {
 			}
 
 			if txt {
-				s, _ := n.InlineString()
+				s := n.InlineString()
 				sb.WriteString(s)
 
 				c, err = xp.r.ReadByte()
@@ -404,21 +404,22 @@ func (xp *xParser) EndNode(nd *Node) (err error) {
 				n.parent = nd
 				nodes = append(nodes, n)
 
-				c, err = xp.SkipWS()
+				c, spaces, err = xp.CheckWS()
 				if err != nil {
 					break
 				}
 			}
 		} else {
 			if nds {
-				for i, n := range nodes {
-					if i > 0 {
-						sb.WriteByte(' ')
-					}
-					s, _ := n.InlineString()
-					sb.WriteString(s)
+				for _, n := range nodes {
+					sb.WriteString(n.InlineString())
 				}
 				nds = false
+			}
+
+			if spaces.Len() > 0 {
+				sb.WriteString(spaces.String())
+				spaces.Reset()
 			}
 
 			sb.WriteByte(c)
@@ -448,6 +449,18 @@ func (xp *xParser) SkipWS() (c byte, err error) {
 		if err != nil || !isWS(c) {
 			break
 		}
+	}
+
+	return
+}
+
+func (xp *xParser) CheckWS() (c byte, sb strings.Builder, err error) {
+	for {
+		c, err = xp.r.ReadByte()
+		if err != nil || !isWS(c) {
+			break
+		}
+		sb.WriteByte(c)
 	}
 
 	return
@@ -521,10 +534,14 @@ func isAlpha(c byte) bool {
 	return true
 }
 
+func isDigit(c byte) bool {
+	return c >= '0' && c <= '9'
+}
+
 func isNodeName(c byte) bool {
-	return isAlpha(c) || c == '.' || c == '_' || c == '-'
+	return isAlpha(c) || c == '.' || c == '_' || c == '-' || isDigit(c)
 }
 
 func isAttribute(c byte) bool {
-	return isAlpha(c) || c == ':'
+	return isAlpha(c) || c == ':' || c == '_' || c == '-' || isDigit(c)
 }

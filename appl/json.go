@@ -2,6 +2,7 @@ package appl
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/ymetelkin/go/json"
@@ -51,11 +52,9 @@ func (doc *Document) JSON() (jo json.Object) {
 		if doc.Created.Date != nil {
 			jo.AddString("firstcreated", formatDate(*doc.Created.Date))
 		}
-		if doc.Created.User != nil {
-			ua := doc.Created.User.json()
-			if !ua.IsEmpty() {
-				jo.AddObject("firstcreator", ua)
-			}
+		ua := doc.Created.User.json(doc.Created)
+		if !ua.IsEmpty() {
+			jo.AddObject("firstcreator", ua)
 		}
 	}
 	if doc.Modified != nil {
@@ -63,7 +62,7 @@ func (doc *Document) JSON() (jo json.Object) {
 			jo.AddString("lastmodifieddatetime", formatDate(*doc.Modified.Date))
 		}
 		if doc.Modified.User != nil {
-			ua := doc.Modified.User.json()
+			ua := doc.Modified.User.json(nil)
 			if !ua.IsEmpty() {
 				jo.AddObject("lastmodifier", ua)
 			}
@@ -124,13 +123,15 @@ func (doc *Document) JSON() (jo json.Object) {
 	addStringArray("signals", doc.Signals, &jo)
 
 	//Newslines
-	jo.AddString("title", doc.Title)
-	jo.AddString("headline", doc.Headline)
+	if doc.Title != "" {
+		jo.AddString("title", strings.TrimSpace(doc.Title))
+	}
+	jo.AddString("headline", strings.TrimSpace(doc.Headline))
 	if doc.Summary != "" {
-		jo.AddString("summary", doc.Summary)
+		jo.AddString("summary", strings.TrimSpace(doc.Summary))
 	}
 	if doc.ExtendedHeadline != "" {
-		jo.AddString("headline_extended", doc.ExtendedHeadline)
+		jo.AddString("headline_extended", strings.TrimSpace(doc.ExtendedHeadline))
 	}
 	if doc.Bylines != nil && len(doc.Bylines) > 0 {
 		var ja json.Array
@@ -193,13 +194,6 @@ func (doc *Document) JSON() (jo json.Object) {
 	if doc.OutCue != "" {
 		jo.AddString("outcue", doc.OutCue)
 	}
-	if doc.Namelines != nil && len(doc.Namelines) > 0 {
-		var ja json.Array
-		for _, n := range doc.Namelines {
-			ja.AddObject(n.json())
-		}
-		jo.AddArray("person", ja)
-	}
 	if doc.Locationline != "" {
 		jo.AddString("locationline", doc.Locationline)
 	}
@@ -231,6 +225,9 @@ func (doc *Document) JSON() (jo json.Object) {
 	if doc.CanonicalLink != "" {
 		jo.AddString("canonicallink", doc.CanonicalLink)
 	}
+	if doc.WorkflowStatus != "" {
+		jo.AddString("workflowstatus", doc.WorkflowStatus)
+	}
 	addStringArray("transmissionsources", doc.TransmissionSources, &jo)
 	addStringArray("productsources", doc.ProductSources, &jo)
 	if doc.ItemContentType != nil {
@@ -247,6 +244,13 @@ func (doc *Document) JSON() (jo json.Object) {
 		jo.AddObject("fixture", doc.Fixture.json())
 	}
 	addStringArray("inpackages", doc.InPackages, &jo)
+	if doc.Ratings != nil && len(doc.Ratings) > 0 {
+		var ja json.Array
+		for _, r := range doc.Ratings {
+			ja.AddObject(r.json())
+		}
+		jo.AddArray("ratings", ja)
+	}
 
 	//RightsMetadata
 	if doc.UsageRights != nil && len(doc.UsageRights) > 0 {
@@ -322,6 +326,13 @@ func (doc *Document) JSON() (jo json.Object) {
 		}
 		jo.AddArray("services", ja)
 	}
+	if doc.Perceptions != nil && len(doc.Perceptions) > 0 {
+		var ja json.Array
+		for _, p := range doc.Perceptions {
+			ja.AddObject(p.json())
+		}
+		jo.AddArray("perceptions", ja)
+	}
 	if doc.ThirdParties != nil && len(doc.ThirdParties) > 0 {
 		var ja json.Array
 		for _, tp := range doc.ThirdParties {
@@ -364,7 +375,7 @@ func (doc *Document) JSON() (jo json.Object) {
 		jo.AddArray("renditions", ja)
 	}
 	if doc.Shots != nil {
-		last := len(doc.Shots)
+		last := len(doc.Shots) - 1
 		if last >= 0 {
 			if doc.Shots[last].EndTime == 0 && renditions {
 				for _, r := range doc.Renditions {
@@ -392,7 +403,39 @@ func (doc *Document) JSON() (jo json.Object) {
 	return
 }
 
-func (ua *UserAccount) json() (jo json.Object) {
+func (ua *UserAccount) json(fc *FirstCreated) (jo json.Object) {
+	if fc != nil {
+		if fc.Year > 0 {
+			jo.AddInt("year", fc.Year)
+		}
+		if fc.Month > 0 {
+			jo.AddInt("month", fc.Month)
+		}
+		if fc.Day > 0 {
+			jo.AddInt("day", fc.Day)
+		}
+		if fc.Time != "" {
+			var sb strings.Builder
+			if fc.Hour < 10 {
+				sb.WriteByte('0')
+			}
+			sb.WriteString(strconv.Itoa(fc.Hour))
+			sb.WriteByte(':')
+			if fc.Minute < 10 {
+				sb.WriteByte('0')
+			}
+			sb.WriteString(strconv.Itoa(fc.Minute))
+			sb.WriteByte(':')
+			if fc.Second < 10 {
+				sb.WriteByte('0')
+			}
+			sb.WriteString(strconv.Itoa(fc.Second))
+			jo.AddString("time", sb.String())
+			if ua == nil {
+				return
+			}
+		}
+	}
 	if ua.Name != "" {
 		jo.AddString("username", ua.Name)
 	}
@@ -428,7 +471,7 @@ func (ass *Association) json() (jo json.Object) {
 
 func (cn *CodeName) json() (jo json.Object) {
 	if cn.Code != "" {
-		jo.AddString("code", cn.Code)
+		jo.AddString("code", strings.ToLower(cn.Code))
 	}
 	if cn.Name != "" {
 		jo.AddString("name", cn.Name)
@@ -438,7 +481,7 @@ func (cn *CodeName) json() (jo json.Object) {
 
 func (cnt *CodeNameTitle) json() (jo json.Object) {
 	if cnt.Code != "" {
-		jo.AddString("code", cnt.Code)
+		jo.AddString("code", strings.ToLower(cnt.Code))
 	}
 	if cnt.Name != "" {
 		jo.AddString("name", cnt.Name)
@@ -451,7 +494,7 @@ func (cnt *CodeNameTitle) json() (jo json.Object) {
 
 func (bl *Byline) json() (jo json.Object) {
 	if bl.Code != "" {
-		jo.AddString("code", bl.Code)
+		jo.AddString("code", strings.ToLower(bl.Code))
 	}
 	jo.AddString("by", bl.By)
 	if bl.Title != "" {
@@ -463,20 +506,9 @@ func (bl *Byline) json() (jo json.Object) {
 	return
 }
 
-func (n *Nameline) json() (jo json.Object) {
-	jo.AddString("name", n.Name)
-	if n.IsFeatured {
-		var ja json.Array
-		ja.AddString("personfeatured")
-		jo.AddArray("rel", ja)
-	}
-	jo.AddString("creator", "Editorial")
-	return
-}
-
 func (p *Provider) json() (jo json.Object) {
 	if p.Code != "" {
-		jo.AddString("code", p.Code)
+		jo.AddString("code", strings.ToLower(p.Code))
 	}
 	if p.Type != "" {
 		jo.AddString("type", p.Type)
@@ -492,7 +524,7 @@ func (p *Provider) json() (jo json.Object) {
 
 func (s *Source) json() (jo json.Object) {
 	if s.Code != "" {
-		jo.AddString("code", s.Code)
+		jo.AddString("code", strings.ToLower(s.Code))
 	}
 	if s.City != "" {
 		jo.AddString("city", s.City)
@@ -523,7 +555,7 @@ func (s *Source) json() (jo json.Object) {
 
 func (s *SourceMaterial) json() (jo json.Object) {
 	if s.Code != "" {
-		jo.AddString("code", s.Code)
+		jo.AddString("code", strings.ToLower(s.Code))
 	}
 	if s.Type != "" {
 		jo.AddString("type", s.Type)
@@ -539,7 +571,7 @@ func (s *SourceMaterial) json() (jo json.Object) {
 
 func (ict *ItemContentType) json() (jo json.Object) {
 	if ict.Code != "" {
-		jo.AddString("code", ict.Code)
+		jo.AddString("code", strings.ToLower(ict.Code))
 	}
 	if ict.Creator != "" {
 		jo.AddString("creator", ict.Creator)
@@ -644,10 +676,13 @@ func (geo *Geo) json() (jo json.Object) {
 
 func (sbj *Subject) json() (jo json.Object) {
 	jo.AddString("scheme", "http://cv.ap.org/id/")
-	jo.AddString("code", sbj.Code)
+	jo.AddString("code", strings.ToLower(sbj.Code))
 	jo.AddString("name", sbj.Name)
 	if sbj.Creator != "" {
 		jo.AddString("creator", sbj.Creator)
+		if sbj.Creator == "Editorial" {
+			jo.AddString("editorial_subject", sbj.Name)
+		}
 	}
 	addStringArray("rels", sbj.Rels, &jo)
 	addStringArray("parentids", sbj.ParentIDs, &jo)
@@ -662,11 +697,23 @@ func (sbj *Subject) json() (jo json.Object) {
 }
 
 func (p *Person) json() (jo json.Object) {
+	if p.IsNameline {
+		jo.AddString("name", p.Name)
+		jo.AddString("creator", "Editorial")
+		if p.IsFeatured {
+			addStringArray("rels", []string{"personfeatured"}, &jo)
+			jo.AddString("person_featured", p.Name)
+		}
+		return
+	}
 	jo.AddString("scheme", "http://cv.ap.org/id/")
-	jo.AddString("code", p.Code)
+	jo.AddString("code", strings.ToLower(p.Code))
 	jo.AddString("name", p.Name)
 	if p.Creator != "" {
 		jo.AddString("creator", p.Creator)
+	}
+	if p.IsFeatured {
+		jo.AddString("person_featured", p.Name)
 	}
 	addStringArray("rels", p.Rels, &jo)
 	addStringArray("types", p.Types, &jo)
@@ -679,7 +726,7 @@ func (p *Person) json() (jo json.Object) {
 
 func (c *Company) json() (jo json.Object) {
 	jo.AddString("scheme", "http://cv.ap.org/id/")
-	jo.AddString("code", c.Code)
+	jo.AddString("code", strings.ToLower(c.Code))
 	jo.AddString("name", c.Name)
 	if c.Creator != "" {
 		jo.AddString("creator", c.Creator)
@@ -711,7 +758,7 @@ func (c *Company) json() (jo json.Object) {
 
 func (p *Place) json() (jo json.Object) {
 	jo.AddString("scheme", "http://cv.ap.org/id/")
-	jo.AddString("code", p.Code)
+	jo.AddString("code", strings.ToLower(p.Code))
 	jo.AddString("name", p.Name)
 	if p.Creator != "" {
 		jo.AddString("creator", p.Creator)
@@ -736,7 +783,7 @@ func (p *Place) json() (jo json.Object) {
 
 func (e *Event) json() (jo json.Object) {
 	if e.Code != "" {
-		jo.AddString("code", e.Code)
+		jo.AddString("code", strings.ToLower(e.Code))
 	}
 	jo.AddString("name", e.Name)
 	if e.Creator != "" {
@@ -746,9 +793,11 @@ func (e *Event) json() (jo json.Object) {
 		var ja json.Array
 		for _, p := range e.ExternalIDs {
 			var ex json.Object
-			ex.AddString("creator", p.Name)
-			ex.AddString("code", p.Code)
-			ex.AddString("creatorcode", fmt.Sprintf("%s:%s", p.Name, p.Code))
+			name := strings.ToLower(p.Name)
+			code := strings.ToLower(p.Code)
+			ex.AddString("creator", name)
+			ex.AddString("code", code)
+			ex.AddString("creatorcode", fmt.Sprintf("%s:%s", name, code))
 			ja.AddObject(ex)
 		}
 		jo.AddArray("externaleventids", ja)
@@ -763,9 +812,27 @@ func (e *Event) json() (jo json.Object) {
 	return
 }
 
+func (p *Perception) json() (jo json.Object) {
+	if p.Code != "" {
+		jo.AddString("code", strings.ToLower(p.Code))
+	}
+	if p.Name != "" {
+		jo.AddString("name", p.Name)
+	}
+	if p.Creator != "" {
+		jo.AddString("creator", p.Creator)
+	}
+	if p.Rel != "" {
+		var ja json.Array
+		ja.AddString(p.Rel)
+		jo.AddArray("rels", ja)
+	}
+	return
+}
+
 func (tp *ThirdParty) json() (jo json.Object) {
 	if tp.Code != "" {
-		jo.AddString("code", tp.Code)
+		jo.AddString("code", strings.ToLower(tp.Code))
 	}
 	if tp.Name != "" {
 		jo.AddString("name", tp.Name)
@@ -824,13 +891,13 @@ func (f *Filing) json() (jo json.Object) {
 				for _, s := range v {
 					ja.AddString(s)
 				}
-				jo.AddArray(k, ja)
+				routings.AddArray(k, ja)
 			}
 		}
 		jo.AddObject("routings", routings)
 	}
 	if f.Slugline != "" {
-		jo.AddString("slugline", f.Slugline)
+		jo.AddString("slugline", strings.TrimSpace(f.Slugline))
 	}
 	if f.OriginalMediaID != "" {
 		jo.AddString("originalmediaid", f.OriginalMediaID)
@@ -871,6 +938,7 @@ func (f *Filing) json() (jo json.Object) {
 		for _, fk := range f.ForeignKeys {
 			var o json.Object
 			o.AddString(fk.Field, fk.Value)
+			ja.AddObject(o)
 		}
 		jo.AddArray("foreignkeys", ja)
 	}
@@ -930,9 +998,16 @@ func (text *Text) json() (jo json.Object) {
 
 func (r *Rendition) json() (jo json.Object) {
 	jo.AddString("title", r.Title)
-	jo.AddString("rel", r.Rel)
-	jo.AddString("code", r.Code)
-	jo.AddString("type", r.MediaType)
+	if r.Rel != "" {
+		jo.AddString("rel", r.Rel)
+	}
+	jo.AddString("code", strings.ToLower(r.Code))
+	if r.MediaType != "" {
+		jo.AddString("type", r.MediaType)
+	}
+	if r.FileExtension != "" {
+		jo.AddString("fileextension", r.FileExtension)
+	}
 	if r.TapeNumber != "" {
 		jo.AddString("tapenumber", r.TapeNumber)
 	}
@@ -1022,7 +1097,7 @@ func jsongen(cn CodeName) (jo json.Object) {
 
 func (cnt *CodeNameTitle) jsonaudience() (jo json.Object) {
 	if cnt.Code != "" {
-		jo.AddString("code", cnt.Code)
+		jo.AddString("code", strings.ToLower(cnt.Code))
 	}
 	if cnt.Name != "" {
 		jo.AddString("name", cnt.Name)
@@ -1038,7 +1113,7 @@ func (cn *CodeName) jsonservice() (jo json.Object) {
 		jo.AddString("apservice", cn.Name)
 	} else {
 		if cn.Code != "" {
-			jo.AddString("code", cn.Code)
+			jo.AddString("code", strings.ToLower(cn.Code))
 		}
 		if cn.Name != "" {
 			jo.AddString("apsales", cn.Name)
@@ -1051,7 +1126,10 @@ func addStringArray(name string, values []string, jo *json.Object) {
 	if values != nil && len(values) > 0 {
 		var ja json.Array
 		for _, value := range values {
-			ja.AddString(value)
+			clean := strings.TrimSpace(value)
+			if clean != "" {
+				ja.AddString(clean)
+			}
 		}
 		jo.AddArray(name, ja)
 	}

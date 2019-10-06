@@ -73,14 +73,16 @@ func (doc *Document) parsePublicationManagement(node xml.Node) {
 		case "SpecialInstructions":
 			doc.SpecialInstructions = nd.Text
 		case "Editorial":
-			n := nd.Node("Type")
-			s := n.Text
-			if s != "" {
-				types.Append(s)
+			if nd.Nodes != nil {
+				for _, n := range nd.Nodes {
+					if n.Name == "Type" && n.Text != "" {
+						types.Append(n.Text)
 
-				if !embargo {
-					if strings.EqualFold(s, "Advance") || strings.EqualFold(s, "HoldForRelease") {
-						embargo = true
+						if !embargo {
+							if strings.EqualFold(n.Text, "Advance") || strings.EqualFold(n.Text, "HoldForRelease") {
+								embargo = true
+							}
+						}
 					}
 				}
 			}
@@ -166,6 +168,10 @@ func (doc *Document) parsePublicationManagement(node xml.Node) {
 	if len(asswith) > 0 {
 		doc.Associations = parseAssociations(asswith)
 	}
+
+	if doc.ItemEndDateTime != nil && (doc.ItemExpireDateTime == nil || (*doc.ItemEndDateTime).Before(*doc.ItemExpireDateTime)) {
+		doc.ItemExpireDateTime = doc.ItemEndDateTime
+	}
 }
 
 func getPubStatus(s string) string {
@@ -186,26 +192,27 @@ func parseFirstCreated(nd xml.Node) *FirstCreated {
 
 	var fc FirstCreated
 
-	for k, v := range nd.Attributes {
-		switch k {
+	for _, a := range nd.Attributes {
+		switch a.Name {
 		case "Year":
-			year, err := strconv.Atoi(v)
+			year, err := strconv.Atoi(a.Value)
 			if err == nil && year > 0 {
 				fc.Year = year
 			}
 		case "Month":
-			month, err := strconv.Atoi(v)
+			month, err := strconv.Atoi(a.Value)
 			if err == nil && month > 0 {
 				fc.Month = month
 			}
 		case "Day":
-			day, err := strconv.Atoi(v)
+			day, err := strconv.Atoi(a.Value)
 			if err == nil && day > 0 {
 				fc.Day = day
 			}
 		case "Time":
-			ts, err := parseTime(v)
+			ts, err := parseTime(a.Value)
 			if err == nil {
+				fc.Time = a.Value
 				fc.Hour = ts.Hour()
 				fc.Minute = ts.Minute()
 				fc.Second = ts.Second()
@@ -225,7 +232,7 @@ func parseFirstCreated(nd xml.Node) *FirstCreated {
 }
 
 func parseLastModified(nd xml.Node) *LastModified {
-	if nd.Attributes == nil {
+	if nd.Text == "" {
 		return nil
 	}
 
@@ -236,27 +243,29 @@ func parseLastModified(nd xml.Node) *LastModified {
 		lm.Date = &ts
 	}
 
-	ua := parseUserAccount(nd)
-	lm.User = &ua
+	if nd.Attributes != nil {
+		ua := parseUserAccount(nd)
+		lm.User = &ua
+	}
 
 	return &lm
 }
 
 func parseUserAccount(nd xml.Node) (ua UserAccount) {
-	for k, v := range nd.Attributes {
-		switch k {
+	for _, a := range nd.Attributes {
+		switch a.Name {
 		case "UserName":
-			ua.Name = v
+			ua.Name = a.Value
 		case "UserAccount":
-			ua.Account = v
+			ua.Account = a.Value
 		case "UserAccountSystem":
-			ua.System = v
+			ua.System = a.Value
 		case "ToolVersion":
-			ua.ToolVersion = v
+			ua.ToolVersion = a.Value
 		case "UserWorkgroup":
-			ua.Workgroup = v
+			ua.Workgroup = a.Value
 		case "UserLocation":
-			ua.Location = v
+			ua.Location = a.Value
 		}
 	}
 	return
@@ -264,14 +273,14 @@ func parseUserAccount(nd xml.Node) (ua UserAccount) {
 
 func parseTimeRestriction(nd xml.Node) (tr TimeRestriction) {
 	if nd.Attributes != nil {
-		for k, v := range nd.Attributes {
-			switch k {
+		for _, a := range nd.Attributes {
+			switch a.Name {
 			case "System":
-				tr.System = v
+				tr.System = a.Value
 			case "Zone":
-				tr.Zone = v
+				tr.Zone = a.Value
 			case "Include":
-				tr.Include = v == "true"
+				tr.Include = a.Value == "true"
 			}
 		}
 

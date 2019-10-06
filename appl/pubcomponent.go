@@ -10,6 +10,7 @@ import (
 
 type renditionParser struct {
 	pm, pp, pt bool
+	audio      map[string]bool
 }
 
 func (doc *Document) parsePublicationComponent(node xml.Node, parser *renditionParser) {
@@ -19,12 +20,12 @@ func (doc *Document) parsePublicationComponent(node xml.Node, parser *renditionP
 
 	var role, mediatype string
 
-	for k, v := range node.Attributes {
-		switch k {
+	for _, a := range node.Attributes {
+		switch a.Name {
 		case "Role":
-			role = v
+			role = a.Value
 		case "MediaType":
-			mediatype = strings.ToLower(v)
+			mediatype = strings.ToLower(a.Value)
 		}
 	}
 
@@ -37,7 +38,7 @@ func (doc *Document) parsePublicationComponent(node xml.Node, parser *renditionP
 		case "VideoContentItem":
 			doc.parseVideoContentItem(nd, role, mediatype)
 		case "AudioContentItem":
-			doc.parseAudioContentItem(nd, role, mediatype)
+			doc.parseAudioContentItem(nd, role, mediatype, parser)
 		case "PhotoCollectionContentItem":
 			doc.parsePhotoCollectionContentItem(nd, role, mediatype)
 		case "GraphicContentItem":
@@ -95,21 +96,12 @@ func (doc *Document) parseTextContentItem(node xml.Node, role string) {
 	for _, block := range bc.Nodes {
 		if block.Name == "block" {
 			if block.Nodes != nil {
-				var (
-					txt strings.Builder
-					add bool
-				)
+				var txt strings.Builder
 				for _, p := range block.Nodes {
-					s, b := p.InlineString()
-					if b {
-						add = true
-					}
+					s := p.InlineString()
 					txt.WriteString(s)
 				}
-
-				if add {
-					sb.WriteString(txt.String())
-				}
+				sb.WriteString(txt.String())
 			}
 
 			if block.Text != "" {
@@ -174,10 +166,7 @@ func (doc *Document) parsePhotoContentItem(node xml.Node, role string, mediatype
 		r.parse(node)
 	case "video":
 		switch role {
-		case "Preview":
-			r.parse(node)
-			r.setExtTitle("Preview")
-		case "Thumbnail":
+		case "Preview", "Thumbnail":
 			r.parse(node)
 			r.setDimensionsTitle(role)
 		default:
@@ -225,13 +214,16 @@ func (doc *Document) parseVideoContentItem(node xml.Node, role string, mediatype
 			return
 		}
 		r.setDimensionsTitle("Full Resolution")
+	case "Preview":
+		r.parse(node)
+		r.setExtTitle("Preview")
 	default:
 		return
 	}
 	doc.Renditions = append(doc.Renditions, r)
 }
 
-func (doc *Document) parseAudioContentItem(node xml.Node, role string, mediatype string) {
+func (doc *Document) parseAudioContentItem(node xml.Node, role string, mediatype string, parser *renditionParser) {
 	if mediatype != "audio" || role != "Main" {
 		return
 	}
@@ -242,6 +234,17 @@ func (doc *Document) parseAudioContentItem(node xml.Node, role string, mediatype
 	}
 
 	r.parse(node)
+
+	if parser.audio == nil {
+		parser.audio = make(map[string]bool)
+	} else {
+		_, ok := parser.audio[r.FileExtension]
+		if ok {
+			return
+		}
+	}
+	parser.audio[r.FileExtension] = true
+
 	r.setExtTitle("Full Resolution")
 	doc.Renditions = append(doc.Renditions, r)
 }
@@ -264,12 +267,25 @@ func (doc *Document) parseGraphicContentItem(node xml.Node, role string, mediaty
 
 		nd := node.Node("RelatedBinaries")
 		if nd.Attribute("Name") == "MatteFileName" {
-			matte := Rendition{
-				Rel:       role,
-				MediaType: mediatype,
+			matte := Rendition{}
+			matte.parse(nd)
+			matte.Width = r.Width
+			matte.Height = r.Height
+			if matte.Attributes != nil {
+				v, ok := matte.Attributes["FileExtension"]
+				if ok {
+					matte.FileExtension = v
+					delete(matte.Attributes, "FileExtension")
+				}
+				v, ok = matte.Attributes["SizeInBytes"]
+				if ok {
+					matte.ByteSize, _ = strconv.Atoi(v)
+					delete(matte.Attributes, "SizeInBytes")
+				}
 			}
-			matte.parse(node)
 			matte.setDimensionsTitle("Full Resolution Matte")
+			matte.Width = 0
+			matte.Height = 0
 			doc.Renditions = append(doc.Renditions, matte)
 		}
 	case "complexdata":
@@ -377,7 +393,7 @@ func (doc *Document) parsePhotoCollectionContentItem(node xml.Node, role string,
 		case "Characteristics":
 			if nd.Nodes != nil {
 				for _, n := range nd.Nodes {
-					switch nd.Name {
+					switch n.Name {
 					case "Width":
 						w, _ = strconv.Atoi(n.Text)
 					case "Height":
@@ -424,13 +440,13 @@ func (doc *Document) parsePhotoCollectionContentItem(node xml.Node, role string,
 func bodyContentNode(node xml.Node) *xml.Node {
 	if node.Nodes != nil {
 		for _, nd := range node.Nodes {
-			if nd.Name == "body.content" {
+			switch nd.Name {
+			case "body.content":
 				return &nd
-			}
-
-			test := bodyContentNode(nd)
-			if test.Nodes != nil {
-				return test
+			case "body":
+				return bodyContentNode(nd)
+			default:
+				continue
 			}
 		}
 	}
@@ -439,14 +455,14 @@ func bodyContentNode(node xml.Node) *xml.Node {
 
 func (r *Rendition) parse(node xml.Node) {
 	if node.Attributes != nil {
-		for k, v := range node.Attributes {
-			if k == "Id" {
-				r.Code = strings.ToLower(v)
+		for _, a := range node.Attributes {
+			if a.Name == "Id" {
+				r.Code = a.Value
 			} else {
 				if r.Attributes == nil {
 					r.Attributes = make(map[string]string)
 				}
-				r.Attributes[k] = v
+				r.Attributes[a.Name] = a.Value
 			}
 		}
 	}
@@ -465,12 +481,12 @@ func (r *Rendition) parse(node xml.Node) {
 								ok bool
 								id string
 							)
-							for k, v := range n.Attributes {
-								switch k {
+							for _, a := range n.Attributes {
+								switch a.Name {
 								case "Field":
-									ok = strings.EqualFold(v, "Number")
+									ok = strings.EqualFold(a.Value, "Number")
 								case "Id":
-									id = v
+									id = a.Value
 								}
 							}
 							if ok && id != "" {
@@ -489,12 +505,12 @@ func (r *Rendition) parse(node xml.Node) {
 			r.PresentationSystem = n.Attribute("System")
 			ch := n.Node("Characteristics")
 			if ch.Attributes != nil {
-				for k, v := range ch.Attributes {
-					switch k {
+				for _, a := range ch.Attributes {
+					switch a.Name {
 					case "Frame":
-						r.PresentationFrame = v
+						r.PresentationFrame = a.Value
 					case "FrameLocation":
-						r.PresentationFrameLocation = v
+						r.PresentationFrameLocation = a.Value
 					}
 				}
 			}
@@ -513,17 +529,17 @@ func (r *Rendition) parse(node xml.Node) {
 
 	chars := node.Node("Characteristics")
 	if chars.Attributes != nil {
-		for k, v := range chars.Attributes {
-			switch k {
+		for _, a := range chars.Attributes {
+			switch a.Name {
 			case "FileExtension":
-				r.FileExtension = v
+				r.FileExtension = a.Value
 			case "SizeInBytes":
-				r.ByteSize, _ = strconv.Atoi(v)
+				r.ByteSize, _ = strconv.Atoi(a.Value)
 			default:
 				if r.Characteristics == nil {
 					r.Characteristics = make(map[string]string)
 				}
-				r.Characteristics[k] = v
+				r.Characteristics[a.Name] = a.Value
 			}
 		}
 	}

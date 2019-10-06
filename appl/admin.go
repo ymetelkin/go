@@ -59,9 +59,7 @@ func (doc *Document) parseAdministrativeMetadata(node xml.Node) {
 				}
 			}
 		case "ConsumerReady":
-			if nd.Text != "" && strings.EqualFold(nd.Text, "TRUE") {
-				doc.Signals = append(doc.Signals, "newscontent")
-			}
+			doc.ConsumerReady = nd.Text
 		case "Signal":
 			if nd.Text != "" {
 				doc.Signals = append(doc.Signals, nd.Text)
@@ -92,14 +90,14 @@ func (doc *Document) parseProvider(nd xml.Node) {
 	var provider Provider
 
 	if nd.Attributes != nil {
-		for k, v := range nd.Attributes {
-			switch k {
+		for _, a := range nd.Attributes {
+			switch a.Name {
 			case "Id":
-				provider.Code = v
+				provider.Code = a.Value
 			case "Type":
-				provider.Type = v
+				provider.Type = a.Value
 			case "SubType":
-				provider.Subtype = v
+				provider.Subtype = a.Value
 			}
 		}
 	}
@@ -111,24 +109,24 @@ func (doc *Document) parseSource(nd xml.Node) {
 	var source Source
 
 	if nd.Attributes != nil {
-		for k, v := range nd.Attributes {
-			switch k {
+		for _, a := range nd.Attributes {
+			switch a.Name {
 			case "Id":
-				source.Code = v
+				source.Code = a.Value
 			case "City":
-				source.City = v
+				source.City = a.Value
 			case "CountryArea":
-				source.CountryArea = v
+				source.CountryArea = a.Value
 			case "Country":
-				source.Country = v
+				source.Country = a.Value
 			case "County":
-				source.County = v
+				source.County = a.Value
 			case "Url":
-				source.URL = v
+				source.URL = a.Value
 			case "Type":
-				source.Type = v
+				source.Type = a.Value
 			case "SubType":
-				source.Subtype = v
+				source.Subtype = a.Value
 			}
 		}
 	}
@@ -157,12 +155,12 @@ func (doc *Document) parseSourceMaterial(nd xml.Node) {
 	}
 
 	if nd.Attributes != nil {
-		for k, v := range nd.Attributes {
-			switch k {
+		for _, a := range nd.Attributes {
+			switch a.Name {
 			case "Id":
-				sm.Code = v
+				sm.Code = a.Value
 			case "Name":
-				sm.Name = v
+				sm.Name = a.Value
 			}
 		}
 	}
@@ -179,12 +177,12 @@ func (doc *Document) parseItemContentType(nd xml.Node) {
 		Name: nd.Text,
 	}
 	if nd.Attributes != nil {
-		for k, v := range nd.Attributes {
-			switch k {
+		for _, a := range nd.Attributes {
+			switch a.Name {
 			case "Id":
-				ict.Code = v
+				ict.Code = a.Value
 			case "System":
-				ict.Creator = v
+				ict.Creator = a.Value
 			}
 		}
 	}
@@ -195,25 +193,72 @@ func (doc *Document) parseRating(nd xml.Node) {
 	if nd.Attributes != nil {
 		var r Rating
 
-		for k, v := range nd.Attributes {
-			switch k {
+		for _, a := range nd.Attributes {
+			switch a.Name {
 			case "Value":
-				r.Value, _ = strconv.Atoi(v)
+				r.Value, _ = strconv.Atoi(a.Value)
 			case "ScaleMin":
-				r.ScaleMin, _ = strconv.Atoi(v)
+				r.ScaleMin, _ = strconv.Atoi(a.Value)
 			case "ScaleMax":
-				r.ScaleMax, _ = strconv.Atoi(v)
+				r.ScaleMax, _ = strconv.Atoi(a.Value)
 			case "ScaleUnit":
-				r.ScaleUnit = v
+				r.ScaleUnit = a.Value
 			case "Raters":
-				r.Value, _ = strconv.Atoi(v)
+				r.Raters, _ = strconv.Atoi(a.Value)
 			case "RaterType":
-				r.RaterType = v
+				r.RaterType = a.Value
 			case "Creator":
-				r.Creator = v
+				r.Creator = a.Value
 			}
 		}
 
 		doc.Ratings = append(doc.Ratings, r)
 	}
+}
+
+func (doc *Document) parseNewsContent() {
+	if doc.ConsumerReady == "" || strings.EqualFold(doc.ConsumerReady, "UNKNOWN") {
+		if doc.Filings != nil && len(doc.Filings) > 0 {
+			f := doc.Filings[0]
+			if f.Category == "V" || f.Category == "v" {
+				return
+			}
+			if f.Category == "r" && strings.HasPrefix(f.Selector, "apr") {
+				return
+			}
+			if f.Category == "t" && strings.HasPrefix(f.Selector, "1tv") {
+				return
+			}
+		}
+		if doc.SuppCategories != nil && len(doc.SuppCategories) > 0 {
+			supp := doc.SuppCategories[0]
+			if supp.Code == "V" || supp.Code == "v" {
+				return
+			}
+		}
+		if doc.ItemEndDateTime != nil && doc.ItemContentType.Name == "Advisory" {
+			return
+		}
+		if doc.EditorialTypes != nil {
+			for _, et := range doc.EditorialTypes {
+				if et == "Advisory" || et == "Disregard" || et == "Elimination" || et == "Withhold" {
+					return
+				}
+				if (et == "Correction" || et == "Add") && doc.MediaType != "text" {
+					return
+				}
+			}
+		}
+		if doc.Signals != nil {
+			for _, signal := range doc.Signals {
+				if strings.EqualFold(signal, "TEST") {
+					return
+				}
+			}
+		}
+	} else if !strings.EqualFold(doc.ConsumerReady, "TRUE") {
+		return
+	}
+
+	doc.Signals = append(doc.Signals, "newscontent")
 }
