@@ -23,9 +23,7 @@ func (doc *Document) parseAdministrativeMetadata(node xml.Node) {
 		case "Source":
 			doc.parseSource(nd)
 		case "Contributor":
-			if doc.Contributor == "" {
-				doc.Contributor = nd.Text
-			}
+			doc.Contributor = nd.Text
 		case "SourceMaterial":
 			doc.parseSourceMaterial(nd)
 		case "WorkflowStatus":
@@ -218,7 +216,7 @@ func (doc *Document) parseRating(nd xml.Node) {
 
 func (doc *Document) parseNewsContent() {
 	if doc.ConsumerReady == "" || strings.EqualFold(doc.ConsumerReady, "UNKNOWN") {
-		if doc.Filings != nil && len(doc.Filings) > 0 {
+		if doc.Filings != nil {
 			f := doc.Filings[0]
 			if f.Category == "V" || f.Category == "v" {
 				return
@@ -230,7 +228,7 @@ func (doc *Document) parseNewsContent() {
 				return
 			}
 		}
-		if doc.SuppCategories != nil && len(doc.SuppCategories) > 0 {
+		if doc.SuppCategories != nil {
 			supp := doc.SuppCategories[0]
 			if supp.Code == "V" || supp.Code == "v" {
 				return

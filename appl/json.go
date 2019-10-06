@@ -74,7 +74,7 @@ func (doc *Document) JSON() (jo json.Object) {
 	if doc.ReleaseDateTime != nil {
 		jo.AddString("releasedatetime", formatDate(*doc.ReleaseDateTime))
 	}
-	if doc.Associations != nil && len(doc.Associations) > 0 {
+	if doc.Associations != nil {
 		var ja json.Array
 		for _, v := range doc.Associations {
 			ja.AddObject(v.json())
@@ -133,7 +133,7 @@ func (doc *Document) JSON() (jo json.Object) {
 	if doc.ExtendedHeadline != "" {
 		jo.AddString("headline_extended", strings.TrimSpace(doc.ExtendedHeadline))
 	}
-	if doc.Bylines != nil && len(doc.Bylines) > 0 {
+	if doc.Bylines != nil {
 		var ja json.Array
 		for _, bl := range doc.Bylines {
 			ja.AddObject(bl.json())
@@ -152,7 +152,7 @@ func (doc *Document) JSON() (jo json.Object) {
 	if doc.Producer != nil {
 		jo.AddObject("producer", doc.Producer.json())
 	}
-	if doc.Edits != nil && len(doc.Edits) > 0 {
+	if doc.Edits != nil {
 		var ja json.Array
 		for _, e := range doc.Edits {
 			var jo json.Object
@@ -205,7 +205,7 @@ func (doc *Document) JSON() (jo json.Object) {
 	if doc.Creator != "" {
 		jo.AddString("creator", doc.Creator)
 	}
-	if doc.Sources != nil && len(doc.Sources) > 0 {
+	if doc.Sources != nil {
 		var ja json.Array
 		for _, s := range doc.Sources {
 			ja.AddObject(s.json())
@@ -215,7 +215,7 @@ func (doc *Document) JSON() (jo json.Object) {
 	if doc.Contributor != "" {
 		jo.AddString("contributor", doc.Contributor)
 	}
-	if doc.SourceMaterials != nil && len(doc.SourceMaterials) > 0 {
+	if doc.SourceMaterials != nil {
 		var ja json.Array
 		for _, s := range doc.SourceMaterials {
 			ja.AddObject(s.json())
@@ -244,7 +244,7 @@ func (doc *Document) JSON() (jo json.Object) {
 		jo.AddObject("fixture", doc.Fixture.json())
 	}
 	addStringArray("inpackages", doc.InPackages, &jo)
-	if doc.Ratings != nil && len(doc.Ratings) > 0 {
+	if doc.Ratings != nil {
 		var ja json.Array
 		for _, r := range doc.Ratings {
 			ja.AddObject(r.json())
@@ -253,7 +253,7 @@ func (doc *Document) JSON() (jo json.Object) {
 	}
 
 	//RightsMetadata
-	if doc.UsageRights != nil && len(doc.UsageRights) > 0 {
+	if doc.UsageRights != nil {
 		var ja json.Array
 		for _, ur := range doc.UsageRights {
 			ja.AddObject(ur.json())
@@ -270,70 +270,70 @@ func (doc *Document) JSON() (jo json.Object) {
 	addCodeNameArray("categories", doc.Categories, nil, &jo)
 	addCodeNameArray("suppcategories", doc.SuppCategories, nil, &jo)
 	addStringArray("alertcategories", doc.AlertCategories, &jo)
-	if doc.Subjects != nil && len(doc.Subjects) > 0 {
+	if doc.Subjects != nil {
 		var ja json.Array
 		for _, s := range doc.Subjects {
 			ja.AddObject(s.json())
 		}
 		jo.AddArray("subjects", ja)
 	}
-	if doc.Persons != nil && len(doc.Persons) > 0 {
+	if doc.Persons != nil {
 		var ja json.Array
 		for _, p := range doc.Persons {
 			ja.AddObject(p.json())
 		}
 		jo.AddArray("persons", ja)
 	}
-	if doc.Organizations != nil && len(doc.Organizations) > 0 {
+	if doc.Organizations != nil {
 		var ja json.Array
 		for _, org := range doc.Organizations {
 			ja.AddObject(org.json())
 		}
 		jo.AddArray("organizations", ja)
 	}
-	if doc.Companies != nil && len(doc.Companies) > 0 {
+	if doc.Companies != nil {
 		var ja json.Array
 		for _, c := range doc.Companies {
 			ja.AddObject(c.json())
 		}
 		jo.AddArray("companies", ja)
 	}
-	if doc.Places != nil && len(doc.Places) > 0 {
+	if doc.Places != nil {
 		var ja json.Array
 		for _, p := range doc.Places {
 			ja.AddObject(p.json())
 		}
 		jo.AddArray("places", ja)
 	}
-	if doc.Events != nil && len(doc.Events) > 0 {
+	if doc.Events != nil {
 		var ja json.Array
 		for _, e := range doc.Events {
 			ja.AddObject(e.json())
 		}
 		jo.AddArray("events", ja)
 	}
-	if doc.Audiences != nil && len(doc.Audiences) > 0 {
+	if doc.Audiences != nil {
 		var ja json.Array
 		for _, a := range doc.Audiences {
 			ja.AddObject(a.jsonaudience())
 		}
 		jo.AddArray("audiences", ja)
 	}
-	if doc.Services != nil && len(doc.Services) > 0 {
+	if doc.Services != nil {
 		var ja json.Array
 		for _, s := range doc.Services {
 			ja.AddObject(s.jsonservice())
 		}
 		jo.AddArray("services", ja)
 	}
-	if doc.Perceptions != nil && len(doc.Perceptions) > 0 {
+	if doc.Perceptions != nil {
 		var ja json.Array
 		for _, p := range doc.Perceptions {
 			ja.AddObject(p.json())
 		}
 		jo.AddArray("perceptions", ja)
 	}
-	if doc.ThirdParties != nil && len(doc.ThirdParties) > 0 {
+	if doc.ThirdParties != nil {
 		var ja json.Array
 		for _, tp := range doc.ThirdParties {
 			ja.AddObject(tp.json())
@@ -342,7 +342,7 @@ func (doc *Document) JSON() (jo json.Object) {
 	}
 
 	//FilingMetadata
-	if doc.Filings != nil && len(doc.Filings) > 0 {
+	if doc.Filings != nil {
 		var ja json.Array
 		for _, f := range doc.Filings {
 			ja.AddObject(f.json())
@@ -366,7 +366,7 @@ func (doc *Document) JSON() (jo json.Object) {
 	if doc.Story != nil {
 		jo.AddObject("main", doc.Story.json())
 	}
-	renditions := doc.Renditions != nil && len(doc.Renditions) > 0
+	renditions := doc.Renditions != nil
 	if renditions {
 		var ja json.Array
 		for _, r := range doc.Renditions {
@@ -392,7 +392,7 @@ func (doc *Document) JSON() (jo json.Object) {
 			jo.AddArray("shots", ja)
 		}
 	}
-	if doc.Parts != nil && len(doc.Parts) > 0 {
+	if doc.Parts != nil {
 		var ja json.Array
 		for _, r := range doc.Parts {
 			ja.AddObject(r.json())
@@ -614,7 +614,7 @@ func (ur *UsageRights) json() (jo json.Object) {
 	if ur.EndDate != nil {
 		jo.AddString("enddate", formatDate(*ur.EndDate))
 	}
-	if ur.Groups != nil && len(ur.Groups) > 0 {
+	if ur.Groups != nil {
 		var ja json.Array
 		for _, group := range ur.Groups {
 			var (
@@ -733,7 +733,7 @@ func (c *Company) json() (jo json.Object) {
 	}
 	addStringArray("rels", c.Rels, &jo)
 	addCodeNameArray("industries", c.Industries, nil, &jo)
-	if c.Symbols != nil && len(c.Symbols) > 0 {
+	if c.Symbols != nil {
 		var (
 			ja json.Array
 			ok bool
@@ -789,7 +789,7 @@ func (e *Event) json() (jo json.Object) {
 	if e.Creator != "" {
 		jo.AddString("creator", e.Creator)
 	}
-	if e.ExternalIDs != nil && len(e.ExternalIDs) > 0 {
+	if e.ExternalIDs != nil {
 		var ja json.Array
 		for _, p := range e.ExternalIDs {
 			var ex json.Object
@@ -802,7 +802,7 @@ func (e *Event) json() (jo json.Object) {
 		}
 		jo.AddArray("externaleventids", ja)
 	}
-	if e.Properties != nil && len(e.Properties) > 0 {
+	if e.Properties != nil {
 		var ep json.Object
 		for _, p := range e.Properties {
 			ep.AddString(p.Code, p.Name)
@@ -883,7 +883,7 @@ func (f *Filing) json() (jo json.Object) {
 	if f.Category != "" {
 		jo.AddString("filingcategory", f.Category)
 	}
-	if f.Routings != nil && len(f.Routings) > 0 {
+	if f.Routings != nil {
 		var routings json.Object
 		for k, v := range f.Routings {
 			if v != nil {
@@ -923,7 +923,7 @@ func (f *Filing) json() (jo json.Object) {
 	if f.LibraryRequestLogin != "" {
 		jo.AddString("libraryrequestlogin", f.LibraryRequestLogin)
 	}
-	if f.Products != nil && len(f.Products) > 0 {
+	if f.Products != nil {
 		var ja json.Array
 		for _, p := range f.Products {
 			ja.AddInt(p)
@@ -933,7 +933,7 @@ func (f *Filing) json() (jo json.Object) {
 	if f.Priorityline != "" {
 		jo.AddString("priorityline", f.Priorityline)
 	}
-	if f.ForeignKeys != nil && len(f.ForeignKeys) > 0 {
+	if f.ForeignKeys != nil {
 		var ja json.Array
 		for _, fk := range f.ForeignKeys {
 			var o json.Object
@@ -942,28 +942,28 @@ func (f *Filing) json() (jo json.Object) {
 		}
 		jo.AddArray("foreignkeys", ja)
 	}
-	if f.Countries != nil && len(f.Countries) > 0 {
+	if f.Countries != nil {
 		var ja json.Array
 		for _, c := range f.Countries {
 			ja.AddString(c)
 		}
 		jo.AddArray("filingcountries", ja)
 	}
-	if f.Regions != nil && len(f.Regions) > 0 {
+	if f.Regions != nil {
 		var ja json.Array
 		for _, r := range f.Regions {
 			ja.AddString(r)
 		}
 		jo.AddArray("filingregions", ja)
 	}
-	if f.Subjects != nil && len(f.Subjects) > 0 {
+	if f.Subjects != nil {
 		var ja json.Array
 		for _, s := range f.Subjects {
 			ja.AddString(s)
 		}
 		jo.AddArray("filingsubjects", ja)
 	}
-	if f.Topics != nil && len(f.Topics) > 0 {
+	if f.Topics != nil {
 		var ja json.Array
 		for _, t := range f.Topics {
 			ja.AddString(t)
@@ -1060,7 +1060,7 @@ func (r *Rendition) json() (jo json.Object) {
 			jo.AddString(strings.ToLower(k), v)
 		}
 	}
-	if r.ForeignKeys != nil && len(r.ForeignKeys) > 0 {
+	if r.ForeignKeys != nil {
 		var ja json.Array
 		for _, fk := range r.ForeignKeys {
 			var o json.Object
@@ -1123,7 +1123,7 @@ func (cn *CodeName) jsonservice() (jo json.Object) {
 }
 
 func addStringArray(name string, values []string, jo *json.Object) {
-	if values != nil && len(values) > 0 {
+	if values != nil {
 		var ja json.Array
 		for _, value := range values {
 			clean := strings.TrimSpace(value)
@@ -1136,7 +1136,7 @@ func addStringArray(name string, values []string, jo *json.Object) {
 }
 
 func addCodeNameArray(name string, values []CodeName, f func(CodeName) json.Object, jo *json.Object) {
-	if values != nil && len(values) > 0 {
+	if values != nil {
 		var ja json.Array
 		for _, value := range values {
 			var cn json.Object

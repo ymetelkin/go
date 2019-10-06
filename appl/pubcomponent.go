@@ -404,7 +404,7 @@ func (doc *Document) parsePhotoCollectionContentItem(node xml.Node, role string,
 		}
 	}
 
-	if times != nil && len(times) > 0 {
+	if times != nil {
 		var (
 			last = len(times) - 1
 			end  int
