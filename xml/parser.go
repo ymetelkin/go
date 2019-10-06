@@ -11,6 +11,36 @@ type xParser struct {
 	r io.ByteScanner
 }
 
+type reader struct {
+	s    string
+	i    int
+	size int
+}
+
+func newReader(s string) *reader {
+	return &reader{
+		s:    s,
+		size: len(s) - 1,
+	}
+}
+
+func (r *reader) ReadByte() (byte, error) {
+	if r.i > r.size {
+		return 0, io.EOF
+	}
+	b := r.s[r.i]
+	r.i++
+	return b, nil
+}
+
+func (r *reader) UnreadByte() error {
+	if r.i <= 0 {
+		return errors.New("reader.UnreadByte: at beginning of string")
+	}
+	r.i--
+	return nil
+}
+
 func (xp *xParser) Parse() (nd Node, err error) {
 	c, e := xp.SkipWS()
 	if e == io.EOF {
