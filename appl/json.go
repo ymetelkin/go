@@ -138,8 +138,8 @@ func (doc *Document) JSON() (jo json.Object) {
 		addString(&jo, "creditlineid", doc.Creditline.Code)
 	}
 	if doc.Copyright != nil {
-		addString(&jo, "copyrightnotice", doc.Copyright.Notice)
-		addString(&jo, "copyrightholder", doc.Copyright.Holder)
+		addString(&jo, "copyrightnotice", beautify(doc.Copyright.Notice))
+		addString(&jo, "copyrightholder", beautify(doc.Copyright.Holder))
 		addInt(&jo, "copyrightdate", doc.Copyright.Year)
 	}
 	addString(&jo, "rightsline", doc.Rightsline)
