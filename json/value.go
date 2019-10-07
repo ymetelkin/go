@@ -186,7 +186,7 @@ func (jv *value) GetFloat() (float64, error) {
 		i, ok := jv.Value.(int)
 		if ok {
 			return float64(i), nil
-		}		
+		}
 	} else if jv.Type == jsonString {
 		s, ok := jv.Value.(string)
 		if ok {

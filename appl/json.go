@@ -99,10 +99,10 @@ func (doc *Document) JSON() (jo json.Object) {
 	addStringArray(&jo, "signals", doc.Signals)
 
 	//Newslines
-	addString(&jo, "title", strings.TrimSpace(doc.Title))
-	addString(&jo, "headline", strings.TrimSpace(doc.Headline))
-	addString(&jo, "summary", strings.TrimSpace(doc.Summary))
-	addString(&jo, "headline_extended", strings.TrimSpace(doc.ExtendedHeadline))
+	addString(&jo, "title", beautify(doc.Title))
+	addString(&jo, "headline", beautify(doc.Headline))
+	addString(&jo, "summary", beautify(doc.Summary))
+	addString(&jo, "headline_extended", beautify(doc.ExtendedHeadline))
 	if doc.Bylines != nil {
 		var ja json.Array
 		for _, bl := range doc.Bylines {
@@ -693,7 +693,7 @@ func (f *Filing) json() (jo json.Object) {
 		}
 		jo.AddObject("routings", routings)
 	}
-	addString(&jo, "slugline", strings.TrimSpace(f.Slugline))
+	addString(&jo, "slugline", beautify(f.Slugline))
 	addString(&jo, "originalmediaid", f.OriginalMediaID)
 	addString(&jo, "importfolder", f.ImportFolder)
 	addString(&jo, "importwarnings", f.ImportWarnings)
@@ -764,7 +764,7 @@ func (text *Text) json() (jo json.Object) {
 func (r *Rendition) json() (jo json.Object) {
 	jo.AddString("title", r.Title)
 	addString(&jo, "rel", r.Rel)
-	jo.AddString("code", strings.ToLower(r.Code))
+	addString(&jo, "code", strings.ToLower(r.Code))
 	addString(&jo, "type", r.MediaType)
 	addString(&jo, "fileextension", r.FileExtension)
 	addString(&jo, "tapenumber", r.TapeNumber)
@@ -842,7 +842,7 @@ func addStringArray(jo *json.Object, name string, values []string) {
 	if values != nil {
 		var ja json.Array
 		for _, value := range values {
-			clean := strings.TrimSpace(value)
+			clean := beautify(value)
 			if clean != "" {
 				ja.AddString(clean)
 			}
@@ -879,7 +879,7 @@ func addInt(jo *json.Object, name string, value int) {
 	}
 }
 
-func decode(s string) string {
+func beautify(s string) string {
 	runes := []rune(s)
 	size := len(runes) - 1
 
@@ -898,10 +898,16 @@ func decode(s string) string {
 		if isWS(r) {
 			sp = true
 		} else if r == '&' && i < size-2 {
+			if sp && st {
+				sb.WriteByte(' ')
+				sp = false
+			}
+
 			i++
 			r = runes[i]
 			if r == 'l' {
-				ok, j := matchText(runes, []rune{'t', ';'}, i+1, size)
+				i++
+				ok, j := matchText(runes, []rune{'t', ';'}, i, size)
 				if ok {
 					sb.WriteByte('<')
 					i = j
@@ -910,7 +916,8 @@ func decode(s string) string {
 					sb.WriteRune(r)
 				}
 			} else if r == 'g' {
-				ok, j := matchText(runes, []rune{'t', ';'}, i+1, size)
+				i++
+				ok, j := matchText(runes, []rune{'t', ';'}, i, size)
 				if ok {
 					sb.WriteByte('>')
 					i = j
@@ -920,13 +927,24 @@ func decode(s string) string {
 				}
 			} else if r == 'a' {
 				sb.WriteByte('&')
-				ok, j := matchText(runes, []rune{'m', 'p', ';'}, i+1, size)
+				i++
+				ok, j := matchText(runes, []rune{'m', 'p', ';'}, i, size)
 				if ok {
 					i = j
 				} else {
 					sb.WriteRune(r)
 				}
 			} else if r == '#' {
+				i++
+				c, j := matchCode(runes, i, size)
+				if j == i {
+					i = j
+					sb.WriteByte('&')
+					sb.WriteRune(r)
+					i--
+				} else {
+					sb.WriteRune(c)
+				}
 			} else {
 				sb.WriteByte('&')
 				sb.WriteRune(r)
@@ -935,10 +953,10 @@ func decode(s string) string {
 		} else {
 			if sp && st {
 				sb.WriteByte(' ')
-				sp = false
 			}
 			sb.WriteRune(r)
 			st = true
+			sp = false
 		}
 		i++
 	}
@@ -947,19 +965,70 @@ func decode(s string) string {
 }
 
 func isWS(r rune) bool {
-	return r == ' ' || r == '\n' || r == 'r'
+	return r == ' ' || r == '\n' || r == '\t' || r == '\r' || r == 160 || r == '\f' || r == '\v' || r == '\b'
 }
 
 func isDigit(r rune) bool {
 	return r >= '0' && r <= '9'
 }
 
-func matchText(runes []rune, match []rune, idx int, size int) (bool, int) {
-	for i, r := range match {
-		idx += i
-		if idx > size || runes[idx] != r {
-			return false, idx
+func matchText(runes []rune, match []rune, i int, size int) (bool, int) {
+	for _, r := range match {
+		if i > size || runes[i] != r {
+			return false, i
 		}
+		i++
 	}
-	return true, idx
+	return true, i - 1
+}
+
+func matchCode(runes []rune, i int, size int) (rune, int) {
+	var (
+		r     rune
+		val   int32
+		pos   int
+		start = i
+	)
+	for {
+		if i > size {
+			return r, i
+		}
+
+		r = runes[i]
+
+		var d int32
+		switch r {
+		case '0':
+			if pos == 0 {
+				return r, start
+			}
+			d = 0
+		case '1':
+			d = 1
+		case '2':
+			d = 2
+		case '3':
+			d = 3
+		case '4':
+			d = 4
+		case '5':
+			d = 5
+		case '6':
+			d = 6
+		case '7':
+			d = 7
+		case '8':
+			d = 8
+		case '9':
+			d = 9
+		case ';':
+			return rune(val), i
+		default:
+			return r, start
+		}
+
+		val = val*10 + d
+		i++
+		pos++
+	}
 }
