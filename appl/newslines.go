@@ -19,9 +19,7 @@ func (doc *Document) parseNewsLines(node xml.Node) {
 		case "HeadLine":
 			doc.Headline = nd.Text
 		case "BodySubHeader":
-			if doc.Summary == "" {
-				doc.Summary = nd.Text
-			}
+			doc.Summary = nd.Text
 		case "ExtendedHeadLine":
 			doc.ExtendedHeadline = nd.Text
 		case "ByLine":

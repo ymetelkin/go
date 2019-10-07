@@ -878,3 +878,88 @@ func addInt(jo *json.Object, name string, value int) {
 		jo.AddInt(name, value)
 	}
 }
+
+func decode(s string) string {
+	runes := []rune(s)
+	size := len(runes) - 1
+
+	var (
+		sb     strings.Builder
+		i      int
+		sp, st bool
+	)
+
+	for {
+		if i > size {
+			break
+		}
+
+		r := runes[i]
+		if isWS(r) {
+			sp = true
+		} else if r == '&' && i < size-2 {
+			i++
+			r = runes[i]
+			if r == 'l' {
+				ok, j := matchText(runes, []rune{'t', ';'}, i+1, size)
+				if ok {
+					sb.WriteByte('<')
+					i = j
+				} else {
+					sb.WriteByte('&')
+					sb.WriteRune(r)
+				}
+			} else if r == 'g' {
+				ok, j := matchText(runes, []rune{'t', ';'}, i+1, size)
+				if ok {
+					sb.WriteByte('>')
+					i = j
+				} else {
+					sb.WriteByte('&')
+					sb.WriteRune(r)
+				}
+			} else if r == 'a' {
+				sb.WriteByte('&')
+				ok, j := matchText(runes, []rune{'m', 'p', ';'}, i+1, size)
+				if ok {
+					i = j
+				} else {
+					sb.WriteRune(r)
+				}
+			} else if r == '#' {
+			} else {
+				sb.WriteByte('&')
+				sb.WriteRune(r)
+			}
+			st = true
+		} else {
+			if sp && st {
+				sb.WriteByte(' ')
+				sp = false
+			}
+			sb.WriteRune(r)
+			st = true
+		}
+		i++
+	}
+
+	return sb.String()
+}
+
+func isWS(r rune) bool {
+	return r == ' ' || r == '\n' || r == 'r'
+}
+
+func isDigit(r rune) bool {
+	return r >= '0' && r <= '9'
+}
+
+func matchText(runes []rune, match []rune, idx int, size int) (bool, int) {
+	for i, r := range match {
+		idx += i
+		if idx > size || runes[idx] != r {
+			return false, idx
+		}
+	}
+	return true, idx
+}
