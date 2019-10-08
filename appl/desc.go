@@ -188,12 +188,9 @@ func (doc *Document) parseSubjectClassification(node xml.Node, gens *uniqueCodeN
 		nd := node.Node("Occurrence")
 		code := nd.Attribute("Value")
 		if code != "" {
-			test, err := strconv.Atoi(code)
-			if err == nil && test >= 900 {
-				doc.Fixture = &CodeName{
-					Code: code,
-					Name: subjects.FixtureName,
-				}
+			doc.Fixture = &CodeName{
+				Code: code,
+				Name: subjects.FixtureName,
 			}
 		}
 	}
@@ -666,7 +663,7 @@ func (parser *entityParser) parsePlace(node xml.Node) {
 
 				if place.Creator == "" || strings.EqualFold(system, "Editorial") {
 					place.Creator = "Editorial"
-				}				
+				}
 
 				if nd.Nodes != nil {
 					for _, p := range nd.Nodes {

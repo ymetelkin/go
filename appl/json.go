@@ -24,7 +24,7 @@ func (doc *Document) JSON() (jo json.Object) {
 	addString(&jo, "language", doc.Language)
 	jo.AddInt("recordsequencenumber", doc.RSN)
 	addString(&jo, "friendlykey", doc.FriendlyKey)
-	addString(&jo, "referenceid", doc.ReferenceID)
+	addString(&jo, "referenceid", beautify(doc.ReferenceID))
 
 	//Management
 	jo.AddString("recordtype", doc.RecordType)
@@ -497,11 +497,11 @@ func (ur *UsageRights) json() (jo json.Object) {
 }
 
 func (loc *Location) json() (jo json.Object) {
-	addString(&jo, "city", loc.City)
+	addString(&jo, "city", beautify(loc.City))
 	addString(&jo, "countryareacode", loc.CountryAreaCode)
-	addString(&jo, "countryareaname", loc.CountryAreaName)
+	addString(&jo, "countryareaname", beautify(loc.CountryAreaName))
 	addString(&jo, "countrycode", loc.CountryCode)
-	addString(&jo, "countryname", loc.CountryName)
+	addString(&jo, "countryname", beautify(loc.CountryName))
 	if loc.Geo != nil {
 		jo.AddObject("geometry_geojson", loc.Geo.json())
 	}
@@ -898,58 +898,10 @@ func beautify(s string) string {
 		if isWS(r) {
 			sp = true
 		} else if r == '&' && i < size-2 {
-			if sp && st {
-				sb.WriteByte(' ')
-				sp = false
-			}
-
 			i++
 			r = runes[i]
-			if r == 'l' {
-				i++
-				ok, j := matchText(runes, []rune{'t', ';'}, i, size)
-				if ok {
-					sb.WriteByte('<')
-					i = j
-				} else {
-					sb.WriteByte('&')
-					sb.WriteRune(r)
-				}
-			} else if r == 'g' {
-				i++
-				ok, j := matchText(runes, []rune{'t', ';'}, i, size)
-				if ok {
-					sb.WriteByte('>')
-					i = j
-				} else {
-					sb.WriteByte('&')
-					sb.WriteRune(r)
-				}
-			} else if r == 'a' {
-				sb.WriteByte('&')
-				i++
-				ok, j := matchText(runes, []rune{'m', 'p', ';'}, i, size)
-				if ok {
-					i = j
-				} else {
-					sb.WriteRune(r)
-				}
-			} else if r == '#' {
-				i++
-				c, j := matchCode(runes, i, size)
-				if j == i {
-					i = j
-					sb.WriteByte('&')
-					sb.WriteRune(r)
-					i--
-				} else {
-					sb.WriteRune(c)
-				}
-			} else {
-				sb.WriteByte('&')
-				sb.WriteRune(r)
-			}
-			st = true
+			i = decode(r, runes, i, size, &sb, &st, &sp)
+			continue
 		} else {
 			if sp && st {
 				sb.WriteByte(' ')
@@ -972,6 +924,68 @@ func isDigit(r rune) bool {
 	return r >= '0' && r <= '9'
 }
 
+func decode(r rune, runes []rune, i int, size int, sb *strings.Builder, st *bool, sp *bool) int {
+	var decoded bool
+
+	if r == 'l' {
+		ok, j := matchText(runes, []rune{'t', ';'}, i+1, size)
+		if ok {
+			decoded = true
+			r = '<'
+			i = j
+		}
+	} else if r == 'g' {
+		ok, j := matchText(runes, []rune{'t', ';'}, i+1, size)
+		if ok {
+			decoded = true
+			r = '>'
+			i = j
+		}
+	} else if r == 'a' {
+		ok, j := matchText(runes, []rune{'m', 'p', ';'}, i+1, size)
+		if ok {
+			if j < size-1 {
+				r = runes[j]
+				if r == 'l' || r == 'g' || r == 'a' || r == '#' {
+					i = decode(r, runes, j, size, sb, st, sp)
+					if i == j {
+						i++
+					}
+					return i
+				}
+			}
+			decoded = true
+			r = '&'
+			i = j
+		}
+	} else if r == '#' {
+		c, j := matchCode(runes, i+1, size)
+		if j > i {
+			i = j + 1
+			if isWS(c) {
+				*sp = true
+				return i
+			}
+			decoded = true
+			r = c
+		}
+	}
+
+	if *sp && *st {
+		sb.WriteByte(' ')
+	}
+
+	if !decoded && r != '&' {
+		sb.WriteByte('&')
+	}
+	sb.WriteRune(r)
+
+	*st = true
+	*sp = false
+
+	return i
+}
+
 func matchText(runes []rune, match []rune, i int, size int) (bool, int) {
 	for _, r := range match {
 		if i > size || runes[i] != r {
@@ -979,7 +993,7 @@ func matchText(runes []rune, match []rune, i int, size int) (bool, int) {
 		}
 		i++
 	}
-	return true, i - 1
+	return true, i
 }
 
 func matchCode(runes []rune, i int, size int) (rune, int) {
@@ -988,6 +1002,8 @@ func matchCode(runes []rune, i int, size int) (rune, int) {
 		val   int32
 		pos   int
 		start = i
+		x     bool
+		xb    strings.Builder
 	)
 	for {
 		if i > size {
@@ -996,39 +1012,55 @@ func matchCode(runes []rune, i int, size int) (rune, int) {
 
 		r = runes[i]
 
-		var d int32
-		switch r {
-		case '0':
-			if pos == 0 {
+		if x {
+			if r == ';' {
+				d, err := strconv.ParseInt("0x"+xb.String(), 0, 64)
+				if err == nil {
+					return rune(d), i
+				}
 				return r, start
 			}
-			d = 0
-		case '1':
-			d = 1
-		case '2':
-			d = 2
-		case '3':
-			d = 3
-		case '4':
-			d = 4
-		case '5':
-			d = 5
-		case '6':
-			d = 6
-		case '7':
-			d = 7
-		case '8':
-			d = 8
-		case '9':
-			d = 9
-		case ';':
-			return rune(val), i
-		default:
-			return r, start
-		}
+			xb.WriteRune(r)
+		} else {
+			var d int32
+			switch r {
+			case '0':
+				if pos == 0 {
+					return r, start
+				}
+				d = 0
+			case '1':
+				d = 1
+			case '2':
+				d = 2
+			case '3':
+				d = 3
+			case '4':
+				d = 4
+			case '5':
+				d = 5
+			case '6':
+				d = 6
+			case '7':
+				d = 7
+			case '8':
+				d = 8
+			case '9':
+				d = 9
+			case ';':
+				if val > 0 {
+					return rune(val), i
+				}
+				return r, start
+			case 'x':
+				x = true
+			default:
+				return r, start
+			}
 
-		val = val*10 + d
+			val = val*10 + d
+			pos++
+		}
 		i++
-		pos++
 	}
 }
