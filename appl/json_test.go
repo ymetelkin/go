@@ -17,6 +17,7 @@ func TestBeautify(t *testing.T) {
 		" &#160; &lt;&#xe3;&amp;gt; \n &amp;lt;a href=\"#\"&gt;test</a>",
 		" &#160; &lt;&#228;&amp;gt; \n &amp;&lt;a href=\"#\"&gt;test</a>",
 		"&amp;#x3C;&amp;#x3E;&amp;#x201C;",
+		"&#1 &#a; &#xs;",
 	}
 	for i, s := range tests {
 		test := beautify(s)

@@ -920,10 +920,6 @@ func isWS(r rune) bool {
 	return r == ' ' || r == '\n' || r == '\t' || r == '\r' || r == 160 || r == '\f' || r == '\v' || r == '\b'
 }
 
-func isDigit(r rune) bool {
-	return r >= '0' && r <= '9'
-}
-
 func decode(r rune, runes []rune, i int, size int, sb *strings.Builder, st *bool, sp *bool) int {
 	var decoded bool
 
@@ -959,7 +955,8 @@ func decode(r rune, runes []rune, i int, size int, sb *strings.Builder, st *bool
 			i = j
 		}
 	} else if r == '#' {
-		c, j := matchCode(runes, i+1, size)
+		i++
+		c, j := matchCode(runes, i, size)
 		if j > i {
 			i = j + 1
 			if isWS(c) {
@@ -1001,7 +998,7 @@ func matchCode(runes []rune, i int, size int) (rune, int) {
 		r     rune
 		val   int32
 		pos   int
-		start = i
+		start = i - 1
 		x     bool
 		xb    strings.Builder
 	)
@@ -1014,7 +1011,7 @@ func matchCode(runes []rune, i int, size int) (rune, int) {
 
 		if x {
 			if r == ';' {
-				d, err := strconv.ParseInt("0x"+xb.String(), 0, 64)
+				d, err := strconv.ParseInt(xb.String(), 16, 32)
 				if err == nil {
 					return rune(d), i
 				}
@@ -1054,6 +1051,8 @@ func matchCode(runes []rune, i int, size int) (rune, int) {
 				return r, start
 			case 'x':
 				x = true
+				i++
+				continue
 			default:
 				return r, start
 			}
