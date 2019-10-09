@@ -6,7 +6,7 @@ import (
 )
 
 func TestBeautify(t *testing.T) {
-	tests := []string{
+	input := []string{
 		"&amp;&lt;",
 		"S&amp;L's",
 		"&amp;amp;",
@@ -19,8 +19,24 @@ func TestBeautify(t *testing.T) {
 		"&amp;#x3C;&amp;#x3E;&amp;#x201C;",
 		"&#1 &#a; &#xs;",
 	}
-	for i, s := range tests {
+	expected := []string{
+		"&<",
+		"S&L's",
+		"&",
+		">",
+		"<ä>",
+		"Sãn Paulo",
+		"<a> &",
+		"<ã> <a href=\"#\">test</a>",
+		"<ä> &<a href=\"#\">test</a>",
+		"<>“",
+		"&#1 &#a; &#xs;",
+	}
+	for i, s := range input {
 		test := beautify(s)
 		fmt.Printf("%d %s\n", i, test)
+		if expected[i] != test {
+			t.Error(fmt.Printf("Expected: %s, got %s\n", expected[i], test))
+		}
 	}
 }

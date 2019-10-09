@@ -894,15 +894,30 @@ func beautify(s string) string {
 			break
 		}
 
+		add := true
+
 		r := runes[i]
 		if isWS(r) {
 			sp = true
+			add = false
 		} else if r == '&' && i < size-2 {
-			i++
-			r = runes[i]
-			i = decode(r, runes, i, size, &sb, &st, &sp)
-			continue
-		} else {
+			j := i + 1
+			c := runes[j]
+			if c == 'l' || c == 'g' || c == 'a' || c == '#' {
+				ok, c, j := decode(c, runes, j, size)
+				if ok {
+					if isWS(c) {
+						sp = true
+						add = false
+					} else {
+						r = c
+					}
+					i = j
+				}
+			}
+		}
+
+		if add {
 			if sp && st {
 				sb.WriteByte(' ')
 			}
@@ -910,6 +925,7 @@ func beautify(s string) string {
 			st = true
 			sp = false
 		}
+
 		i++
 	}
 
@@ -920,80 +936,55 @@ func isWS(r rune) bool {
 	return r == ' ' || r == '\n' || r == '\t' || r == '\r' || r == 160 || r == '\f' || r == '\v' || r == '\b'
 }
 
-func decode(r rune, runes []rune, i int, size int, sb *strings.Builder, st *bool, sp *bool) int {
-	var decoded bool
-
+func decode(r rune, runes []rune, i int, size int) (bool, rune, int) {
 	if r == 'l' {
-		ok, j := matchText(runes, []rune{'t', ';'}, i+1, size)
+		ok, j := matchText(runes, []rune{'t', ';'}, i, size)
 		if ok {
-			decoded = true
-			r = '<'
-			i = j
+			return true, '<', j
 		}
 	} else if r == 'g' {
-		ok, j := matchText(runes, []rune{'t', ';'}, i+1, size)
+		ok, j := matchText(runes, []rune{'t', ';'}, i, size)
 		if ok {
-			decoded = true
-			r = '>'
-			i = j
+			return true, '>', j
 		}
 	} else if r == 'a' {
-		ok, j := matchText(runes, []rune{'m', 'p', ';'}, i+1, size)
+		ok, j := matchText(runes, []rune{'m', 'p', ';'}, i, size)
 		if ok {
-			if j < size-1 {
-				r = runes[j]
-				if r == 'l' || r == 'g' || r == 'a' || r == '#' {
-					i = decode(r, runes, j, size, sb, st, sp)
-					if i == j {
-						i++
+			r = '&'
+			if j < size-2 {
+				k := j + 1
+				c := runes[k]
+				if c == 'l' || c == 'g' || c == 'a' || c == '#' {
+					ok, c, k := decode(c, runes, k, size)
+					if ok {
+						r = c
+						j = k
 					}
-					return i
 				}
 			}
-			decoded = true
-			r = '&'
-			i = j
+			return true, r, j
 		}
 	} else if r == '#' {
-		i++
-		c, j := matchCode(runes, i, size)
-		if j > i {
-			i = j + 1
-			if isWS(c) {
-				*sp = true
-				return i
-			}
-			decoded = true
-			r = c
+		ok, c, j := matchCode(runes, i+1, size)
+		if ok {
+			return true, c, j
 		}
 	}
 
-	if *sp && *st {
-		sb.WriteByte(' ')
-	}
-
-	if !decoded && r != '&' {
-		sb.WriteByte('&')
-	}
-	sb.WriteRune(r)
-
-	*st = true
-	*sp = false
-
-	return i
+	return false, r, i
 }
 
 func matchText(runes []rune, match []rune, i int, size int) (bool, int) {
 	for _, r := range match {
-		if i > size || runes[i] != r {
-			return false, i
-		}
 		i++
+		if i > size || runes[i] != r {
+			return false, i - 1
+		}
 	}
 	return true, i
 }
 
-func matchCode(runes []rune, i int, size int) (rune, int) {
+func matchCode(runes []rune, i int, size int) (bool, rune, int) {
 	var (
 		r     rune
 		val   int32
@@ -1004,7 +995,7 @@ func matchCode(runes []rune, i int, size int) (rune, int) {
 	)
 	for {
 		if i > size {
-			return r, i
+			return false, r, i
 		}
 
 		r = runes[i]
@@ -1013,9 +1004,9 @@ func matchCode(runes []rune, i int, size int) (rune, int) {
 			if r == ';' {
 				d, err := strconv.ParseInt(xb.String(), 16, 32)
 				if err == nil {
-					return rune(d), i
+					return true, rune(d), i
 				}
-				return r, start
+				return false, r, start
 			}
 			xb.WriteRune(r)
 		} else {
@@ -1023,7 +1014,7 @@ func matchCode(runes []rune, i int, size int) (rune, int) {
 			switch r {
 			case '0':
 				if pos == 0 {
-					return r, start
+					return false, r, start
 				}
 				d = 0
 			case '1':
@@ -1046,15 +1037,15 @@ func matchCode(runes []rune, i int, size int) (rune, int) {
 				d = 9
 			case ';':
 				if val > 0 {
-					return rune(val), i
+					return true, rune(val), i
 				}
-				return r, start
+				return false, r, start
 			case 'x':
 				x = true
 				i++
 				continue
 			default:
-				return r, start
+				return false, r, start
 			}
 
 			val = val*10 + d
