@@ -1011,45 +1011,27 @@ func matchCode(runes []rune, i int, size int) (bool, rune, int) {
 			xb.WriteRune(r)
 		} else {
 			var d int32
-			switch r {
-			case '0':
+			if r > 47 && r < 58 {
+				d = r - 48
 				if pos == 0 {
-					return false, r, start
+					if d == 0 {
+						return false, r, start
+					}
+					val = d
+				} else {
+					val = val*10 + d
 				}
-				d = 0
-			case '1':
-				d = 1
-			case '2':
-				d = 2
-			case '3':
-				d = 3
-			case '4':
-				d = 4
-			case '5':
-				d = 5
-			case '6':
-				d = 6
-			case '7':
-				d = 7
-			case '8':
-				d = 8
-			case '9':
-				d = 9
-			case ';':
+				pos++
+			} else if r == ';' {
 				if val > 0 {
 					return true, rune(val), i
 				}
 				return false, r, start
-			case 'x':
+			} else if r == 'x' {
 				x = true
-				i++
-				continue
-			default:
+			} else {
 				return false, r, start
 			}
-
-			val = val*10 + d
-			pos++
 		}
 		i++
 	}
