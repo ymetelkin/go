@@ -38,6 +38,7 @@ func (api *APIGateway) Execute(r events.APIGatewayProxyRequest) events.APIGatewa
 
 	resp := api.router.Execute(req)
 
+<<<<<<< HEAD
 	headers := resp.Headers
 	if headers == nil {
 		headers = make(map[string]string)
@@ -77,5 +78,11 @@ func (api *APIGateway) Execute(r events.APIGatewayProxyRequest) events.APIGatewa
 		StatusCode: resp.StatusCode,
 		Body:       resp.Body,
 		Headers:    headers,
+=======
+	return events.APIGatewayProxyResponse{
+		StatusCode: resp.StatusCode,
+		Body:       resp.Body,
+		Headers:    resp.Headers,
+>>>>>>> e40de20d1101308366e6c1267131230e4c431cf7
 	}
 }
