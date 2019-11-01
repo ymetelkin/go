@@ -37,18 +37,12 @@ func (r *Router) Execute(req Request) Response {
 		return exe(req)
 	}
 
-<<<<<<< HEAD
-	headers := make(map[string]string)
-	headers["Content-Type"] = "application/json"
-
 	return Response{
 		StatusCode: 404,
-		Headers:    headers,
-=======
-	return Response{
-		StatusCode: 404,
->>>>>>> e40de20d1101308366e6c1267131230e4c431cf7
-		Body:       fmt.Sprintf(`{"error":"%s: %s not supported"}`, req.HTTPMethod, req.Path),
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+		Body: fmt.Sprintf(`{"error":"%s: %s not supported"}`, req.HTTPMethod, req.Path),
 	}
 }
 
