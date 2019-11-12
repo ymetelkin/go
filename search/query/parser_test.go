@@ -7,7 +7,10 @@ import (
 
 func TestParser(t *testing.T) {
 	var (
-		p     jsParser
+		p = newParser(map[string][]string{
+			"head": []string{"headline", "title"},
+			"slug": []string{"filings.slugline"},
+		})
 		tests = []string{
 			"status:active",
 			`persons.name:"John Smith"`,
@@ -35,6 +38,8 @@ func TestParser(t *testing.T) {
 			"quick AND fox OR brown AND fox OR fox AND NOT news",
 			`status:active AND persons.name:"John Smith" OR book.\*:(quick OR brown) AND NOT age:<=10`,
 			`status:active and persons.name:"John Smith" AND age:<=10`,
+			"head:YM AND slug:SV",
+			"+head:YM -slug:SV",
 		}
 	)
 

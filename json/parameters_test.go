@@ -172,6 +172,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	}
 	jo.SetParams(nil)
 	test := jo.InlineString()
+	fmt.Println(test)
 	if test != expected {
 		t.Error("Doesn't match!")
 		fmt.Println(test)
@@ -185,6 +186,22 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	}
 	jo.SetParams(nil)
 	test = jo.InlineString()
+	fmt.Println(test)
+	if test != expected {
+		t.Error("Doesn't match!")
+		fmt.Println(test)
+	}
+
+	input = `{"id":"${id}", "name":"${name}"}`
+	expected = `{"id":1,"name":"YM"}`
+	jo, err = ParseObjectString(input)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	params, _ := ParseObjectString(`{"id":1,"name":"YM","index":"appl","size":20}`)
+	jo.SetParams(params.Properties)
+	test = jo.InlineString()
+	fmt.Println(test)
 	if test != expected {
 		t.Error("Doesn't match!")
 		fmt.Println(test)
@@ -198,6 +215,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	}
 	jo.SetParams(nil)
 	test = jo.InlineString()
+	fmt.Println(test)
 	if test != expected {
 		t.Error("Doesn't match!")
 		fmt.Println(test)
@@ -211,6 +229,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	}
 	jo.SetParams(nil)
 	test = jo.InlineString()
+	fmt.Println(test)
 	if test != expected {
 		t.Error("Doesn't match!")
 		fmt.Println(test)
@@ -224,6 +243,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	}
 	jo.SetParams(nil)
 	test = jo.InlineString()
+	fmt.Println(test)
 	if test != expected {
 		t.Error("Doesn't match!")
 		fmt.Println(test)
@@ -237,6 +257,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	}
 	jo.SetParams(nil)
 	test = jo.InlineString()
+	fmt.Println(test)
 	if test != expected {
 		t.Error("Doesn't match!")
 		fmt.Println(test)
@@ -250,6 +271,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	}
 	jo.SetParams(nil)
 	test = jo.InlineString()
+	fmt.Println(test)
 	if test != expected {
 		t.Error("Doesn't match!")
 		fmt.Println(test)
@@ -263,6 +285,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	}
 	jo.SetParams(nil)
 	test = jo.InlineString()
+	fmt.Println(test)
 	if test != expected {
 		t.Error("Doesn't match!")
 		fmt.Println(test)
@@ -276,6 +299,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	}
 	jo.SetParams(nil)
 	test = jo.InlineString()
+	fmt.Println(test)
 	if test != expected {
 		t.Error("Doesn't match!")
 		fmt.Println(test)
@@ -289,6 +313,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	}
 	jo.SetParams(nil)
 	test = jo.InlineString()
+	fmt.Println(test)
 	if test != expected {
 		t.Error("Doesn't match!")
 		fmt.Println(test)
@@ -302,6 +327,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	}
 	jo.SetParams(nil)
 	test = jo.InlineString()
+	fmt.Println(test)
 	if test != expected {
 		t.Error("Doesn't match!")
 		fmt.Println(test)

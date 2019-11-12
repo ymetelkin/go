@@ -12,6 +12,7 @@ type qsString interface {
 type qsQuery struct {
 	Operator string
 	Queries  []qsString
+	Sign     string
 }
 
 type qsField struct {
@@ -78,9 +79,17 @@ func (q qsQuery) String() string {
 			}
 		}
 
+		if q.Sign != "" {
+			sb.WriteString(q.Sign)
+		}
+
 		qs, ok := s.(qsQuery)
 		if ok {
 			if len(qs.Queries) > 1 {
+				if qs.Sign != "" {
+					sb.WriteString(qs.Sign)
+					qs.Sign = ""
+				}
 				sb.WriteByte('(')
 				sb.WriteString(qs.String())
 				sb.WriteByte(')')

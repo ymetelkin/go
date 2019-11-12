@@ -9,14 +9,21 @@ import (
 )
 
 type jsParser struct {
-	idx    int
-	last   int
-	buffer []byte
+	idx     int
+	last    int
+	buffer  []byte
+	aliases map[string][]string
 }
 
 type qsToken struct {
 	Type  int //0 query, 1 OR, 2 AND, 3 NOT
 	Query qsString
+}
+
+func newParser(aliases map[string][]string) jsParser {
+	return jsParser{
+		aliases: aliases,
+	}
 }
 
 func (p *jsParser) Parse(s string) (qsQuery, error) {
@@ -32,6 +39,7 @@ func (p *jsParser) parse() (qs qsQuery, err error) {
 		ok           = true
 		tokens       []qsToken
 		and, not, or bool
+		sign         string
 	)
 
 	for {
@@ -134,22 +142,62 @@ func (p *jsParser) parse() (qs qsQuery, err error) {
 				return
 			}
 
+			if sign != "" {
+				field = field[1:len(field)]
+			}
+
 			term, e := p.parseTerm()
 			if e != nil {
 				err = e
 				return
 			}
-			q := qsField{
-				Field: field,
-				Term:  term,
+
+			var (
+				q qsString
+				k bool
+			)
+
+			if p.aliases != nil {
+				fs, ok := p.aliases[field]
+				if ok {
+					if len(fs) > 1 {
+						qq := qsQuery{
+							Sign:     sign,
+							Operator: "OR",
+						}
+						for _, f := range fs {
+							q = qsField{
+								Field: f,
+								Term:  term,
+							}
+							qq.Queries = append(qq.Queries, q)
+						}
+						q = qq
+						k = true
+					} else {
+						field = fs[0]
+					}
+				}
+			}
+			if !k {
+				q = qsField{
+					Sign:  sign,
+					Field: field,
+					Term:  term,
+				}
 			}
 			tokens = append(tokens, qsToken{Query: q})
 			sb.Reset()
+			sign = ""
 		default:
 			sb.WriteByte(c)
 			if sb.Len() == 1 {
 				if !isAlpha(c) && c != '_' {
-					ok = false
+					if c == '+' || c == '-' {
+						sign = string([]byte{c})
+					} else {
+						ok = false
+					}
 				}
 			} else {
 				if !isAlpha(c) && c != '.' && c != '_' && c != '-' && !isDigit(c) {

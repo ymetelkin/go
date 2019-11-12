@@ -142,7 +142,7 @@ func (p *parser) ParseObject() (jo Object, params bool, err error) {
 	var ps bool
 
 	ps, err = p.AddProperty(&jo)
-	if err != nil {
+	if err != nil || jo.Properties == nil {
 		return
 	}
 	if ps {
