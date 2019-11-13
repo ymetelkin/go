@@ -31,7 +31,7 @@ func TestParsing(t *testing.T) {
 		fmt.Printf("%s\n", jo.String())
 	}
 
-	s = `{"test":{}}`
+	s = `{ "object":{ }, "array":[ ] }`
 	jo, err = ParseObjectString(s)
 	if err != nil {
 		t.Error(err.Error())
