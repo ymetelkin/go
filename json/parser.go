@@ -142,7 +142,7 @@ func (p *parser) ParseObject() (jo Object, params bool, err error) {
 	var ps bool
 
 	ps, err = p.AddProperty(&jo)
-	if err != nil || jo.Properties == nil {
+	if err != nil || jo.IsEmpty() {
 		return
 	}
 	if ps {
@@ -434,7 +434,7 @@ func (p *parser) ParseArray() (ja Array, params bool, err error) {
 	var ps bool
 
 	ps, err = p.AddArrayValue(&ja)
-	if err != nil {
+	if err != nil || ja.IsEmpty() {
 		return
 	}
 	if ps {
