@@ -172,7 +172,7 @@ func (jo *Object) getValue(name string) (value, error) {
 //GetString returns string value of named property
 func (jo *Object) GetString(name string) (s string, err error) {
 	jv, err := jo.getValue(name)
-	if err != nil {
+	if err == nil {
 		s, err = jv.GetString()
 	}
 	return
@@ -181,7 +181,7 @@ func (jo *Object) GetString(name string) (s string, err error) {
 //GetInt returns string int of named property
 func (jo *Object) GetInt(name string) (i int, err error) {
 	jv, err := jo.getValue(name)
-	if err != nil {
+	if err == nil {
 		i, err = jv.GetInt()
 	}
 	return
