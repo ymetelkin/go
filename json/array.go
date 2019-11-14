@@ -156,203 +156,177 @@ func (ja *Array) getValue(index int) (*value, error) {
 }
 
 //GetString gets string from JSON array at specified position
-func (ja *Array) GetString(index int) (string, error) {
+func (ja *Array) GetString(index int) (s string, err error) {
 	jv, err := ja.getValue(index)
-	if err != nil {
-		return "", err
+	if err == nil {
+		s, err = jv.GetString()
 	}
-
-	s, err := jv.GetString()
-	if err != nil {
-		return "", err
-	}
-
-	return s, nil
+	return
 }
 
 //GetInt gets int from JSON array at specified position
-func (ja *Array) GetInt(index int) (int, error) {
+func (ja *Array) GetInt(index int) (i int, err error) {
 	jv, err := ja.getValue(index)
-	if err != nil {
-		return 0, err
+	if err == nil {
+		i, err = jv.GetInt()
 	}
-
-	i, err := jv.GetInt()
-	if err != nil {
-		return 0, err
-	}
-
-	return i, nil
+	return
 }
 
 //GetFloat gets bool from JSON array at specified position
-func (ja *Array) GetFloat(index int) (float64, error) {
+func (ja *Array) GetFloat(index int) (f float64, err error) {
 	jv, err := ja.getValue(index)
-	if err != nil {
-		return 0, err
+	if err == nil {
+		f, err = jv.GetFloat()
 	}
-
-	f, err := jv.GetFloat()
-	if err != nil {
-		return 0, err
-	}
-
 	return f, nil
 }
 
 //GetBool gets bool from JSON array at specified position
-func (ja *Array) GetBool(index int) (bool, error) {
+func (ja *Array) GetBool(index int) (b bool, err error) {
 	jv, err := ja.getValue(index)
-	if err != nil {
-		return false, err
+	if err == nil {
+		b, err = jv.GetBool()
 	}
-
-	b, err := jv.GetBool()
-	if err != nil {
-		return false, err
-	}
-
-	return b, nil
+	return
 }
 
 //GetObject gets JSON object from JSON array at specified position
-func (ja *Array) GetObject(index int) (Object, error) {
+func (ja *Array) GetObject(index int) (jo Object, err error) {
 	jv, err := ja.getValue(index)
 	if err == nil {
-		jo, err := jv.GetObject()
-		if err == nil {
-			return jo, nil
-		}
+		jo, err = jv.GetObject()
 	}
-
-	return Object{}, err
+	return
 }
 
 //GetArray gets JSON array from JSON array at specified position
-func (ja *Array) GetArray(index int) (Array, error) {
+func (ja *Array) GetArray(index int) (a Array, err error) {
 	jv, err := ja.getValue(index)
 	if err == nil {
-		a, err := jv.GetArray()
-		if err == nil {
-			return a, nil
-		}
+		a, err = jv.GetArray()
 	}
-
-	return Array{}, err
+	return
 }
 
 //GetStrings converts all values to strings
-func (ja *Array) GetStrings() ([]string, error) {
+func (ja *Array) GetStrings() (ss []string, err error) {
 	size := ja.Length()
 	if size == 0 {
-		return []string{}, nil
+		return
 	}
 
-	values := make([]string, size)
+	ss = make([]string, size)
 	for i, v := range ja.Values {
-		value, err := v.GetString()
-		if err != nil {
-			return nil, err
+		value, e := v.GetString()
+		if e != nil {
+			err = e
+			return
 		}
-		values[i] = value
+		ss[i] = value
 	}
 
-	return values, nil
+	return
 }
 
 //GetInts converts all values to ints
-func (ja *Array) GetInts() ([]int, error) {
+func (ja *Array) GetInts() (is []int, err error) {
 	size := ja.Length()
 	if size == 0 {
-		return []int{}, nil
+		return
 	}
 
-	values := make([]int, size)
+	is = make([]int, size)
 	for i, v := range ja.Values {
-		value, err := v.GetInt()
-		if err != nil {
-			return nil, err
+		value, e := v.GetInt()
+		if e != nil {
+			err = e
+			return
 		}
-		values[i] = value
+		is[i] = value
 	}
 
-	return values, nil
+	return
 }
 
 //GetFloats converts all values to floats
-func (ja *Array) GetFloats() ([]float64, error) {
+func (ja *Array) GetFloats() (fs []float64, err error) {
 	size := ja.Length()
 	if size == 0 {
-		return []float64{}, nil
+		return
 	}
 
-	values := make([]float64, size)
+	fs = make([]float64, size)
 	for i, v := range ja.Values {
-		value, err := v.GetFloat()
-		if err != nil {
-			return nil, err
+		value, e := v.GetFloat()
+		if e != nil {
+			err = e
+			return
 		}
-		values[i] = value
+		fs[i] = value
 	}
 
-	return values, nil
+	return
 }
 
 //GetBools converts all values to bools
-func (ja *Array) GetBools() ([]bool, error) {
+func (ja *Array) GetBools() (bs []bool, err error) {
 	size := ja.Length()
 	if size == 0 {
-		return []bool{}, nil
+		return
 	}
 
-	values := make([]bool, size)
+	bs = make([]bool, size)
 	for i, v := range ja.Values {
-		value, err := v.GetBool()
-		if err != nil {
-			return nil, err
+		value, e := v.GetBool()
+		if e != nil {
+			err = e
+			return
 		}
-		values[i] = value
+		bs[i] = value
 	}
 
-	return values, nil
+	return
 }
 
 //GetObjects converts all values to JSON objects
-func (ja *Array) GetObjects() ([]Object, error) {
+func (ja *Array) GetObjects() (jos []Object, err error) {
 	size := ja.Length()
 	if size == 0 {
-		return []Object{}, nil
+		return
 	}
 
-	values := make([]Object, size)
+	jos = make([]Object, size)
 	for i, v := range ja.Values {
-		value, err := v.GetObject()
-		if err != nil {
-			return nil, err
+		value, e := v.GetObject()
+		if e != nil {
+			err = e
+			return
 		}
-		values[i] = value
+		jos[i] = value
 	}
 
-	return values, nil
+	return
 }
 
 //GetArrays converts all values to JSON arrays
-func (ja *Array) GetArrays() ([]Array, error) {
+func (ja *Array) GetArrays() (jas []Array, err error) {
 	size := ja.Length()
 	if size == 0 {
-		return []Array{}, nil
+		return
 	}
 
-	values := make([]Array, size)
+	jas = make([]Array, size)
 	for i, v := range ja.Values {
-		value, err := v.GetArray()
-		if err != nil {
-			return nil, err
+		value, e := v.GetArray()
+		if e != nil {
+			err = e
+			return
 		}
-		values[i] = value
+		jas[i] = value
 	}
 
-	return values, nil
+	return
 }
 
 //IsEmpty checks if JSON array has any elements

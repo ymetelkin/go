@@ -1,10 +1,8 @@
 git add appl/*.go
 git add apql/*.go
-git add es/*.go
 git add json/*.go
-git add lambda/appl/*.go
-git add lambda/links/*.go
-git add links/*.go
+git add lambda/*.go
+git add rest/*.go
 git add xml/*.go
 git add git.txt
 git commit -m "Work in progress"

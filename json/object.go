@@ -170,89 +170,57 @@ func (jo *Object) getValue(name string) (value, error) {
 }
 
 //GetString returns string value of named property
-func (jo *Object) GetString(name string) (string, error) {
+func (jo *Object) GetString(name string) (s string, err error) {
 	jv, err := jo.getValue(name)
 	if err != nil {
-		return "", err
+		s, err = jv.GetString()
 	}
-
-	s, err := jv.GetString()
-	if err != nil {
-		return "", err
-	}
-
-	return s, nil
+	return
 }
 
 //GetInt returns string int of named property
-func (jo *Object) GetInt(name string) (int, error) {
+func (jo *Object) GetInt(name string) (i int, err error) {
 	jv, err := jo.getValue(name)
 	if err != nil {
-		return 0, err
+		i, err = jv.GetInt()
 	}
-
-	i, err := jv.GetInt()
-	if err != nil {
-		return 0, err
-	}
-
-	return i, nil
+	return
 }
 
 //GetFloat returns float value of named property
-func (jo *Object) GetFloat(name string) (float64, error) {
+func (jo *Object) GetFloat(name string) (f float64, err error) {
 	jv, err := jo.getValue(name)
-	if err != nil {
-		return 0, err
+	if err == nil {
+		f, err = jv.GetFloat()
 	}
-
-	f, err := jv.GetFloat()
-	if err != nil {
-		return 0, err
-	}
-
-	return f, nil
+	return
 }
 
 //GetBool returns bool value of named property
-func (jo *Object) GetBool(name string) (bool, error) {
+func (jo *Object) GetBool(name string) (b bool, err error) {
 	jv, err := jo.getValue(name)
-	if err != nil {
-		return false, err
+	if err == nil {
+		b, err = jv.GetBool()
 	}
-
-	b, err := jv.GetBool()
-	if err != nil {
-		return false, err
-	}
-
-	return b, nil
+	return
 }
 
 //GetObject returns JSON object value of named property
-func (jo *Object) GetObject(name string) (Object, error) {
+func (jo *Object) GetObject(name string) (o Object, err error) {
 	jv, err := jo.getValue(name)
 	if err == nil {
-		o, err := jv.GetObject()
-		if err == nil {
-			return o, nil
-		}
+		o, err = jv.GetObject()
 	}
-
-	return Object{}, err
+	return
 }
 
 //GetArray returns JSON array value of named property
-func (jo *Object) GetArray(name string) (Array, error) {
+func (jo *Object) GetArray(name string) (ja Array, err error) {
 	jv, err := jo.getValue(name)
 	if err == nil {
-		ja, err := jv.GetArray()
-		if err == nil {
-			return ja, nil
-		}
+		ja, err = jv.GetArray()
 	}
-
-	return Array{}, err
+	return
 }
 
 //IsEmpty checks for properties presense
