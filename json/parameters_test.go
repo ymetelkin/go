@@ -170,6 +170,10 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
+	ps := jo.GetParams()
+	for k, v := range ps {
+		fmt.Printf("%s\t%s\n", k, v)
+	}
 	jo.SetParams(nil)
 	test := jo.InlineString()
 	fmt.Println(test)
@@ -184,6 +188,10 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
+	ps = jo.GetParams()
+	for k, v := range ps {
+		fmt.Printf("%s\t%s\n", k, v)
+	}
 	jo.SetParams(nil)
 	test = jo.InlineString()
 	fmt.Println(test)
@@ -192,13 +200,18 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 		fmt.Println(test)
 	}
 
-	input = `{"id":"${id}", "name":"${name}"}`
-	expected = `{"id":1,"name":"YM"}`
+	input = `{"id":"${id}", "name":"${name}","products":["${p1}","${p2}"]}`
+	expected = `{"id":1,"name":"YM","products":[1,2]}`
 	jo, err = ParseObjectString(input)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	params, _ := ParseObjectString(`{"id":1,"name":"YM","index":"appl","size":20}`)
+	ps = jo.GetParams()
+	for k, v := range ps {
+		fmt.Printf("%s\t%s\n", k, v)
+	}
+
+	params, _ := ParseObjectString(`{"id":1,"name":"YM","index":"appl","size":20,"p1":1,"p2":2}`)
 	jo.SetParams(params.Properties)
 	test = jo.InlineString()
 	fmt.Println(test)
@@ -212,6 +225,10 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	jo, err = ParseObjectString(input)
 	if err != nil {
 		t.Error(err.Error())
+	}
+	ps = jo.GetParams()
+	for k, v := range ps {
+		fmt.Printf("%s\t%s\n", k, v)
 	}
 	jo.SetParams(nil)
 	test = jo.InlineString()
@@ -227,6 +244,10 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
+	ps = jo.GetParams()
+	for k, v := range ps {
+		fmt.Printf("%s\t%s\n", k, v)
+	}
 	jo.SetParams(nil)
 	test = jo.InlineString()
 	fmt.Println(test)
@@ -240,6 +261,10 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	jo, err = ParseObjectString(input)
 	if err != nil {
 		t.Error(err.Error())
+	}
+	ps = jo.GetParams()
+	for k, v := range ps {
+		fmt.Printf("%s\t%s\n", k, v)
 	}
 	jo.SetParams(nil)
 	test = jo.InlineString()
@@ -255,6 +280,10 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
+	ps = jo.GetParams()
+	for k, v := range ps {
+		fmt.Printf("%s\t%s\n", k, v)
+	}
 	jo.SetParams(nil)
 	test = jo.InlineString()
 	fmt.Println(test)
@@ -268,6 +297,10 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	jo, err = ParseObjectString(input)
 	if err != nil {
 		t.Error(err.Error())
+	}
+	ps = jo.GetParams()
+	for k, v := range ps {
+		fmt.Printf("%s\t%s\n", k, v)
 	}
 	jo.SetParams(nil)
 	test = jo.InlineString()
@@ -283,6 +316,10 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
+	ps = jo.GetParams()
+	for k, v := range ps {
+		fmt.Printf("%s\t%s\n", k, v)
+	}
 	jo.SetParams(nil)
 	test = jo.InlineString()
 	fmt.Println(test)
@@ -296,6 +333,10 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	jo, err = ParseObjectString(input)
 	if err != nil {
 		t.Error(err.Error())
+	}
+	ps = jo.GetParams()
+	for k, v := range ps {
+		fmt.Printf("%s\t%s\n", k, v)
 	}
 	jo.SetParams(nil)
 	test = jo.InlineString()
@@ -311,6 +352,10 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
+	ps = jo.GetParams()
+	for k, v := range ps {
+		fmt.Printf("%s\t%s\n", k, v)
+	}
 	jo.SetParams(nil)
 	test = jo.InlineString()
 	fmt.Println(test)
@@ -324,6 +369,10 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	jo, err = ParseObjectString(input)
 	if err != nil {
 		t.Error(err.Error())
+	}
+	ps = jo.GetParams()
+	for k, v := range ps {
+		fmt.Printf("%s\t%s\n", k, v)
 	}
 	jo.SetParams(nil)
 	test = jo.InlineString()

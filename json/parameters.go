@@ -256,3 +256,97 @@ func (p *parser) ParseParam() (name string, def string, err error) {
 
 	return
 }
+
+//GetParams gets parameters
+func (jo *Object) GetParams() map[string]string {
+	params := make(map[string]string)
+
+	if jo.IsEmpty() {
+		return params
+	}
+
+	for name, jv := range jo.Properties {
+		getParams(name, params)
+
+		if jv.Type == jsonString {
+			s, e := jv.GetString()
+			if e == nil {
+				getParams(s, params)
+			}
+		} else if jv.Type == jsonObject {
+			o, e := jv.GetObject()
+			if e == nil {
+				temp := o.GetParams()
+				for k, v := range temp {
+					params[k] = v
+				}
+			}
+		} else if jv.Type == jsonArray {
+			a, e := jv.GetArray()
+			if e == nil {
+				temp := a.GetParams()
+				for k, v := range temp {
+					params[k] = v
+				}
+			}
+		}
+	}
+
+	return params
+}
+
+//GetParams gets parameters
+func (ja *Array) GetParams() map[string]string {
+	params := make(map[string]string)
+
+	if ja.IsEmpty() {
+		return params
+	}
+
+	for _, jv := range ja.Values {
+		if jv.Type == jsonString {
+			s, e := jv.GetString()
+			if e == nil {
+				getParams(s, params)
+			}
+		} else if jv.Type == jsonObject {
+			o, e := jv.GetObject()
+			if e == nil {
+				temp := o.GetParams()
+				for k, v := range temp {
+					params[k] = v
+				}
+			}
+		} else if jv.Type == jsonArray {
+			a, e := jv.GetArray()
+			if e == nil {
+				temp := a.GetParams()
+				for k, v := range temp {
+					params[k] = v
+				}
+			}
+		}
+	}
+
+	return params
+}
+
+func getParams(s string, params map[string]string) {
+	p := &parser{
+		r: newReader(s),
+	}
+
+	for {
+		c, e := p.r.ReadByte()
+		if e != nil {
+			break
+		}
+
+		if c == '$' {
+			name, def, e := p.ParseParam()
+			if e == nil && name != "" {
+				params[name] = def
+			}
+		}
+	}
+}
