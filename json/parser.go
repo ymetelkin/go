@@ -527,7 +527,7 @@ func isAlpha(c byte) bool {
 }
 
 func isProperty(c byte) bool {
-	return isAlpha(c) || c == '_' || c == '-' || c == '.' || (c >= '0' && c <= '9')
+	return isAlpha(c) || c == '_' || c == '-' || c == '.' || (c >= '0' && c <= '9') || c == '%'
 }
 
 func isParam(c byte) bool {
