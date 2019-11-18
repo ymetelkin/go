@@ -203,6 +203,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	input = `{"id":"${id}", "name":"${name}","products":["${p1}","${p2}"]}`
 	expected = `{"id":1,"name":"YM","products":[1,2]}`
 	jo, err = ParseObjectString(input)
+	fmt.Println(jo.String())
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -375,6 +376,51 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 		fmt.Printf("%s\t%s\n", k, v)
 	}
 	jo.SetParams(nil)
+	test = jo.InlineString()
+	fmt.Println(test)
+	if test != expected {
+		t.Error("Doesn't match!")
+		fmt.Println(test)
+	}
+
+	input = `{"query":{"bool":{"must":{"query_string":{"query":"${query}","fields":["head","body"]}},"filter":[{"terms":{"type":"${media_types}"}},{"terms":{"filing.products":"${include_products}"}}],"must_not":{"terms":{"filing.products":"${exclude_products}"}}}}}`
+	expected = `{"query":{"bool":{"must":{"query_string":{"query":"ap","fields":["head","body"]}},"filter":[{"terms":{"type":["audio"]}},{"terms":{"filing.products":[1,2]}}],"must_not":{"terms":{"filing.products":[3]}}}}}`
+	jo, err = ParseObjectString(input)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	params, _ = ParseObjectString(`{"query":"ap","media_types":["audio"],"include_products":[1,2], "exclude_products":[3]}`)
+	jo.SetParams(params.Properties)
+	test = jo.InlineString()
+	fmt.Println(test)
+	if test != expected {
+		t.Error("Doesn't match!")
+		fmt.Println(test)
+	}
+
+	input = `{"query":{"bool":{"must":{"query_string":{"query":"${query}","fields":["head","body"]}},"filter":[{"terms":{"type":"${media_types}"}},{"terms":{"filing.products":"${include_products}"}}],"must_not":{"terms":{"filing.products":"${exclude_products}"}}}}}`
+	expected = `{"query":{"bool":{"must":{"query_string":{"query":"ap","fields":["head","body"]}},"filter":[{"terms":{"type":["audio"]}}]}}}`
+	jo, err = ParseObjectString(input)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	params, _ = ParseObjectString(`{"query":"ap","media_types":["audio"]}`)
+	jo.SetParams(params.Properties)
+	test = jo.InlineString()
+	fmt.Println(test)
+	if test != expected {
+		t.Error("Doesn't match!")
+		fmt.Println(test)
+	}
+
+	input = `{"query":{"bool":{"must":{"query_string":{"query":"${query}","fields":["head","body"]}},"filter":[{"terms":{"type":"${media_types}"}},{"terms":{"filing.products":"${include_products}"}}],"must_not":{"terms":{"filing.products":"${exclude_products}"}}}}}`
+	expected = `{"query":{"bool":{"filter":[{"terms":{"type":["audio"]}}]}}}`
+	jo, err = ParseObjectString(input)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	params, _ = ParseObjectString(`{"media_types":["audio"]}`)
+	jo.SetParams(params.Properties)
 	test = jo.InlineString()
 	fmt.Println(test)
 	if test != expected {

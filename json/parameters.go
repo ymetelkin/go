@@ -141,20 +141,45 @@ func (ja *Array) SetParams(props map[string]value) (modified bool) {
 			if i == idx {
 				add = true
 
-				s, err := jv.GetString()
-				if err != nil {
-					break
-				}
+				if jv.Type == jsonString {
+					s, err := jv.GetString()
+					if err != nil {
+						break
+					}
 
-				v, txt, ok := setTextParams(s, props)
-				if ok {
-					modified = true
-					if txt == "" {
-						if v.Type > 0 && v.Type != jsonNull {
-							values = append(values, v)
+					v, txt, ok := setTextParams(s, props)
+					if ok {
+						modified = true
+						if txt == "" {
+							if v.Type > 0 && v.Type != jsonNull {
+								values = append(values, v)
+							}
+						} else {
+							values = append(values, newString(txt))
 						}
-					} else {
-						values = append(values, newString(txt))
+					}
+				} else if jv.Type == jsonObject {
+					jo, err := jv.GetObject()
+					if err != nil {
+						continue
+					}
+					ok := jo.SetParams(props)
+					if ok {
+						modified = true
+						if !jo.IsEmpty() {
+							values = append(values, newObject(jo))
+						}
+					}
+				} else if jv.Type == jsonArray {
+					a, err := jv.GetArray()
+					if err != nil {
+						continue
+					}
+					modified = a.SetParams(props)
+					if modified {
+						if !a.IsEmpty() {
+							values = append(values, newArray(a))
+						}
 					}
 				}
 			}
