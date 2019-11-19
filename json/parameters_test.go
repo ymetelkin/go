@@ -174,7 +174,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	for k, v := range ps {
 		fmt.Printf("%s\t%s\n", k, v)
 	}
-	jo.SetParams(nil)
+	jo.SetParams(nil, nil)
 	test := jo.InlineString()
 	fmt.Println(test)
 	if test != expected {
@@ -192,7 +192,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	for k, v := range ps {
 		fmt.Printf("%s\t%s\n", k, v)
 	}
-	jo.SetParams(nil)
+	jo.SetParams(nil, nil)
 	test = jo.InlineString()
 	fmt.Println(test)
 	if test != expected {
@@ -213,7 +213,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	}
 
 	params, _ := ParseObjectString(`{"id":1,"name":"YM","index":"appl","size":20,"p1":1,"p2":2}`)
-	jo.SetParams(params.Properties)
+	jo.SetParams(params.Properties, nil)
 	test = jo.InlineString()
 	fmt.Println(test)
 	if test != expected {
@@ -231,7 +231,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	for k, v := range ps {
 		fmt.Printf("%s\t%s\n", k, v)
 	}
-	jo.SetParams(nil)
+	jo.SetParams(nil, nil)
 	test = jo.InlineString()
 	fmt.Println(test)
 	if test != expected {
@@ -249,7 +249,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	for k, v := range ps {
 		fmt.Printf("%s\t%s\n", k, v)
 	}
-	jo.SetParams(nil)
+	jo.SetParams(nil, nil)
 	test = jo.InlineString()
 	fmt.Println(test)
 	if test != expected {
@@ -267,7 +267,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	for k, v := range ps {
 		fmt.Printf("%s\t%s\n", k, v)
 	}
-	jo.SetParams(nil)
+	jo.SetParams(nil, nil)
 	test = jo.InlineString()
 	fmt.Println(test)
 	if test != expected {
@@ -285,7 +285,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	for k, v := range ps {
 		fmt.Printf("%s\t%s\n", k, v)
 	}
-	jo.SetParams(nil)
+	jo.SetParams(nil, nil)
 	test = jo.InlineString()
 	fmt.Println(test)
 	if test != expected {
@@ -303,7 +303,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	for k, v := range ps {
 		fmt.Printf("%s\t%s\n", k, v)
 	}
-	jo.SetParams(nil)
+	jo.SetParams(nil, nil)
 	test = jo.InlineString()
 	fmt.Println(test)
 	if test != expected {
@@ -321,7 +321,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	for k, v := range ps {
 		fmt.Printf("%s\t%s\n", k, v)
 	}
-	jo.SetParams(nil)
+	jo.SetParams(nil, nil)
 	test = jo.InlineString()
 	fmt.Println(test)
 	if test != expected {
@@ -339,7 +339,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	for k, v := range ps {
 		fmt.Printf("%s\t%s\n", k, v)
 	}
-	jo.SetParams(nil)
+	jo.SetParams(nil, nil)
 	test = jo.InlineString()
 	fmt.Println(test)
 	if test != expected {
@@ -357,7 +357,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	for k, v := range ps {
 		fmt.Printf("%s\t%s\n", k, v)
 	}
-	jo.SetParams(nil)
+	jo.SetParams(nil, nil)
 	test = jo.InlineString()
 	fmt.Println(test)
 	if test != expected {
@@ -375,7 +375,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 	for k, v := range ps {
 		fmt.Printf("%s\t%s\n", k, v)
 	}
-	jo.SetParams(nil)
+	jo.SetParams(nil, nil)
 	test = jo.InlineString()
 	fmt.Println(test)
 	if test != expected {
@@ -390,7 +390,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 		t.Error(err.Error())
 	}
 	params, _ = ParseObjectString(`{"query":"ap","media_types":["audio"],"include_products":[1,2], "exclude_products":[3]}`)
-	jo.SetParams(params.Properties)
+	jo.SetParams(params.Properties, nil)
 	test = jo.InlineString()
 	fmt.Println(test)
 	if test != expected {
@@ -405,7 +405,7 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 		t.Error(err.Error())
 	}
 	params, _ = ParseObjectString(`{"query":"ap","media_types":["audio"]}`)
-	jo.SetParams(params.Properties)
+	jo.SetParams(params.Properties, nil)
 	test = jo.InlineString()
 	fmt.Println(test)
 	if test != expected {
@@ -420,7 +420,8 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 		t.Error(err.Error())
 	}
 	params, _ = ParseObjectString(`{"media_types":["audio"]}`)
-	jo.SetParams(params.Properties)
+	empty := map[string][]string{"query_string": []string{"query"}}
+	jo.SetParams(params.Properties, empty)
 	test = jo.InlineString()
 	fmt.Println(test)
 	if test != expected {

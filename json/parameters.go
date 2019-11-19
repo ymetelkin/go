@@ -6,7 +6,7 @@ import (
 )
 
 //SetParams sets parameters
-func (jo *Object) SetParams(props map[string]value) (modified bool) {
+func (jo *Object) SetParams(props map[string]value, emptycheck map[string][]string) (modified bool) {
 	if jo.IsEmpty() {
 		return
 	}
@@ -76,10 +76,10 @@ func (jo *Object) SetParams(props map[string]value) (modified bool) {
 				if err != nil {
 					continue
 				}
-				ok = child.SetParams(props)
+				ok = child.SetParams(props, emptycheck)
 				if ok {
 					modified = true
-					if child.IsEmpty() {
+					if isEmpty(name, &child, emptycheck) {
 						remove = append(remove, name)
 					} else {
 						jo.SetObject(name, child)
@@ -90,7 +90,7 @@ func (jo *Object) SetParams(props map[string]value) (modified bool) {
 				if err != nil {
 					continue
 				}
-				modified = ja.SetParams(props)
+				modified = ja.SetParams(props, emptycheck)
 				if modified {
 					if ja.IsEmpty() {
 						remove = append(remove, name)
@@ -127,7 +127,7 @@ func (jo *Object) SetParams(props map[string]value) (modified bool) {
 }
 
 //SetParams set array parameters
-func (ja *Array) SetParams(props map[string]value) (modified bool) {
+func (ja *Array) SetParams(props map[string]value, emptycheck map[string][]string) (modified bool) {
 	if ja.pvalues == nil || len(ja.pvalues) == 0 {
 		return
 	}
@@ -163,7 +163,7 @@ func (ja *Array) SetParams(props map[string]value) (modified bool) {
 					if err != nil {
 						continue
 					}
-					ok := jo.SetParams(props)
+					ok := jo.SetParams(props, emptycheck)
 					if ok {
 						modified = true
 						if !jo.IsEmpty() {
@@ -175,7 +175,7 @@ func (ja *Array) SetParams(props map[string]value) (modified bool) {
 					if err != nil {
 						continue
 					}
-					modified = a.SetParams(props)
+					modified = a.SetParams(props, emptycheck)
 					if modified {
 						if !a.IsEmpty() {
 							values = append(values, newArray(a))
@@ -238,6 +238,30 @@ func setTextParams(s string, params map[string]value) (jv value, text string, mo
 	}
 
 	return
+}
+
+func isEmpty(name string, jo *Object, emptycheck map[string][]string) bool {
+	if jo.IsEmpty() {
+		return true
+	}
+
+	if emptycheck == nil {
+		return false
+	}
+
+	for k, vs := range emptycheck {
+		if k == name {
+			for _, v := range vs {
+				_, ok := jo.Properties[v]
+				if !ok {
+					return true
+				}
+			}
+			break
+		}
+	}
+
+	return false
 }
 
 func (p *parser) ParseParam() (name string, def string, err error) {
