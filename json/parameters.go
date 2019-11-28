@@ -12,8 +12,8 @@ func (jo *Object) SetParams(props map[string]value, emptycheck map[string][]stri
 	}
 
 	if props == nil || len(props) == 0 {
-		params, err := jo.GetObject("params")
-		if err == nil && !params.IsEmpty() {
+		params, ok := jo.GetObject("params")
+		if ok && !params.IsEmpty() {
 			props = params.Properties
 			jo.Remove("params")
 			modified = true
@@ -54,8 +54,8 @@ func (jo *Object) SetParams(props map[string]value, emptycheck map[string][]stri
 
 		if test > 1 {
 			if jv.Type == jsonString {
-				s, err := jv.GetString()
-				if err != nil {
+				s, ok := jv.GetString()
+				if !ok {
 					continue
 				}
 				v, txt, ok := setTextParams(s, props)
@@ -72,8 +72,8 @@ func (jo *Object) SetParams(props map[string]value, emptycheck map[string][]stri
 					}
 				}
 			} else if jv.Type == jsonObject {
-				child, err := jv.GetObject()
-				if err != nil {
+				child, ok := jv.GetObject()
+				if !ok {
 					continue
 				}
 				ok = child.SetParams(props, emptycheck)
@@ -86,8 +86,8 @@ func (jo *Object) SetParams(props map[string]value, emptycheck map[string][]stri
 					}
 				}
 			} else if jv.Type == jsonArray {
-				ja, err := jv.GetArray()
-				if err != nil {
+				ja, ok := jv.GetArray()
+				if !ok {
 					continue
 				}
 				modified = ja.SetParams(props, emptycheck)
@@ -142,8 +142,8 @@ func (ja *Array) SetParams(props map[string]value, emptycheck map[string][]strin
 				add = true
 
 				if jv.Type == jsonString {
-					s, err := jv.GetString()
-					if err != nil {
+					s, ok := jv.GetString()
+					if !ok {
 						break
 					}
 
@@ -159,11 +159,11 @@ func (ja *Array) SetParams(props map[string]value, emptycheck map[string][]strin
 						}
 					}
 				} else if jv.Type == jsonObject {
-					jo, err := jv.GetObject()
-					if err != nil {
+					jo, ok := jv.GetObject()
+					if !ok {
 						continue
 					}
-					ok := jo.SetParams(props, emptycheck)
+					ok = jo.SetParams(props, emptycheck)
 					if ok {
 						modified = true
 						if !jo.IsEmpty() {
@@ -171,8 +171,8 @@ func (ja *Array) SetParams(props map[string]value, emptycheck map[string][]strin
 						}
 					}
 				} else if jv.Type == jsonArray {
-					a, err := jv.GetArray()
-					if err != nil {
+					a, ok := jv.GetArray()
+					if !ok {
 						continue
 					}
 					modified = a.SetParams(props, emptycheck)
@@ -318,21 +318,21 @@ func (jo *Object) GetParams() map[string]string {
 		getParams(name, params)
 
 		if jv.Type == jsonString {
-			s, e := jv.GetString()
-			if e == nil {
+			s, ok := jv.GetString()
+			if ok {
 				getParams(s, params)
 			}
 		} else if jv.Type == jsonObject {
-			o, e := jv.GetObject()
-			if e == nil {
+			o, ok := jv.GetObject()
+			if ok {
 				temp := o.GetParams()
 				for k, v := range temp {
 					params[k] = v
 				}
 			}
 		} else if jv.Type == jsonArray {
-			a, e := jv.GetArray()
-			if e == nil {
+			a, ok := jv.GetArray()
+			if ok {
 				temp := a.GetParams()
 				for k, v := range temp {
 					params[k] = v
@@ -354,21 +354,21 @@ func (ja *Array) GetParams() map[string]string {
 
 	for _, jv := range ja.Values {
 		if jv.Type == jsonString {
-			s, e := jv.GetString()
-			if e == nil {
+			s, ok := jv.GetString()
+			if ok {
 				getParams(s, params)
 			}
 		} else if jv.Type == jsonObject {
-			o, e := jv.GetObject()
-			if e == nil {
+			o, ok := jv.GetObject()
+			if ok {
 				temp := o.GetParams()
 				for k, v := range temp {
 					params[k] = v
 				}
 			}
 		} else if jv.Type == jsonArray {
-			a, e := jv.GetArray()
-			if e == nil {
+			a, ok := jv.GetArray()
+			if ok {
 				temp := a.GetParams()
 				for k, v := range temp {
 					params[k] = v

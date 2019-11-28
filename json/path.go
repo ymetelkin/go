@@ -1,113 +1,95 @@
 package json
 
 import (
-	"fmt"
 	"strings"
 )
 
 //PathString returns string value from path
-func (jo *Object) PathString(path string) (string, error) {
-	var s string
-
-	v, e := walk(*jo, strings.Split(path, "."))
-	if e == nil {
-		s, e = v.GetString()
+func (jo *Object) PathString(path string) (s string, ok bool) {
+	v,k:= walk(*jo, strings.Split(path, "."))
+	if k {
+		s, ok = v.GetString()
 	}
-	return s, e
+	return 
 }
 
 //PathStrings returns string values from path
-func (jo *Object) PathStrings(path string) ([]string, error) {
-	var ss []string
-
-	v, e := walk(*jo, strings.Split(path, "."))
-	if e == nil {
-		a, e := v.GetArray()
-		if e == nil {
-			ss, e = a.GetStrings()
+func (jo *Object) PathStrings(path string) (ss []string, ok bool) {
+	v, k := walk(*jo, strings.Split(path, "."))
+	if k {
+		ja, k := v.GetArray()
+		if k {
+			ss, ok = ja.GetStrings()
 		}
 	}
-	return ss, e
+	return
 }
 
 //PathObject returns JSON object value from path
-func (jo *Object) PathObject(path string) (Object, error) {
-	var o Object
-
-	v, e := walk(*jo, strings.Split(path, "."))
-	if e == nil {
-		o, e = v.GetObject()
+func (jo *Object) PathObject(path string) (o Object, ok bool) {
+	v, k := walk(*jo, strings.Split(path, "."))
+	if k {
+		o, ok = v.GetObject()
 	}
-	return o, e
+	return
 }
 
 //PathObjects returns JSON object values from path
-func (jo *Object) PathObjects(path string) ([]Object, error) {
-	var os []Object
-
-	v, e := walk(*jo, strings.Split(path, "."))
-	if e == nil {
-		a, e := v.GetArray()
-		if e == nil {
-			os, e = a.GetObjects()
+func (jo *Object) PathObjects(path string) (jos []Object, ok bool) {
+	v, k := walk(*jo, strings.Split(path, "."))
+	if k {
+		ja, k := v.GetArray()
+		if k {
+			jos, ok = ja.GetObjects()
 		}
 	}
-	return os, e
+	return
 }
 
-func walk(jo Object, toks []string) (value, error) {
+func walk(jo Object, toks []string) (v value, ok bool) {
 	if toks[0] == "" {
-		return walkError(toks)
+		return
 	}
-
-	var (
-		v value
-		e error
-	)
 
 	for i, tok := range toks {
 		if i == 0 {
-			v, e = jo.getValue(tok)
-			if e != nil {
-				return walkError(toks)
+			v, ok = jo.getValue(tok)
+			if !ok {
+				return
 			}
 			continue
 		}
 
 		switch v.Type {
 		case jsonObject:
-			o, e := v.GetObject()
-			if e != nil {
-				return walkError(toks)
+			o, k := v.GetObject()
+			if !k {
+				return
 			}
-
-			v, e = o.getValue(tok)
-			if e != nil {
-				return walkError(toks)
+			v, ok = o.getValue(tok)
+			if !ok {
+				return
 			}
 		case jsonArray:
-			a, e := v.GetArray()
-			if e != nil {
-				return walkError(toks)
+			a, k := v.GetArray()
+			if !k {
+				return
+			}
+			jos, k := a.GetObjects()
+			if !k {
+				return
 			}
 
-			objs, e := a.GetObjects()
-			if e != nil {
-				return walkError(toks)
-			}
-
-			ja := Array{}
-
-			for _, obj := range objs {
-				jv, e := walk(obj, toks[i:])
-				if e != nil {
-					return walkError(toks)
+			var ja Array
+			for _, o := range jos {
+				jv, k := walk(o, toks[i:])
+				if !k {
+					return
 				}
-
 				if jv.Type == jsonArray {
-					aa, e := jv.GetArray()
-					if e != nil {
-						return walkError(toks)
+					aa, k := jv.GetArray()
+					if !k {
+						return
 					}
 					for _, jvv := range aa.Values {
 						ja.addValue(jvv)
@@ -116,17 +98,10 @@ func walk(jo Object, toks []string) (value, error) {
 					ja.addValue(jv)
 				}
 			}
-
-			return newArray(ja), nil
-
-		default:
-			return walkError(toks)
+			v = newArray(ja)
+			ok = true
 		}
 	}
 
-	return v, nil
-}
-
-func walkError(toks []string) (value, error) {
-	return value{}, fmt.Errorf("Invalid path: [%s]", strings.Join(toks, "."))
+	return
 }

@@ -13,9 +13,9 @@ func TestParsing(t *testing.T) {
 	} else {
 		for key, value := range jo.Properties {
 			fmt.Printf("%s: %#v\n", key, value)
-			jv, err := jo.getValue(key)
-			if err != nil {
-				t.Error(err.Error())
+			jv, ok := jo.getValue(key)
+			if !ok {
+				t.Error("Failrd to get value")
 			} else {
 				fmt.Printf("%s: %v\n", key, jv.Value)
 			}
@@ -31,7 +31,7 @@ func TestParsing(t *testing.T) {
 		fmt.Printf("%s\n", jo.String())
 	}
 
-	s = `{ "object":{ }, "array":[ ] }`
+	s = `{"object":{},"array":[]}`
 	jo, err = ParseObjectString(s)
 	if err != nil {
 		t.Error(err.Error())

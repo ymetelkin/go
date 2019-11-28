@@ -7,9 +7,11 @@ type Property struct {
 }
 
 //IsEmtpy checks for field presense
+/*
 func (jp *Property) IsEmtpy() bool {
 	return jp.Field == ""
 }
+*/
 
 //NewStringProperty constructs new string value property
 func NewStringProperty(name string, value string) Property {

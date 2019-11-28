@@ -1,7 +1,6 @@
 package json
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -56,11 +55,7 @@ func newNull() value {
 }
 
 func newInts(vs []int) []value {
-	if vs == nil {
-		return nil
-	}
-	size := len(vs)
-	if size == 0 {
+	if len(vs) == 0 {
 		return nil
 	}
 	values := make([]value, len(vs))
@@ -71,11 +66,7 @@ func newInts(vs []int) []value {
 }
 
 func newFloats(vs []float64) []value {
-	if vs == nil {
-		return nil
-	}
-	size := len(vs)
-	if size == 0 {
+	if len(vs) == 0 {
 		return nil
 	}
 	values := make([]value, len(vs))
@@ -86,11 +77,7 @@ func newFloats(vs []float64) []value {
 }
 
 func newBools(vs []bool) []value {
-	if vs == nil {
-		return nil
-	}
-	size := len(vs)
-	if size == 0 {
+	if len(vs) == 0 {
 		return nil
 	}
 	values := make([]value, len(vs))
@@ -101,11 +88,7 @@ func newBools(vs []bool) []value {
 }
 
 func newStrings(vs []string) []value {
-	if vs == nil {
-		return nil
-	}
-	size := len(vs)
-	if size == 0 {
+	if len(vs) == 0 {
 		return nil
 	}
 	values := make([]value, len(vs))
@@ -116,11 +99,7 @@ func newStrings(vs []string) []value {
 }
 
 func newObjects(vs []Object) []value {
-	if vs == nil {
-		return nil
-	}
-	size := len(vs)
-	if size == 0 {
+	if len(vs) == 0 {
 		return nil
 	}
 	values := make([]value, len(vs))
@@ -131,11 +110,7 @@ func newObjects(vs []Object) []value {
 }
 
 func newArrays(vs []Array) []value {
-	if vs == nil {
-		return nil
-	}
-	size := len(vs)
-	if size == 0 {
+	if len(vs) == 0 {
 		return nil
 	}
 	values := make([]value, len(vs))
@@ -145,112 +120,100 @@ func newArrays(vs []Array) []value {
 	return values
 }
 
-func (jv *value) GetInt() (int, error) {
+func (jv *value) GetInt() (v int, ok bool) {
 	if jv.Type == jsonInt {
-		i, ok := jv.Value.(int)
-		if ok {
-			return i, nil
-		}
-		u, ok := jv.Value.(uint)
-		if ok {
-			return int(u), nil
+		v, ok = jv.Value.(int)
+		if !ok {
+			u, k := jv.Value.(uint)
+			if k {
+				v = int(u)
+				ok = true
+			}
 		}
 	} else if jv.Type == jsonFloat {
-		f, ok := jv.Value.(float64)
-		if ok {
-			return int(f), nil
+		f, k := jv.Value.(float64)
+		if k {
+			v = int(f)
+			ok = true
 		}
 	} else if jv.Type == jsonString {
-		s, ok := jv.Value.(string)
-		if ok {
+		s, k := jv.Value.(string)
+		if k {
 			if strings.Contains(s, ".") {
 				f, err := strconv.ParseFloat(s, 64)
-				return int(f), err
+				if err == nil {
+					v = int(f)
+					ok = true
+				}
+			} else {
+				i, err := strconv.ParseInt(s, 0, 64)
+				if err == nil {
+					v = int(i)
+					ok = true
+				}
 			}
-			i, err := strconv.ParseInt(s, 0, 64)
-			return int(i), err
 		}
-		return 0, errors.New("Cannot read string value")
 	}
-
-	return 0, fmt.Errorf("Unsupported value type: %d", jv.Type)
+	return
 }
 
-func (jv *value) GetFloat() (float64, error) {
+func (jv *value) GetFloat() (v float64, ok bool) {
 	if jv.Type == jsonFloat {
-		f, ok := jv.Value.(float64)
-		if ok {
-			return f, nil
-		}
+		v, ok = jv.Value.(float64)
 	} else if jv.Type == jsonInt {
-		i, ok := jv.Value.(int)
-		if ok {
-			return float64(i), nil
+		i, k := jv.Value.(int)
+		if k {
+			v = float64(i)
+			ok = true
 		}
 	} else if jv.Type == jsonString {
-		s, ok := jv.Value.(string)
-		if ok {
+		s, k := jv.Value.(string)
+		if k {
 			f, err := strconv.ParseFloat(s, 64)
-			return f, err
+			ok = err == nil
+			v = f
 		}
-		return 0, errors.New("Cannot read string value")
 	}
 
-	return 0, fmt.Errorf("Unsupported value type: %d", jv.Type)
+	return
 }
 
-func (jv *value) GetString() (string, error) {
+func (jv *value) GetString() (v string, ok bool) {
 	if jv.Type == jsonString {
-		s, ok := jv.Value.(string)
-		if ok {
-			return s, nil
-		}
-		return "", errors.New("Cannot read string value")
+		v, ok = jv.Value.(string)
+	} else {
+		v = jv.String(true, 0)
+		ok = true
 	}
-	return jv.String(true, 0), nil
+	return
 }
 
-func (jv *value) GetBool() (bool, error) {
+func (jv *value) GetBool() (v bool, ok bool) {
 	if jv.Type == jsonBool {
-		b, ok := jv.Value.(bool)
-		if ok {
-			return b, nil
-		}
-		return false, errors.New("Cannot read string value")
+		v, ok = jv.Value.(bool)
 	} else if jv.Type == jsonString {
 		s, ok := jv.Value.(string)
 		if ok {
 			b, err := strconv.ParseBool(s)
-			return b, err
+			ok = err == nil
+			v = b
 		}
-		return false, errors.New("Cannot read string value")
 	}
-
-	return false, fmt.Errorf("Unsupported value type: %d", jv.Type)
+	return
 }
 
-func (jv *value) GetObject() (Object, error) {
+func (jv *value) GetObject() (v Object, ok bool) {
 	if jv.Type == jsonObject {
-		jo, ok := jv.Value.(Object)
-		if ok {
-			return jo, nil
-		}
-		return Object{}, errors.New("Cannot read Object value")
+		v, ok = jv.Value.(Object)
 	}
-
-	return Object{}, fmt.Errorf("Unsupported value type: %d", jv.Type)
+	return
 }
 
-func (jv *value) GetArray() (Array, error) {
+func (jv *value) GetArray() (v Array, ok bool) {
 	if jv.Type == jsonArray {
-		ja, ok := jv.Value.(Array)
-		if ok {
-			return ja, nil
-		}
-		return Array{}, errors.New("Cannot read Array value")
+		v, ok = jv.Value.(Array)
 	}
-
-	return Array{}, fmt.Errorf("Unsupported value type: %d", jv.Type)
+	return
 }
 
 func (jv *value) Matches(other *value) (match bool, s string) {

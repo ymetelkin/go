@@ -7,37 +7,37 @@ import (
 
 func TestObjectAdd(t *testing.T) {
 	jo := Object{}
-	err := jo.AddInt("id", 1)
-	if err != nil {
-		t.Error(err.Error())
+	ok := jo.AddInt("id", 1)
+	if !ok {
+		t.Error("Failed to add int")
 	} else {
-		id, err := jo.GetInt("id")
-		if err != nil {
-			t.Error(err.Error())
+		id, ok := jo.GetInt("id")
+		if !ok {
+			t.Error("Failed to get int")
 		} else {
 			fmt.Printf("id: %d\n", id)
 		}
 	}
 
-	err = jo.AddString("name", "YM")
-	if err != nil {
-		t.Error(err.Error())
+	ok = jo.AddString("name", "YM")
+	if !ok {
+		t.Error("Failed to add string")
 	} else {
-		name, err := jo.GetString("name")
-		if err != nil {
-			t.Error(err.Error())
+		name, ok := jo.GetString("name")
+		if !ok {
+			t.Error("Failed to get string")
 		} else {
 			fmt.Printf("name: %s\n", name)
 		}
 	}
 
-	err = jo.AddBool("cool", true)
-	if err != nil {
-		t.Error(err.Error())
+	ok = jo.AddBool("cool", true)
+	if !ok {
+		t.Error("Failed to add bool")
 	} else {
-		cool, err := jo.GetBool("cool")
-		if err != nil {
-			t.Error(err.Error())
+		cool, ok := jo.GetBool("cool")
+		if !ok {
+			t.Error("Failed to get bool")
 		} else {
 			fmt.Printf("cool: %t\n", cool)
 		}
@@ -45,13 +45,13 @@ func TestObjectAdd(t *testing.T) {
 
 	child := Object{}
 	child.AddString("a", "b")
-	err = jo.AddObject("child", child)
-	if err != nil {
-		t.Error(err.Error())
+	ok = jo.AddObject("child", child)
+	if !ok {
+		t.Error("Failed to add object")
 	} else {
-		c, err := jo.GetObject("child")
-		if err != nil {
-			t.Error(err.Error())
+		c, ok := jo.GetObject("child")
+		if !ok {
+			t.Error("Failed to get object")
 		} else {
 			fmt.Printf("child: %s\n", c.InlineString())
 		}
@@ -60,13 +60,13 @@ func TestObjectAdd(t *testing.T) {
 	ja := Array{}
 	ja.AddInt(1)
 	ja.AddInt(2)
-	err = jo.AddArray("products", ja)
-	if err != nil {
-		t.Error(err.Error())
+	ok = jo.AddArray("products", ja)
+	if !ok {
+		t.Error("Failed to add array")
 	} else {
-		products, err := jo.GetArray("products")
-		if err != nil {
-			t.Error(err.Error())
+		products, ok := jo.GetArray("products")
+		if !ok {
+			t.Error("Failed to get array")
 		} else {
 			fmt.Printf("products: %s\n", products.InlineString())
 		}
@@ -93,11 +93,6 @@ func TestObjectRemove(t *testing.T) {
 	jo.Remove("foo")
 	if len(jo.Properties) != 1 {
 		t.Error("Failed to remove")
-	}
-
-	err := jo.Remove("")
-	if err == nil {
-		t.Error("Failed to fail to remove empty field")
 	}
 
 	fmt.Printf("%s\n", jo.String())

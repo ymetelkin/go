@@ -1,3 +1,0 @@
-git add lambda/*.go
-git commit -m "Work in progress"
-git push origin master

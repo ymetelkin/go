@@ -8,25 +8,25 @@ import (
 func TestArrayAdd(t *testing.T) {
 	ja := Array{}
 	i := ja.AddString("text")
-	s, err := ja.GetString(i)
-	if err != nil {
-		t.Error(err.Error())
+	s, ok := ja.GetString(i)
+	if !ok {
+		t.Error("Failed to get string")
 	} else {
 		fmt.Printf("%d\t%s\n", i, s)
 	}
 
 	i = ja.AddInt(1)
-	number, err := ja.GetInt(i)
-	if err != nil {
-		t.Error(err.Error())
+	number, ok := ja.GetInt(i)
+	if !ok {
+		t.Error("Failed to get number")
 	} else {
 		fmt.Printf("%d\t%d\n", i, number)
 	}
 
 	i = ja.AddBool(true)
-	b, err := ja.GetBool(i)
-	if err != nil {
-		t.Error(err.Error())
+	b, ok := ja.GetBool(i)
+	if !ok {
+		t.Error("Failed to get bool")
 	} else {
 		fmt.Printf("%d\t%t\n", i, b)
 	}
@@ -39,9 +39,9 @@ func TestArrayAdd(t *testing.T) {
 	products.AddInt(2)
 	jo.AddArray("products", products)
 	i = ja.AddObject(jo)
-	o, err := ja.GetObject(i)
-	if err != nil {
-		t.Error(err.Error())
+	o, ok := ja.GetObject(i)
+	if !ok {
+		t.Error("Failed to get object")
 	} else {
 		fmt.Printf("%d\t%s\n", i, o.InlineString())
 	}
