@@ -207,6 +207,15 @@ func (jo *Object) Names() []string {
 	return jo.names
 }
 
+//HasField checks properties for a name
+func (jo *Object) HasField(field string) (ok bool) {
+	if len(jo.Properties) == 0 {
+		return
+	}
+	_, ok = jo.Properties[field]
+	return
+}
+
 //Matches compares two objects
 func (jo *Object) Matches(other *Object) (match bool, s string) {
 	if jo == nil {
