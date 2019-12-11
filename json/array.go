@@ -218,7 +218,7 @@ func (ja *Array) GetStrings() (ss []string, ok bool) {
 	ss = make([]string, size)
 	for i, v := range ja.Values {
 		val, k := v.GetString()
-		if k {
+		if !k {
 			return
 		}
 		ss[i] = val
@@ -238,7 +238,7 @@ func (ja *Array) GetInts() (is []int, ok bool) {
 	is = make([]int, size)
 	for i, v := range ja.Values {
 		val, k := v.GetInt()
-		if k {
+		if !k {
 			return
 		}
 		is[i] = val
@@ -258,7 +258,7 @@ func (ja *Array) GetFloats() (fs []float64, ok bool) {
 	fs = make([]float64, size)
 	for i, v := range ja.Values {
 		val, k := v.GetFloat()
-		if k {
+		if !k {
 			return
 		}
 		fs[i] = val
@@ -278,7 +278,7 @@ func (ja *Array) GetBools() (bs []bool, ok bool) {
 	bs = make([]bool, size)
 	for i, v := range ja.Values {
 		val, k := v.GetBool()
-		if k {
+		if !k {
 			return
 		}
 		bs[i] = val
@@ -298,7 +298,7 @@ func (ja *Array) GetObjects() (jos []Object, ok bool) {
 	jos = make([]Object, size)
 	for i, v := range ja.Values {
 		val, k := v.GetObject()
-		if k {
+		if !k {
 			return
 		}
 		jos[i] = val
@@ -318,7 +318,7 @@ func (ja *Array) GetArrays() (jas []Array, ok bool) {
 	jas = make([]Array, size)
 	for i, v := range ja.Values {
 		val, k := v.GetArray()
-		if k {
+		if !k {
 			return
 		}
 		jas[i] = val
