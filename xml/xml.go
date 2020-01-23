@@ -7,13 +7,14 @@ import (
 	"strings"
 )
 
-//Node represents XML node with name, optional attributes, text and children nodes
+//Node represents XML node with name, optional anames, text and children nodes
 type Node struct {
 	Name       string
-	Attributes []Attribute
 	Nodes      []Node
 	Text       string
 	parent     *Node
+	attributes []Attribute
+	anames     map[string]int
 }
 
 //Attribute XML node attribute
@@ -56,16 +57,45 @@ func (nd *Node) Node(name string) Node {
 	return Node{}
 }
 
-//Attribute method finds attribute by name
-func (nd *Node) Attribute(name string) string {
-	if len(nd.Attributes) > 0 {
-		for _, a := range nd.Attributes {
-			if a.Name == name {
-				return a.Value
-			}
-		}
+//Attributes returns all node attributes
+func (nd *Node) Attributes() []Attribute {
+	return nd.attributes
+}
+
+//Attribute finds attribute by name
+func (nd *Node) Attribute(name string) (value string) {
+	if len(nd.anames) == 0 {
+		return
 	}
-	return ""
+	i, ok := nd.anames[name]
+	if ok {
+		value = nd.attributes[i].Value
+	}
+	return
+}
+
+//AddAttribute adds attribute to node
+func (nd *Node) AddAttribute(name string, value string) {
+	a := Attribute{
+		Name:  name,
+		Value: value,
+	}
+
+	if nd.anames == nil {
+		nd.anames = make(map[string]int)
+		nd.anames[name] = 0
+		nd.attributes = []Attribute{a}
+		return
+	}
+
+	i, ok := nd.anames[name]
+	if ok {
+		nd.attributes[i] = a
+		return
+	}
+
+	nd.anames[name] = len(nd.attributes)
+	nd.attributes = append(nd.attributes, a)
 }
 
 //Matches compares two nodes
@@ -90,8 +120,8 @@ func (nd *Node) Matches(other *Node) (match bool, s string) {
 	}
 
 	var (
-		lsize = len(nd.Attributes)
-		rsize = len(other.Attributes)
+		lsize = len(nd.attributes)
+		rsize = len(other.attributes)
 	)
 
 	if lsize != rsize {
@@ -99,8 +129,8 @@ func (nd *Node) Matches(other *Node) (match bool, s string) {
 		return
 	}
 	if lsize > 0 {
-		for i, la := range nd.Attributes {
-			ra := other.Attributes[i]
+		for i, la := range nd.attributes {
+			ra := other.attributes[i]
 			if la.Name != ra.Name {
 				s = fmt.Sprintf("Attribute names mismatch: [ %s ] vs [ %s ]", la.Name, ra.Name)
 				return
@@ -153,8 +183,8 @@ func (nd *Node) InlineString() string {
 		sb.WriteByte('>')
 	} else {
 		sb.WriteString(nd.Name)
-		if len(nd.Attributes) > 0 {
-			for _, a := range nd.Attributes {
+		if len(nd.attributes) > 0 {
+			for _, a := range nd.attributes {
 				sb.WriteByte(' ')
 				sb.WriteString(a.Name)
 				sb.WriteByte('=')
@@ -203,8 +233,8 @@ func (nd *Node) toString(level int) string {
 		sb.WriteByte('>')
 	} else {
 		sb.WriteString(nd.Name)
-		if len(nd.Attributes) > 0 {
-			for _, a := range nd.Attributes {
+		if len(nd.attributes) > 0 {
+			for _, a := range nd.attributes {
 				sb.WriteByte(' ')
 				sb.WriteString(a.Name)
 				sb.WriteByte('=')

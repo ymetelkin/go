@@ -263,7 +263,7 @@ func (xp *xParser) StartNode() (nd Node, closed bool, err error) {
 					return
 				}
 
-				nd.Attributes = append(nd.Attributes, Attribute{Name: name, Value: value})
+				nd.AddAttribute(name, value)
 
 				c, err = xp.SkipWS()
 				if err != nil {
