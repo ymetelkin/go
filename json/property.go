@@ -3,42 +3,53 @@ package json
 //Property represents JSON property
 type Property struct {
 	Field string
-	Value value
+	Value Value
 }
 
-//IsEmtpy checks for field presense
-/*
-func (jp *Property) IsEmtpy() bool {
-	return jp.Field == ""
-}
-*/
-
-//NewStringProperty constructs new string value property
-func NewStringProperty(name string, value string) Property {
-	return Property{Field: name, Value: newString(value)}
+//StringField creates new string property
+func StringField(field string, value string) Property {
+	return Property{
+		Field: field,
+		Value: NewString(value),
+	}
 }
 
-//NewIntProperty constructs new int value property
-func NewIntProperty(name string, value int) Property {
-	return Property{Field: name, Value: newInt(value)}
+//IntField creates new int property
+func IntField(field string, value int) Property {
+	return Property{
+		Field: field,
+		Value: NewInt(value),
+	}
 }
 
-//NewFloatProperty constructs new float value property
-func NewFloatProperty(name string, value float64) Property {
-	return Property{Field: name, Value: newFloat(value)}
+//FloatField creates new float property
+func FloatField(field string, value float64) Property {
+	return Property{
+		Field: field,
+		Value: NewFloat(value),
+	}
 }
 
-//NewBoolProperty constructs new bool value property
-func NewBoolProperty(name string, value bool) Property {
-	return Property{Field: name, Value: newBool(value)}
+//BoolField creates new bool property
+func BoolField(field string, value bool) Property {
+	return Property{
+		Field: field,
+		Value: NewBool(value),
+	}
 }
 
-//NewObjectProperty constructs new JSON object value property
-func NewObjectProperty(name string, value Object) Property {
-	return Property{Field: name, Value: newObject(value)}
+//ObjectField creates new Object property
+func ObjectField(field string, value Object) Property {
+	return Property{
+		Field: field,
+		Value: NewObject(value),
+	}
 }
 
-//NewArrayProperty constructs new JSON array value property
-func NewArrayProperty(name string, value Array) Property {
-	return Property{Field: name, Value: newArray(value)}
+//ArrayField creates new Array property
+func ArrayField(field string, value Array) Property {
+	return Property{
+		Field: field,
+		Value: NewArray(value),
+	}
 }

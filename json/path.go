@@ -6,18 +6,18 @@ import (
 
 //PathString returns string value from path
 func (jo *Object) PathString(path string) (s string, ok bool) {
-	v,k:= walk(*jo, strings.Split(path, "."))
+	v, k := walk(*jo, strings.Split(path, "."))
 	if k {
-		s, ok = v.GetString()
+		s, ok = v.String()
 	}
-	return 
+	return
 }
 
 //PathStrings returns string values from path
 func (jo *Object) PathStrings(path string) (ss []string, ok bool) {
 	v, k := walk(*jo, strings.Split(path, "."))
 	if k {
-		ja, k := v.GetArray()
+		ja, k := v.Array()
 		if k {
 			ss, ok = ja.GetStrings()
 		}
@@ -29,7 +29,7 @@ func (jo *Object) PathStrings(path string) (ss []string, ok bool) {
 func (jo *Object) PathObject(path string) (o Object, ok bool) {
 	v, k := walk(*jo, strings.Split(path, "."))
 	if k {
-		o, ok = v.GetObject()
+		o, ok = v.Object()
 	}
 	return
 }
@@ -38,7 +38,7 @@ func (jo *Object) PathObject(path string) (o Object, ok bool) {
 func (jo *Object) PathObjects(path string) (jos []Object, ok bool) {
 	v, k := walk(*jo, strings.Split(path, "."))
 	if k {
-		ja, k := v.GetArray()
+		ja, k := v.Array()
 		if k {
 			jos, ok = ja.GetObjects()
 		}
@@ -46,14 +46,14 @@ func (jo *Object) PathObjects(path string) (jos []Object, ok bool) {
 	return
 }
 
-func walk(jo Object, toks []string) (v value, ok bool) {
+func walk(jo Object, toks []string) (v Value, ok bool) {
 	if toks[0] == "" {
 		return
 	}
 
 	for i, tok := range toks {
 		if i == 0 {
-			v, ok = jo.getValue(tok)
+			v, ok = jo.Get(tok)
 			if !ok {
 				return
 			}
@@ -61,17 +61,17 @@ func walk(jo Object, toks []string) (v value, ok bool) {
 		}
 
 		switch v.Type {
-		case jsonObject:
-			o, k := v.GetObject()
+		case TypeObject:
+			o, k := v.Object()
 			if !k {
 				return
 			}
-			v, ok = o.getValue(tok)
+			v, ok = o.Get(tok)
 			if !ok {
 				return
 			}
-		case jsonArray:
-			a, k := v.GetArray()
+		case TypeArray:
+			a, k := v.Array()
 			if !k {
 				return
 			}
@@ -86,19 +86,19 @@ func walk(jo Object, toks []string) (v value, ok bool) {
 				if !k {
 					return
 				}
-				if jv.Type == jsonArray {
-					aa, k := jv.GetArray()
+				if jv.Type == TypeArray {
+					aa, k := jv.Array()
 					if !k {
 						return
 					}
 					for _, jvv := range aa.Values {
-						ja.addValue(jvv)
+						ja.Values = append(ja.Values, jvv)
 					}
 				} else {
-					ja.addValue(jv)
+					ja.Values = append(ja.Values, jv)
 				}
 			}
-			v = newArray(ja)
+			v = NewArray(ja)
 			ok = true
 		}
 	}

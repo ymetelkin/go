@@ -5,348 +5,375 @@ import (
 	"strings"
 )
 
-//Array is JSON array structure
+//Array represents JSON array
 type Array struct {
-	Values  []value
-	pvalues []int
+	Values []Value
+	params []int
 }
 
-func (ja *Array) addValue(jv value) int {
-	if len(ja.Values) == 0 {
-		ja.Values = []value{jv}
-		return 1
-	}
-	ja.Values = append(ja.Values, jv)
-	return len(ja.Values) - 1
+//NewStringArray creates new string array
+func NewStringArray(values []string) Array {
+	var ja Array
+	ja.AddStrings(values)
+	return ja
 }
 
-func (ja *Array) addValues(jvs []value) int {
-	if jvs != nil {
-		if ja.Values == nil {
-			ja.Values = jvs
-		} else {
-			ja.Values = append(ja.Values, jvs...)
-		}
-	}
+//NewIntArray creates new int array
+func NewIntArray(values []int) Array {
+	var ja Array
+	ja.AddInts(values)
+	return ja
+}
 
-	if ja.Values == nil {
-		return 0
-	}
+//NewFloatArray creates new float64 array
+func NewFloatArray(values []float64) Array {
+	var ja Array
+	ja.AddFloats(values)
+	return ja
+}
 
-	return len(ja.Values) - 1
+//NewBoolArray creates new bool array
+func NewBoolArray(values []bool) Array {
+	var ja Array
+	ja.AddBools(values)
+	return ja
+}
+
+//NewObjectArray creates new Object array
+func NewObjectArray(values []Object) Array {
+	var ja Array
+	ja.AddObjects(values)
+	return ja
+}
+
+//NewArrayArray creates new Array array
+func NewArrayArray(values []Array) Array {
+	var ja Array
+	ja.AddArrays(values)
+	return ja
 }
 
 //AddString adds string to JSON array
-func (ja *Array) AddString(value string) int {
-	return ja.addValue(newString(value))
+func (ja *Array) AddString(value string) {
+	ja.Values = append(ja.Values, NewString(value))
 }
 
 //AddInt adds int to JSON array
-func (ja *Array) AddInt(value int) int {
-	return ja.addValue(newInt(value))
+func (ja *Array) AddInt(value int) {
+	ja.Values = append(ja.Values, NewInt(value))
 }
 
 //AddFloat adds float to JSON array
-func (ja *Array) AddFloat(value float64) int {
-	return ja.addValue(newFloat(value))
+func (ja *Array) AddFloat(value float64) {
+	ja.Values = append(ja.Values, NewFloat(value))
 }
 
 //AddBool adds bool to JSON array
-func (ja *Array) AddBool(value bool) int {
-	return ja.addValue(newBool(value))
+func (ja *Array) AddBool(value bool) {
+	ja.Values = append(ja.Values, NewBool(value))
 }
 
 //AddObject adds JSON object to JSON array
-func (ja *Array) AddObject(value Object) int {
-	return ja.addValue(newObject(value))
+func (ja *Array) AddObject(value Object) {
+	ja.Values = append(ja.Values, NewObject(value))
 }
 
 //AddArray adds JSON array to JSON array
-func (ja *Array) AddArray(value Array) int {
-	return ja.addValue(newArray(value))
+func (ja *Array) AddArray(value Array) {
+	ja.Values = append(ja.Values, NewArray(value))
 }
 
 //AddStrings adds strings to JSON array
-func (ja *Array) AddStrings(values []string) int {
-	return ja.addValues(newStrings(values))
+func (ja *Array) AddStrings(values []string) {
+	if len(values) == 0 {
+		return
+	}
+	buff := make([]Value, len(values))
+	for i, value := range values {
+		buff[i] = NewString(value)
+	}
+	if len(ja.Values) == 0 {
+		ja.Values = buff
+	} else {
+		ja.Values = append(ja.Values, buff...)
+	}
 }
 
 //AddInts adds ints to JSON array
-func (ja *Array) AddInts(values []int) int {
-	return ja.addValues(newInts(values))
+func (ja *Array) AddInts(values []int) {
+	if len(values) == 0 {
+		return
+	}
+	buff := make([]Value, len(values))
+	for i, value := range values {
+		buff[i] = NewInt(value)
+	}
+	if len(ja.Values) == 0 {
+		ja.Values = buff
+	} else {
+		ja.Values = append(ja.Values, buff...)
+	}
 }
 
 //AddFloats adds floats to JSON array
-func (ja *Array) AddFloats(values []float64) int {
-	return ja.addValues(newFloats(values))
+func (ja *Array) AddFloats(values []float64) {
+	if len(values) == 0 {
+		return
+	}
+	buff := make([]Value, len(values))
+	for i, value := range values {
+		buff[i] = NewFloat(value)
+	}
+	if len(ja.Values) == 0 {
+		ja.Values = buff
+	} else {
+		ja.Values = append(ja.Values, buff...)
+	}
 }
 
 //AddBools adds bools to JSON array
-func (ja *Array) AddBools(values []bool) int {
-	return ja.addValues(newBools(values))
+func (ja *Array) AddBools(values []bool) {
+	if len(values) == 0 {
+		return
+	}
+	buff := make([]Value, len(values))
+	for i, value := range values {
+		buff[i] = NewBool(value)
+	}
+	if len(ja.Values) == 0 {
+		ja.Values = buff
+	} else {
+		ja.Values = append(ja.Values, buff...)
+	}
 }
 
 //AddObjects adds JSON objects to JSON array
-func (ja *Array) AddObjects(values []Object) int {
-	return ja.addValues(newObjects(values))
+func (ja *Array) AddObjects(values []Object) {
+	if len(values) == 0 {
+		return
+	}
+	buff := make([]Value, len(values))
+	for i, value := range values {
+		buff[i] = NewObject(value)
+	}
+	if len(ja.Values) == 0 {
+		ja.Values = buff
+	} else {
+		ja.Values = append(ja.Values, buff...)
+	}
 }
 
 //AddArrays adds JSON arrays to JSON array
-func (ja *Array) AddArrays(values []Array) int {
-	return ja.addValues(newArrays(values))
+func (ja *Array) AddArrays(values []Array) {
+	if len(values) == 0 {
+		return
+	}
+	buff := make([]Value, len(values))
+	for i, value := range values {
+		buff[i] = NewArray(value)
+	}
+	if len(ja.Values) == 0 {
+		ja.Values = buff
+	} else {
+		ja.Values = append(ja.Values, buff...)
+	}
 }
 
-func (ja *Array) setValue(index int, value value) error {
-	if ja.Values == nil || len(ja.Values) <= index {
-		return fmt.Errorf("Position [%d] does not exist", index)
+//Set sets value at specified index
+func (ja *Array) Set(index int, value Value) (err error) {
+	if len(ja.Values) > index {
+		err = fmt.Errorf("Position [%d] does not exist", index)
+	} else {
+		ja.Values[index] = value
 	}
-	ja.Values[index] = value
-	return nil
+	return
 }
 
 //SetInt adds int JSON array at specified position
 func (ja *Array) SetInt(index int, value int) error {
-	return ja.setValue(index, newInt(value))
+	return ja.Set(index, NewInt(value))
 }
 
 //SetFloat sets float in JSON array at specified position
 func (ja *Array) SetFloat(index int, value float64) error {
-	return ja.setValue(index, newFloat(value))
+	return ja.Set(index, NewFloat(value))
 }
 
 //SetBool sets bool in JSON array at specified position
 func (ja *Array) SetBool(index int, value bool) error {
-	return ja.setValue(index, newBool(value))
+	return ja.Set(index, NewBool(value))
 }
 
 //SetString sets string in JSON array at specified position
 func (ja *Array) SetString(index int, value string) error {
-	return ja.setValue(index, newString(value))
+	return ja.Set(index, NewString(value))
 }
 
 //SetObject sets JSON object in JSON array at specified position
 func (ja *Array) SetObject(index int, value Object) error {
-	return ja.setValue(index, newObject(value))
+	return ja.Set(index, NewObject(value))
 }
 
 //SetArray sets JSON array in JSON array at specified position
 func (ja *Array) SetArray(index int, value Array) error {
-	return ja.setValue(index, newArray(value))
-}
-
-//Remove removes element from JSON array at specified position
-func (ja *Array) Remove(index int) error {
-	if ja.Values == nil || len(ja.Values) <= index {
-		return fmt.Errorf("Position [%d] does not exist", index)
-	}
-
-	values := ja.Values
-	ja.Values = append(values[:index], values[index+1:]...)
-
-	return nil
-}
-
-func (ja *Array) getValue(index int) (*value, bool) {
-	if ja.Values == nil || len(ja.Values) <= index {
-		return nil, false
-	}
-
-	return &ja.Values[index], true
+	return ja.Set(index, NewArray(value))
 }
 
 //GetString gets string from JSON array at specified position
-func (ja *Array) GetString(index int) (s string, ok bool) {
-	v, k := ja.getValue(index)
-	if k {
-		s, ok = v.GetString()
+func (ja *Array) GetString(index int) (v string, ok bool) {
+	if len(ja.Values) > index {
+		v, ok = ja.Values[index].String()
 	}
 	return
 }
 
 //GetInt gets int from JSON array at specified position
-func (ja *Array) GetInt(index int) (i int, ok bool) {
-	v, k := ja.getValue(index)
-	if k {
-		i, ok = v.GetInt()
+func (ja *Array) GetInt(index int) (v int, ok bool) {
+	if len(ja.Values) > index {
+		v, ok = ja.Values[index].Int()
 	}
 	return
 }
 
 //GetFloat gets bool from JSON array at specified position
-func (ja *Array) GetFloat(index int) (f float64, ok bool) {
-	v, k := ja.getValue(index)
-	if k {
-		f, ok = v.GetFloat()
+func (ja *Array) GetFloat(index int) (v float64, ok bool) {
+	if len(ja.Values) > index {
+		v, ok = ja.Values[index].Float()
 	}
 	return
 }
 
 //GetBool gets bool from JSON array at specified position
-func (ja *Array) GetBool(index int) (b bool, ok bool) {
-	v, k := ja.getValue(index)
-	if k {
-		b, ok = v.GetBool()
+func (ja *Array) GetBool(index int) (v bool, ok bool) {
+	if len(ja.Values) > index {
+		v, ok = ja.Values[index].Bool()
 	}
 	return
 }
 
 //GetObject gets JSON object from JSON array at specified position
-func (ja *Array) GetObject(index int) (jo Object, ok bool) {
-	v, k := ja.getValue(index)
-	if k {
-		jo, ok = v.GetObject()
+func (ja *Array) GetObject(index int) (v Object, ok bool) {
+	if len(ja.Values) > index {
+		v, ok = ja.Values[index].Object()
 	}
 	return
 }
 
 //GetArray gets JSON array from JSON array at specified position
-func (ja *Array) GetArray(index int) (a Array, ok bool) {
-	v, k := ja.getValue(index)
-	if k {
-		a, ok = v.GetArray()
+func (ja *Array) GetArray(index int) (v Array, ok bool) {
+	if len(ja.Values) > index {
+		v, ok = ja.Values[index].Array()
 	}
 	return
 }
 
 //GetStrings converts all values to strings
-func (ja *Array) GetStrings() (ss []string, ok bool) {
-	size := ja.Length()
-	if size == 0 {
-		return
-	}
-
-	ss = make([]string, size)
-	for i, v := range ja.Values {
-		val, k := v.GetString()
-		if !k {
-			return
+func (ja *Array) GetStrings() (vs []string, ok bool) {
+	if len(ja.Values) > 0 {
+		vs = make([]string, len(ja.Values))
+		for i, jv := range ja.Values {
+			v, k := jv.String()
+			if !k {
+				return
+			}
+			vs[i] = v
 		}
-		ss[i] = val
+		ok = true
 	}
-
-	ok = true
 	return
 }
 
 //GetInts converts all values to ints
-func (ja *Array) GetInts() (is []int, ok bool) {
-	size := ja.Length()
-	if size == 0 {
-		return
-	}
-
-	is = make([]int, size)
-	for i, v := range ja.Values {
-		val, k := v.GetInt()
-		if !k {
-			return
+func (ja *Array) GetInts() (vs []int, ok bool) {
+	if len(ja.Values) > 0 {
+		vs = make([]int, len(ja.Values))
+		for i, jv := range ja.Values {
+			v, k := jv.Int()
+			if !k {
+				return
+			}
+			vs[i] = v
 		}
-		is[i] = val
+		ok = true
 	}
-
-	ok = true
 	return
 }
 
 //GetFloats converts all values to floats
-func (ja *Array) GetFloats() (fs []float64, ok bool) {
-	size := ja.Length()
-	if size == 0 {
-		return
-	}
-
-	fs = make([]float64, size)
-	for i, v := range ja.Values {
-		val, k := v.GetFloat()
-		if !k {
-			return
+func (ja *Array) GetFloats() (vs []float64, ok bool) {
+	if len(ja.Values) > 0 {
+		vs = make([]float64, len(ja.Values))
+		for i, jv := range ja.Values {
+			v, k := jv.Float()
+			if !k {
+				return
+			}
+			vs[i] = v
 		}
-		fs[i] = val
+		ok = true
 	}
-
-	ok = true
 	return
 }
 
 //GetBools converts all values to bools
-func (ja *Array) GetBools() (bs []bool, ok bool) {
-	size := ja.Length()
-	if size == 0 {
-		return
-	}
-
-	bs = make([]bool, size)
-	for i, v := range ja.Values {
-		val, k := v.GetBool()
-		if !k {
-			return
+func (ja *Array) GetBools() (vs []bool, ok bool) {
+	if len(ja.Values) > 0 {
+		vs = make([]bool, len(ja.Values))
+		for i, jv := range ja.Values {
+			v, k := jv.Bool()
+			if !k {
+				return
+			}
+			vs[i] = v
 		}
-		bs[i] = val
+		ok = true
 	}
-
-	ok = true
 	return
 }
 
 //GetObjects converts all values to JSON objects
-func (ja *Array) GetObjects() (jos []Object, ok bool) {
-	size := ja.Length()
-	if size == 0 {
-		return
-	}
-
-	jos = make([]Object, size)
-	for i, v := range ja.Values {
-		val, k := v.GetObject()
-		if !k {
-			return
+func (ja *Array) GetObjects() (vs []Object, ok bool) {
+	if len(ja.Values) > 0 {
+		vs = make([]Object, len(ja.Values))
+		for i, jv := range ja.Values {
+			v, k := jv.Object()
+			if !k {
+				return
+			}
+			vs[i] = v
 		}
-		jos[i] = val
+		ok = true
 	}
-
-	ok = true
 	return
 }
 
 //GetArrays converts all values to JSON arrays
-func (ja *Array) GetArrays() (jas []Array, ok bool) {
-	size := ja.Length()
-	if size == 0 {
-		return
-	}
-
-	jas = make([]Array, size)
-	for i, v := range ja.Values {
-		val, k := v.GetArray()
-		if !k {
-			return
+func (ja *Array) GetArrays() (vs []Array, ok bool) {
+	if len(ja.Values) > 0 {
+		vs = make([]Array, len(ja.Values))
+		for i, jv := range ja.Values {
+			v, k := jv.Array()
+			if !k {
+				return
+			}
+			vs[i] = v
 		}
-		jas[i] = val
+		ok = true
 	}
-
-	ok = true
 	return
 }
 
-//IsEmpty checks if JSON array has any elements
-func (ja *Array) IsEmpty() bool {
-	if ja.Values == nil || len(ja.Values) == 0 {
-		return true
+//Remove removes element from JSON array at specified position
+func (ja *Array) Remove(index int) (ok bool) {
+	if len(ja.Values) > index {
+		values := ja.Values
+		ja.Values = append(values[:index], values[index+1:]...)
+		ok = true
 	}
-
-	return false
+	return
 }
 
-//Length returns number of elements in JSON array
-func (ja *Array) Length() int {
-	if ja.Values == nil {
-		return 0
-	}
-
-	return len(ja.Values)
-}
-
-//Matches compares two arrays
+//Matches compares array to another array
 func (ja *Array) Matches(other *Array) (match bool, s string) {
 	if ja.Values == nil {
 		s = "Left is nil"
@@ -381,16 +408,16 @@ func (ja *Array) Matches(other *Array) (match bool, s string) {
 
 //String transforms JSON array to pretty string
 func (ja *Array) String() string {
-	return ja.toString(true, 0)
+	return ja.string(true, 0)
 }
 
 //InlineString transforms JSON array into inline string
 func (ja *Array) InlineString() string {
-	return ja.toString(false, 0)
+	return ja.string(false, 0)
 }
 
-func (ja *Array) toString(pretty bool, level int) string {
-	if ja.Values == nil || len(ja.Values) == 0 {
+func (ja *Array) string(pretty bool, level int) string {
+	if len(ja.Values) == 0 {
 		return "[]"
 	}
 
@@ -404,8 +431,8 @@ func (ja *Array) toString(pretty bool, level int) string {
 
 	next := level + 1
 
-	for index, jv := range ja.Values {
-		if index > 0 {
+	for i, jv := range ja.Values {
+		if i > 0 {
 			sb.WriteByte(',')
 
 			if pretty {
@@ -423,7 +450,7 @@ func (ja *Array) toString(pretty bool, level int) string {
 			}
 		}
 
-		s := jv.String(pretty, next)
+		s := jv.string(pretty, next)
 		sb.WriteString(s)
 	}
 

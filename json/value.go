@@ -6,149 +6,96 @@ import (
 	"strings"
 )
 
+//Value types
 const (
-	jsonObject int = iota
-	jsonArray
-	jsonString
-	jsonInt
-	jsonFloat
-	jsonBool
-	jsonNull
+	TypeNull int = iota
+	TypeObject
+	TypeArray
+	TypeString
+	TypeInt
+	TypeFloat
+	TypeBool
 )
 
-type value struct {
-	Value interface{}
-	Type  int
-	Text  string
+//Value represents JSON value
+type Value struct {
+	Type int
+	data interface{}
+	text string
 }
 
-func (jv *value) IsEmpty() bool {
-	return jv.Value == nil
-}
-
-func newInt(i int) value {
-	return value{Value: i, Type: jsonInt}
-}
-
-func newFloat(f float64) value {
-	return value{Value: f, Type: jsonFloat}
-}
-
-func newBool(b bool) value {
-	return value{Value: b, Type: jsonBool}
-}
-
-func newString(s string) value {
-	return value{Value: s, Type: jsonString}
-}
-
-func newObject(o Object) value {
-	return value{Value: o, Type: jsonObject}
-}
-
-func newArray(a Array) value {
-	return value{Value: a, Type: jsonArray}
-}
-
-func newNull() value {
-	return value{Value: nil, Type: jsonNull}
-}
-
-func newInts(vs []int) []value {
-	if len(vs) == 0 {
-		return nil
+//NewObject inits Object value
+func NewObject(data Object) Value {
+	return Value{
+		Type: TypeObject,
+		data: data,
 	}
-	values := make([]value, len(vs))
-	for i, v := range vs {
-		values[i] = value{Value: v, Type: jsonInt}
-	}
-	return values
 }
 
-func newFloats(vs []float64) []value {
-	if len(vs) == 0 {
-		return nil
+//NewArray inits Array value
+func NewArray(data Array) Value {
+	return Value{
+		Type: TypeArray,
+		data: data,
 	}
-	values := make([]value, len(vs))
-	for i, v := range vs {
-		values[i] = value{Value: v, Type: jsonFloat}
-	}
-	return values
 }
 
-func newBools(vs []bool) []value {
-	if len(vs) == 0 {
-		return nil
+//NewString inits string value
+func NewString(data string) Value {
+	return Value{
+		Type: TypeString,
+		data: data,
 	}
-	values := make([]value, len(vs))
-	for i, v := range vs {
-		values[i] = value{Value: v, Type: jsonBool}
-	}
-	return values
 }
 
-func newStrings(vs []string) []value {
-	if len(vs) == 0 {
-		return nil
+//NewInt inits int value
+func NewInt(data int) Value {
+	return Value{
+		Type: TypeInt,
+		data: data,
 	}
-	values := make([]value, len(vs))
-	for i, v := range vs {
-		values[i] = value{Value: v, Type: jsonString}
-	}
-	return values
 }
 
-func newObjects(vs []Object) []value {
-	if len(vs) == 0 {
-		return nil
+//NewFloat inits float64 value
+func NewFloat(data float64) Value {
+	return Value{
+		Type: TypeFloat,
+		data: data,
 	}
-	values := make([]value, len(vs))
-	for i, v := range vs {
-		values[i] = value{Value: v, Type: jsonObject}
-	}
-	return values
 }
 
-func newArrays(vs []Array) []value {
-	if len(vs) == 0 {
-		return nil
+//NewBool inits bool value
+func NewBool(data bool) Value {
+	return Value{
+		Type: TypeBool,
+		data: data,
 	}
-	values := make([]value, len(vs))
-	for i, v := range vs {
-		values[i] = value{Value: v, Type: jsonArray}
-	}
-	return values
 }
 
-func (jv *value) GetInt() (v int, ok bool) {
-	if jv.Type == jsonInt {
-		v, ok = jv.Value.(int)
-		if !ok {
-			u, k := jv.Value.(uint)
-			if k {
-				v = int(u)
-				ok = true
-			}
-		}
-	} else if jv.Type == jsonFloat {
-		f, k := jv.Value.(float64)
+//Int gets data as int
+func (v *Value) Int() (data int, ok bool) {
+	switch v.Type {
+	case TypeInt:
+		data, ok = v.data.(int)
+	case TypeFloat:
+		f, k := v.data.(float64)
 		if k {
-			v = int(f)
+			data = int(f)
 			ok = true
 		}
-	} else if jv.Type == jsonString {
-		s, k := jv.Value.(string)
+	case TypeString:
+		s, k := v.data.(string)
 		if k {
 			if strings.Contains(s, ".") {
 				f, err := strconv.ParseFloat(s, 64)
 				if err == nil {
-					v = int(f)
+					data = int(f)
 					ok = true
 				}
 			} else {
 				i, err := strconv.ParseInt(s, 0, 64)
 				if err == nil {
-					v = int(i)
+					data = int(i)
 					ok = true
 				}
 			}
@@ -157,137 +104,178 @@ func (jv *value) GetInt() (v int, ok bool) {
 	return
 }
 
-func (jv *value) GetFloat() (v float64, ok bool) {
-	if jv.Type == jsonFloat {
-		v, ok = jv.Value.(float64)
-	} else if jv.Type == jsonInt {
-		i, k := jv.Value.(int)
+//Float gets data as float64
+func (v *Value) Float() (data float64, ok bool) {
+	switch v.Type {
+	case TypeFloat:
+		data, ok = v.data.(float64)
+	case TypeInt:
+		i, k := v.data.(int)
 		if k {
-			v = float64(i)
+			data = float64(i)
 			ok = true
 		}
-	} else if jv.Type == jsonString {
-		s, k := jv.Value.(string)
+	case TypeString:
+		s, k := v.data.(string)
 		if k {
 			f, err := strconv.ParseFloat(s, 64)
 			ok = err == nil
-			v = f
+			data = f
 		}
 	}
-
 	return
 }
 
-func (jv *value) GetString() (v string, ok bool) {
-	if jv.Type == jsonString {
-		v, ok = jv.Value.(string)
-	} else {
-		v = jv.String(true, 0)
+//String gets data as string
+func (v *Value) String() (data string, ok bool) {
+	switch v.Type {
+	case TypeString:
+		data, ok = v.data.(string)
+	case TypeInt:
+		i, k := v.data.(int)
+		if k {
+			data = strconv.Itoa(i)
+			ok = true
+		}
+	case TypeFloat:
+		f, k := v.data.(float64)
+		if k {
+			data = strconv.FormatFloat(f, 'f', -1, 64)
+			ok = true
+		}
+	case TypeBool:
+		b, k := v.data.(bool)
+		if k {
+			data = strconv.FormatBool(b)
+			ok = true
+		}
+	case TypeObject:
+		jo, k := v.data.(Object)
+		if k {
+			data = jo.string(false, 0)
+			ok = true
+		}
+	case TypeArray:
+		ja, k := v.data.(Array)
+		if k {
+			data = ja.string(false, 0)
+			ok = true
+		}
+	case TypeNull:
+		data = "null"
 		ok = true
 	}
 	return
 }
 
-func (jv *value) GetBool() (v bool, ok bool) {
-	if jv.Type == jsonBool {
-		v, ok = jv.Value.(bool)
-	} else if jv.Type == jsonString {
-		s, ok := jv.Value.(string)
-		if ok {
+//Bool get data as bool
+func (v *Value) Bool() (data bool, ok bool) {
+	switch v.Type {
+	case TypeBool:
+		data, ok = v.data.(bool)
+	case TypeString:
+		s, k := v.data.(string)
+		if k {
 			b, err := strconv.ParseBool(s)
 			ok = err == nil
-			v = b
+			data = b
 		}
 	}
 	return
 }
 
-func (jv *value) GetObject() (v Object, ok bool) {
-	if jv.Type == jsonObject {
-		v, ok = jv.Value.(Object)
+//Object gets data as
+func (v *Value) Object() (data Object, ok bool) {
+	if v.Type == TypeObject {
+		data, ok = v.data.(Object)
 	}
 	return
 }
 
-func (jv *value) GetArray() (v Array, ok bool) {
-	if jv.Type == jsonArray {
-		v, ok = jv.Value.(Array)
+//Array gets data as array
+func (v *Value) Array() (data Array, ok bool) {
+	if v.Type == TypeArray {
+		data, ok = v.data.(Array)
 	}
 	return
 }
 
-func (jv *value) Matches(other *value) (match bool, s string) {
-	tp := jv.Type
+//Matches compares value to another value
+func (v *Value) Matches(other *Value) (match bool, s string) {
+	tp := v.Type
 	if tp != other.Type {
-		if (tp == jsonInt && other.Type == jsonFloat) || (tp == jsonFloat && other.Type == jsonInt) {
-			tp = jsonFloat
+		if (tp == TypeInt && other.Type == TypeFloat) || (tp == TypeFloat && other.Type == TypeInt) {
+			tp = TypeFloat
 		} else {
-			s = fmt.Sprintf("Type mismatch: [ %v ] vs [ %v ]", jv.Type, other.Type)
+			s = fmt.Sprintf("Type mismatch: [ %v ] vs [ %v ]", v.Type, other.Type)
 			return
 		}
 	}
 
 	switch tp {
-	case jsonString:
-		lv, _ := jv.GetString()
-		rv, _ := other.GetString()
-		if lv != rv {
-			s = fmt.Sprintf("String mismatch: [ %v ] vs [ %v ]", lv, rv)
+	case TypeString:
+		l, _ := v.String()
+		r, _ := other.String()
+		if l != r {
+			s = fmt.Sprintf("String mismatch: [ %v ] vs [ %v ]", l, r)
 			return
 		}
-	case jsonInt:
-		lv, _ := jv.GetInt()
-		rv, _ := other.GetInt()
-		if lv != rv {
-			s = fmt.Sprintf("Integer mismatch: [ %v ] vs [ %v ]", lv, rv)
+	case TypeInt:
+		l, _ := v.Int()
+		r, _ := other.Int()
+		if l != r {
+			s = fmt.Sprintf("Integer mismatch: [ %v ] vs [ %v ]", l, r)
 			return
 		}
-	case jsonBool:
-		lv, _ := jv.GetBool()
-		rv, _ := other.GetBool()
-		if lv != rv {
-			s = fmt.Sprintf("Boolean mismatch: [ %v ] vs [ %v ]", lv, rv)
+	case TypeBool:
+		l, _ := v.Bool()
+		r, _ := other.Bool()
+		if l != r {
+			s = fmt.Sprintf("Boolean mismatch: [ %v ] vs [ %v ]", l, r)
 			return
 		}
-	case jsonFloat:
-		lv, _ := jv.GetFloat()
-		rv, _ := other.GetFloat()
-		if lv != rv {
-			s = fmt.Sprintf("Float mismatch: [ %v ] vs [ %v ]", lv, rv)
+	case TypeFloat:
+		l, _ := v.Float()
+		r, _ := other.Float()
+		if l != r {
+			s = fmt.Sprintf("Float mismatch: [ %v ] vs [ %v ]", l, r)
 			return
 		}
-	case jsonObject:
-		lv, _ := jv.GetObject()
-		rv, _ := other.GetObject()
-		return lv.Matches(&rv)
-	case jsonArray:
-		lv, _ := jv.GetArray()
-		rv, _ := other.GetArray()
-		return lv.Matches(&rv)
+	case TypeObject:
+		l, _ := v.Object()
+		r, _ := other.Object()
+		return l.Matches(&r)
+	case TypeArray:
+		l, _ := v.Array()
+		r, _ := other.Array()
+		return l.Matches(&r)
 	}
 
 	match = true
 	return
 }
 
-func (jv *value) String(pretty bool, level int) string {
-	if jv.Value == nil {
+func (v *Value) string(pretty bool, level int) string {
+	if v.data == nil {
 		return "null"
 	}
 
-	if jv.Text != "" {
-		return jv.Text
+	if v.text != "" {
+		return v.text
 	}
 
-	switch jv.Type {
-	case jsonString:
-		s, ok := jv.Value.(string)
+	switch v.Type {
+	case TypeString:
+		s, ok := v.data.(string)
 		if ok {
-			bytes := []byte(s)
-			var sb strings.Builder
+			var (
+				bs = []byte(s)
+				sb strings.Builder
+			)
+
 			sb.WriteByte('"')
 
-			for _, c := range bytes {
+			for _, c := range bs {
 				switch c {
 				case '"':
 					sb.WriteByte('\\')
@@ -320,30 +308,20 @@ func (jv *value) String(pretty bool, level int) string {
 			sb.WriteByte('"')
 			return sb.String()
 		}
-	case jsonInt:
-		i, ok := jv.Value.(int)
+	case TypeInt, TypeFloat, TypeBool:
+		s, ok := v.String()
 		if ok {
-			return strconv.Itoa(i)
+			return s
 		}
-	case jsonFloat:
-		f, ok := jv.Value.(float64)
+	case TypeObject:
+		jo, ok := v.data.(Object)
 		if ok {
-			return strconv.FormatFloat(f, 'f', -1, 64)
+			return jo.string(pretty, level)
 		}
-	case jsonBool:
-		b, ok := jv.Value.(bool)
+	case TypeArray:
+		ja, ok := v.data.(Array)
 		if ok {
-			return strconv.FormatBool(b)
-		}
-	case jsonObject:
-		jo, ok := jv.Value.(Object)
-		if ok {
-			return jo.toString(pretty, level)
-		}
-	case jsonArray:
-		ja, ok := jv.Value.(Array)
-		if ok {
-			return ja.toString(pretty, level)
+			return ja.string(pretty, level)
 		}
 	}
 

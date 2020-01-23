@@ -3,66 +3,50 @@ package json
 import (
 	"errors"
 	"fmt"
-	"io"
 	"strconv"
 	"strings"
 )
 
 type parser struct {
-	r io.ByteScanner
-}
-
-type reader struct {
-	s    string
+	buf  []byte
 	i    int
-	size int
+	last int
 }
 
-func newReader(s string) *reader {
-	return &reader{
-		s:    s,
-		size: len(s) - 1,
+func newParser(bs []byte) *parser {
+	return &parser{
+		buf:  bs,
+		last: len(bs) - 1,
 	}
 }
 
-func (r *reader) ReadByte() (byte, error) {
-	if r.i > r.size {
-		return 0, io.EOF
-	}
-	b := r.s[r.i]
-	r.i++
-	return b, nil
-}
-
-func (r *reader) UnreadByte() error {
-	if r.i <= 0 {
-		return errors.New("reader.UnreadByte: at beginning of string")
-	}
-	r.i--
-	return nil
-}
-
-//ParseObject parses new JSON object from scanner
-func ParseObject(scanner io.ByteScanner) (jo Object, err error) {
-	return parseObject(scanner)
-}
-
-//ParseObjectString parses new JSON object from string
-func ParseObjectString(s string) (jo Object, err error) {
-	scanner := newReader(s)
-	return parseObject(scanner)
-}
-
-func parseObject(scanner io.ByteScanner) (jo Object, err error) {
-	p := &parser{r: scanner}
-
-	c, err := p.SkipWS()
-	if err == io.EOF {
-		err = errors.New("Missing JSON input")
+func (p *parser) Read() (b byte, ok bool) {
+	if p.i > p.last {
 		return
 	}
+	b = p.buf[p.i]
+	p.i++
+	ok = true
+	return
+}
 
-	if err != nil {
+func (p *parser) Move(i int) (ok bool) {
+	test := p.i + i
+	if test < 0 || test > p.last {
+		return
+	}
+	p.i = test
+	ok = true
+	return
+}
+
+//ParseObject parses new JSON object from bytes
+func ParseObject(bs []byte) (jo Object, err error) {
+	p := newParser(bs)
+
+	c, ok := p.SkipWS()
+	if !ok {
+		err = errors.New("Missing JSON input")
 		return
 	}
 
@@ -76,26 +60,12 @@ func parseObject(scanner io.ByteScanner) (jo Object, err error) {
 }
 
 //ParseArray parses new JSON object from scanner
-func ParseArray(scanner io.ByteScanner) (ja Array, err error) {
-	return parseArray(scanner)
-}
+func ParseArray(bs []byte) (ja Array, err error) {
+	p := newParser(bs)
 
-//ParseArrayString parses new JSON object from string
-func ParseArrayString(s string) (ja Array, err error) {
-	scanner := newReader(s)
-	return parseArray(scanner)
-}
-
-func parseArray(scanner io.ByteScanner) (ja Array, err error) {
-	p := &parser{r: scanner}
-
-	c, err := p.SkipWS()
-	if err == io.EOF {
+	c, ok := p.SkipWS()
+	if !ok {
 		err = errors.New("Missing JSON input")
-		return
-	}
-
-	if err != nil {
 		return
 	}
 
@@ -108,14 +78,10 @@ func parseArray(scanner io.ByteScanner) (ja Array, err error) {
 	return
 }
 
-func (p *parser) Parse() (jv value, params bool, err error) {
-	c, err := p.SkipWS()
-	if err == io.EOF {
+func (p *parser) Parse() (jv Value, params bool, err error) {
+	c, ok := p.SkipWS()
+	if !ok {
 		err = errors.New("Missing input")
-		return
-	}
-
-	if err != nil {
 		return
 	}
 
@@ -123,13 +89,13 @@ func (p *parser) Parse() (jv value, params bool, err error) {
 		jo, ps, err := p.ParseObject()
 		if err == nil {
 			params = ps
-			jv = newObject(jo)
+			jv = NewObject(jo)
 		}
 	} else if c == '[' {
 		ja, ps, err := p.ParseArray()
 		if err == nil {
 			params = ps
-			jv = newArray(ja)
+			jv = NewArray(ja)
 		}
 	} else {
 		err = fmt.Errorf("Expected '{' or '[', found '%c'", c)
@@ -150,16 +116,15 @@ func (p *parser) ParseObject() (jo Object, params bool, err error) {
 	}
 
 	for {
-		c, e := p.SkipWS()
-		if e != nil {
-			err = e
+		c, ok := p.SkipWS()
+		if !ok {
+			err = errors.New("Expected '}' or ',', found EOF")
 			return
 		}
 
 		if c == ',' {
-			ps, e = p.AddProperty(&jo)
-			if e != nil {
-				err = e
+			ps, err = p.AddProperty(&jo)
+			if err != nil {
 				return
 			}
 			if ps {
@@ -177,15 +142,16 @@ func (p *parser) ParseObject() (jo Object, params bool, err error) {
 }
 
 func (p *parser) AddProperty(jo *Object) (params bool, err error) {
-	c, err := p.SkipWS()
-	if err != nil {
+	c, ok := p.SkipWS()
+	if !ok {
+		err = errors.New("Expected '}' or field name, found EOF")
 		return
 	}
 
 	if c == '"' {
 		var (
 			name   string
-			jv     value
+			jv     Value
 			ps     bool
 			pvalue int
 		)
@@ -198,10 +164,10 @@ func (p *parser) AddProperty(jo *Object) (params bool, err error) {
 			params = true
 			pvalue = 1
 
-			if jo.pnames == nil {
-				jo.pnames = make(map[string]int)
+			if len(jo.params) == 0 {
+				jo.params = make(map[string]int)
 			}
-			jo.pnames[name] = pvalue
+			jo.params[name] = pvalue
 		}
 
 		jv, ps, err = p.ParseValue()
@@ -209,18 +175,18 @@ func (p *parser) AddProperty(jo *Object) (params bool, err error) {
 			return
 		}
 
-		if !jv.IsEmpty() {
+		if jv.data != nil {
 			if ps {
 				params = true
 
-				if pvalue == 0 && jo.pnames == nil {
-					jo.pnames = make(map[string]int)
+				if pvalue == 0 && len(jo.params) == 0 {
+					jo.params = make(map[string]int)
 				}
 				pvalue = pvalue + 2
-				jo.pnames[name] = pvalue
+				jo.params[name] = pvalue
 			}
 
-			jo.addValue(name, jv)
+			jo.Add(name, jv)
 		}
 	} else if c != '}' {
 		err = fmt.Errorf("Expected '}', found '%c'", c)
@@ -236,25 +202,26 @@ func (p *parser) ParsePropertyName() (name string, params bool, err error) {
 	)
 
 	for {
-		c, e := p.r.ReadByte()
-		if e != nil {
-			err = e
+		c, ok := p.Read()
+		if !ok {
+			err = errors.New("Expected field name, found EOF")
 			return
 		}
 
 		if c == '"' {
-			c, e = p.r.ReadByte()
-			if e != nil {
-				err = e
-				break
+			c, ok = p.Read()
+			if !ok {
+				err = errors.New("Expected ':', found EOF")
+				return
 			}
+
 			if c != ':' {
 				err = fmt.Errorf("Expected ':', found '%c'", c)
 				break
 			}
 			name = sb.String()
 			if name == "" {
-				err = errors.New("Missing property name")
+				err = errors.New("Missing field name")
 			}
 			break
 		} else {
@@ -282,9 +249,10 @@ func (p *parser) ParsePropertyName() (name string, params bool, err error) {
 	return
 }
 
-func (p *parser) ParseValue() (jv value, params bool, err error) {
-	c, err := p.SkipWS()
-	if err != nil {
+func (p *parser) ParseValue() (jv Value, params bool, err error) {
+	c, ok := p.SkipWS()
+	if !ok {
+		err = errors.New("Expected field value, found EOF")
 		return
 	}
 
@@ -292,16 +260,16 @@ func (p *parser) ParseValue() (jv value, params bool, err error) {
 		var sb strings.Builder
 
 		for {
-			c, e := p.r.ReadByte()
-			if e != nil {
-				err = e
+			c, ok := p.Read()
+			if !ok {
+				err = errors.New("Expected field string value, found EOF")
 				return
 			}
 
 			if c == '\\' {
-				c, e := p.r.ReadByte()
-				if e != nil {
-					err = e
+				c, ok = p.Read()
+				if !ok {
+					err = errors.New("Expected escaped character, found EOF")
 					return
 				}
 
@@ -325,7 +293,7 @@ func (p *parser) ParseValue() (jv value, params bool, err error) {
 					sb.WriteByte('\\')
 				}
 			} else if c == '"' {
-				jv = newString(sb.String())
+				jv = NewString(sb.String())
 				return
 			} else {
 				if isParam(c) {
@@ -340,7 +308,7 @@ func (p *parser) ParseValue() (jv value, params bool, err error) {
 		jo, ps, e := p.ParseObject()
 		if e == nil {
 			params = ps
-			jv = newObject(jo)
+			jv = NewObject(jo)
 		} else {
 			err = e
 		}
@@ -351,7 +319,7 @@ func (p *parser) ParseValue() (jv value, params bool, err error) {
 		ja, ps, e := p.ParseArray()
 		if e == nil {
 			params = ps
-			jv = newArray(ja)
+			jv = NewArray(ja)
 		} else {
 			err = e
 		}
@@ -359,26 +327,28 @@ func (p *parser) ParseValue() (jv value, params bool, err error) {
 	}
 
 	if c == 't' {
-		c, err = p.SkipString("rue")
-		if err == nil {
-			jv = newBool(true)
-			jv.Text = "true"
+		c, ok = p.SkipString("rue")
+		if ok {
+			jv = NewBool(true)
+			jv.text = "true"
 		}
-		p.r.UnreadByte()
+		p.Move(-1)
 	} else if c == 'f' {
-		c, err = p.SkipString("alse")
-		if err == nil {
-			jv = newBool(false)
-			jv.Text = "false"
+		c, ok = p.SkipString("alse")
+		if ok {
+			jv = NewBool(false)
+			jv.text = "false"
 		}
-		p.r.UnreadByte()
+		p.Move(-1)
 	} else if c == 'n' {
-		c, err = p.SkipString("ull")
-		if err == nil {
-			jv = newNull()
-			jv.Text = "null"
+		c, ok = p.SkipString("ull")
+		if ok {
+			jv = Value{
+				Type: TypeNull,
+			}
+			jv.text = "null"
 		}
-		p.r.UnreadByte()
+		p.Move(-1)
 	} else if (c >= '0' && c <= '9') || c == '-' {
 		var (
 			sb    strings.Builder
@@ -388,9 +358,9 @@ func (p *parser) ParseValue() (jv value, params bool, err error) {
 		sb.WriteByte(c)
 
 		for {
-			c, e := p.r.ReadByte()
-			if e != nil {
-				err = e
+			c, ok := p.Read()
+			if !ok {
+				err = errors.New("Expected digit, found EOF")
 				return
 			}
 
@@ -400,31 +370,35 @@ func (p *parser) ParseValue() (jv value, params bool, err error) {
 			} else if c >= '0' && c <= '9' {
 				sb.WriteByte(c)
 			} else {
-				p.r.UnreadByte()
+				p.Move(-1)
 
 				s := sb.String()
 				if float {
 					f, e := strconv.ParseFloat(s, 64)
 					if e == nil {
-						jv = newFloat(f)
-						jv.Text = s
+						jv = Value{
+							Type: TypeFloat,
+							data: f,
+						}
+						jv.text = s
 						return
 					}
 				} else {
 					i, e := strconv.Atoi(s)
 					if e == nil {
-						jv = newInt(i)
-						jv.Text = s
+						jv = Value{
+							Type: TypeInt,
+							data: i,
+						}
+						jv.text = s
 						return
 					}
 				}
 
 				err = fmt.Errorf("Expected number, found '%s'", s)
 				return
-
 			}
 		}
-
 	}
 
 	return
@@ -434,7 +408,7 @@ func (p *parser) ParseArray() (ja Array, params bool, err error) {
 	var ps bool
 
 	ps, err = p.AddArrayValue(&ja)
-	if err != nil || ja.IsEmpty() {
+	if err != nil || len(ja.Values) == 0 {
 		return
 	}
 	if ps {
@@ -442,14 +416,14 @@ func (p *parser) ParseArray() (ja Array, params bool, err error) {
 	}
 
 	for {
-		c, e := p.SkipWS()
-		if e != nil {
-			err = e
+		c, ok := p.SkipWS()
+		if !ok {
+			err = errors.New("Expected ']' or ',', found EOF")
 			return
 		}
 
 		if c == ',' {
-			ps, e = p.AddArrayValue(&ja)
+			ps, e := p.AddArrayValue(&ja)
 			if e != nil {
 				err = e
 				return
@@ -469,24 +443,24 @@ func (p *parser) ParseArray() (ja Array, params bool, err error) {
 }
 
 func (p *parser) AddArrayValue(ja *Array) (params bool, err error) {
-	var jv value
+	var jv Value
 
 	jv, params, err = p.ParseValue()
-	if err == nil && !jv.IsEmpty() {
-		idx := ja.addValue(jv)
+	if err == nil && jv.data != nil {
+		ja.Values = append(ja.Values, jv)
 
 		if params {
-			ja.pvalues = append(ja.pvalues, idx)
+			ja.params = append(ja.params, len(ja.Values)-1)
 		}
 	}
 
 	return
 }
 
-func (p *parser) SkipWS() (c byte, err error) {
+func (p *parser) SkipWS() (c byte, ok bool) {
 	for {
-		c, err = p.r.ReadByte()
-		if err != nil || !isWS(c) {
+		c, ok = p.Read()
+		if !ok || !isWS(c) {
 			break
 		}
 	}
@@ -494,22 +468,21 @@ func (p *parser) SkipWS() (c byte, err error) {
 	return
 }
 
-func (p *parser) SkipString(s string) (c byte, err error) {
-	bytes := []byte(s)
-	for _, exp := range bytes {
-		c, err = p.r.ReadByte()
-		if err != nil {
+func (p *parser) SkipString(s string) (c byte, ok bool) {
+	bs := []byte(s)
+	for _, exp := range bs {
+		c, ok = p.Read()
+		if !ok {
 			break
 		}
 
 		if c != exp {
-			err = fmt.Errorf("Expected '%c', found '%c'", exp, c)
-			break
+			return
 		}
 	}
 
-	if err == nil {
-		c, err = p.SkipWS()
+	if ok {
+		c, ok = p.SkipWS()
 	}
 
 	return

@@ -7,28 +7,28 @@ import (
 
 func TestArrayAdd(t *testing.T) {
 	ja := Array{}
-	i := ja.AddString("text")
-	s, ok := ja.GetString(i)
+	ja.AddString("text")
+	s, ok := ja.GetString(0)
 	if !ok {
 		t.Error("Failed to get string")
 	} else {
-		fmt.Printf("%d\t%s\n", i, s)
+		fmt.Printf("%d\t%s\n", len(ja.Values), s)
 	}
 
-	i = ja.AddInt(1)
-	number, ok := ja.GetInt(i)
+	ja.AddInt(1)
+	number, ok := ja.GetInt(len(ja.Values) - 1)
 	if !ok {
 		t.Error("Failed to get number")
 	} else {
-		fmt.Printf("%d\t%d\n", i, number)
+		fmt.Printf("%d\t%d\n", len(ja.Values), number)
 	}
 
-	i = ja.AddBool(true)
-	b, ok := ja.GetBool(i)
+	ja.AddBool(true)
+	b, ok := ja.GetBool(len(ja.Values) - 1)
 	if !ok {
 		t.Error("Failed to get bool")
 	} else {
-		fmt.Printf("%d\t%t\n", i, b)
+		fmt.Printf("%d\t%t\n", len(ja.Values), b)
 	}
 
 	jo := Object{}
@@ -38,18 +38,15 @@ func TestArrayAdd(t *testing.T) {
 	products.AddInt(1)
 	products.AddInt(2)
 	jo.AddArray("products", products)
-	i = ja.AddObject(jo)
-	o, ok := ja.GetObject(i)
+	ja.AddObject(jo)
+	o, ok := ja.GetObject(len(ja.Values) - 1)
 	if !ok {
 		t.Error("Failed to get object")
 	} else {
-		fmt.Printf("%d\t%s\n", i, o.InlineString())
+		fmt.Printf("%d\t%s\n", len(ja.Values), o.InlineString())
 	}
 
-	fmt.Printf("Is empty: %t\n", ja.IsEmpty())
-	if ja.IsEmpty() {
-		t.Error("Must not be empty")
-	}
+	fmt.Printf("Is empty: %t\n", len(ja.Values) == 0)
 
 	s = ja.String()
 	fmt.Printf("%s\n", s)
@@ -77,7 +74,7 @@ func TestArrayRemove(t *testing.T) {
 
 	ja.Remove(1)
 
-	if ja.Length() != 2 {
+	if len(ja.Values) != 2 {
 		t.Error("Must have size 2")
 	}
 

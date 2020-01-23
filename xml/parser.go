@@ -7,6 +7,29 @@ import (
 	"strings"
 )
 
+type parser struct {
+	buf  []byte
+	i    int
+	last int
+}
+
+func newParser(bs []byte) *parser {
+	return &parser{
+		buf:  bs,
+		last: len(bs) - 1,
+	}
+}
+
+func (p *parser) Read() (b byte, ok bool) {
+	if p.i > p.last {
+		return
+	}
+	b = p.buf[p.i]
+	p.i++
+	ok = true
+	return
+}
+
 type xParser struct {
 	r io.ByteScanner
 }
@@ -41,15 +64,13 @@ func (r *reader) UnreadByte() error {
 	return nil
 }
 
-func (xp *xParser) Parse() (nd Node, err error) {
-	c, e := xp.SkipWS()
-	if e == io.EOF {
-		err = errors.New("Missing input")
-		return
-	}
+//Parse parses Node from bytes
+func Parse(bs []byte) (nd Node, err error) {
+	p := newParser(bs)
 
-	if e != nil {
-		err = e
+	c, ok := p.SkipWS()
+	if !ok {
+		err = errors.New("Missing XML input")
 		return
 	}
 
@@ -58,7 +79,7 @@ func (xp *xParser) Parse() (nd Node, err error) {
 		return
 	}
 
-	c, e = xp.r.ReadByte()
+	c, ok = p.Read()
 	if c == '?' {
 		c, e = xp.SkipString("xml ")
 		if err != nil {
@@ -170,7 +191,7 @@ func (xp *xParser) StartNode() (nd Node, closed bool, err error) {
 	sb.WriteByte(c)
 
 	for {
-		c, err = xp.r.ReadByte()
+		c, err = p.Read()
 		if err != nil {
 			break
 		}
@@ -230,7 +251,7 @@ func (xp *xParser) StartNode() (nd Node, closed bool, err error) {
 	sb.WriteByte(c)
 
 	for {
-		c, err = xp.r.ReadByte()
+		c, err = p.Read()
 		if err != nil {
 			break
 		}
@@ -318,7 +339,7 @@ func (xp *xParser) EndNode(nd *Node) (err error) {
 
 	for {
 		if c == '<' {
-			c, err = xp.r.ReadByte()
+			c, err = p.Read()
 			if err != nil {
 				break
 			}
@@ -395,7 +416,7 @@ func (xp *xParser) EndNode(nd *Node) (err error) {
 				s := n.InlineString()
 				sb.WriteString(s)
 
-				c, err = xp.r.ReadByte()
+				c, err = p.Read()
 				if err != nil {
 					break
 				}
@@ -425,7 +446,7 @@ func (xp *xParser) EndNode(nd *Node) (err error) {
 			sb.WriteByte(c)
 			txt = true
 
-			c, err = xp.r.ReadByte()
+			c, err = p.Read()
 			if err != nil {
 				break
 			}
@@ -443,10 +464,10 @@ func (xp *xParser) EndNode(nd *Node) (err error) {
 	return
 }
 
-func (xp *xParser) SkipWS() (c byte, err error) {
+func (p *parser) SkipWS() (c byte, ok bool) {
 	for {
-		c, err = xp.r.ReadByte()
-		if err != nil || !isWS(c) {
+		c, ok = p.Read()
+		if !ok || !isWS(c) {
 			break
 		}
 	}
@@ -456,7 +477,7 @@ func (xp *xParser) SkipWS() (c byte, err error) {
 
 func (xp *xParser) CheckWS() (c byte, sb strings.Builder, err error) {
 	for {
-		c, err = xp.r.ReadByte()
+		c, err = p.Read()
 		if err != nil || !isWS(c) {
 			break
 		}
@@ -466,10 +487,10 @@ func (xp *xParser) CheckWS() (c byte, sb strings.Builder, err error) {
 	return
 }
 
-func (xp *xParser) SkipString(s string) (c byte, err error) {
-	bytes := []byte(s)
-	for _, exp := range bytes {
-		c, err = xp.r.ReadByte()
+func (p *parser) SkipString(s string) (c byte, err error) {
+	bs := []byte(s)
+	for _, exp := range bs {
+		c, err = p.Read()
 		if err != nil {
 			break
 		}
@@ -481,7 +502,7 @@ func (xp *xParser) SkipString(s string) (c byte, err error) {
 	}
 
 	if err == nil {
-		c, err = xp.SkipWS()
+		c, ok = p.SkipWS()
 	}
 
 	return
@@ -491,7 +512,7 @@ func (xp *xParser) ReadUntil(end byte) (s string, err error) {
 	var sb strings.Builder
 
 	for {
-		c, err := xp.r.ReadByte()
+		c, err := p.Read()
 		if err != nil {
 			break
 		}
@@ -509,7 +530,7 @@ func (xp *xParser) ReadUntil(end byte) (s string, err error) {
 
 func (xp *xParser) Find(target byte) (ok bool, c byte, err error) {
 	for {
-		c, err = xp.r.ReadByte()
+		c, err = p.Read()
 		if err != nil {
 			break
 		}

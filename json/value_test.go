@@ -5,80 +5,138 @@ import (
 	"testing"
 )
 
-func TestStringValue(test *testing.T) {
-	jv := newString("test")
-	if jv.Type != jsonString {
-		test.Errorf("Expecting type %d, actual is %d", jsonString, jv.Type)
-	} else {
-		fmt.Printf("%T\t%v %d\n", jv.Value, jv.Value, jv.Type)
+func TestValue(t *testing.T) {
+	v := Value{
+		Type: TypeInt,
+		data: 1,
+	}
+	i, ok := v.Int()
+	fmt.Printf("%d\n", i)
+	if !ok || i != 1 {
+		t.Error("Failed to Int int")
+	}
+	f, ok := v.Float()
+	fmt.Printf("%f\n", f)
+	if !ok || f != 1.0 {
+		t.Error("Failed to Float int")
+	}
+	s, ok := v.String()
+	fmt.Printf("%s\n", s)
+	if !ok || s != "1" {
+		t.Error("Failed to String int")
 	}
 
-	s, ok := jv.GetString()
+	v = Value{
+		Type: TypeFloat,
+		data: 1.4,
+	}
+	i, ok = v.Int()
+	fmt.Printf("%d\n", i)
+	if !ok || i != 1 {
+		t.Error("Failed to Int float")
+	}
+	f, ok = v.Float()
+	fmt.Printf("%f\n", f)
+	if !ok || f != 1.4 {
+		t.Error("Failed to Float float")
+	}
+	s, ok = v.String()
+	fmt.Printf("%s\n", s)
+	if !ok || s != "1.4" {
+		t.Error("Failed to String float")
+	}
+
+	v = Value{
+		Type: TypeBool,
+		data: true,
+	}
+	b, ok := v.Bool()
+	fmt.Printf("%v\n", b)
+	if !ok || !b {
+		t.Error("Failed to Bool bool")
+	}
+	s, ok = v.String()
+	fmt.Printf("%s\n", s)
+	if !ok || s != "true" {
+		t.Error("Failed to String bool")
+	}
+
+	v = Value{
+		Type: TypeString,
+		data: "xyz",
+	}
+	s, ok = v.String()
+	fmt.Printf("%s\n", s)
+	if !ok || s != "xyz" {
+		t.Error("Failed to String string")
+	}
+	v = Value{
+		Type: TypeString,
+		data: "1",
+	}
+	i, ok = v.Int()
+	fmt.Printf("%d\n", i)
+	if !ok || i != 1 {
+		t.Error("Failed to Int string")
+	}
+	v = Value{
+		Type: TypeString,
+		data: "1.4",
+	}
+	f, ok = v.Float()
+	fmt.Printf("%f\n", f)
+	if !ok || f != 1.4 {
+		t.Error("Failed to Float string")
+	}
+	v = Value{
+		Type: TypeString,
+		data: "true",
+	}
+	b, ok = v.Bool()
+	fmt.Printf("%v\n", b)
+	if !ok || !b {
+		t.Error("Failed to Bool string")
+	}
+	v = Value{
+		Type: TypeNull,
+	}
+	s, ok = v.String()
+	fmt.Printf("%s\n", s)
+	if !ok || s != "null" {
+		t.Error("Failed to String null string")
+	}
+
+	var jo Object
+	jo.AddString("name", "xyz")
+	v = Value{
+		Type: TypeObject,
+		data: jo,
+	}
+	jo, ok = v.Object()
+	fmt.Printf("%v\n", jo)
 	if !ok {
-		test.Error("Failed to get string")
-	} else {
-		fmt.Printf("Value of %v is %s\n", jv.Value, s)
+		t.Error("Failed to Object object")
 	}
-}
-
-func TestIntValue(test *testing.T) {
-	jv := newInt(123)
-	if jv.Type != jsonInt {
-		test.Errorf("Expecting type %d, actual is %d", jsonInt, jv.Type)
-	} else {
-		fmt.Printf("%T\t%v %d\n", jv.Value, jv.Value, jv.Type)
+	s, ok = v.String()
+	fmt.Printf("%s\n", s)
+	if !ok || s != `{"name":"xyz"}` {
+		t.Error("Failed to String object")
 	}
 
-	i, ok := jv.GetInt()
+	var ja Array
+	ja.AddString("xyz")
+	v = Value{
+		Type: TypeArray,
+		data: ja,
+	}
+	ja, ok = v.Array()
+	fmt.Printf("%v\n", ja)
 	if !ok {
-		test.Error("Failed to get int")
-	} else {
-		fmt.Printf("Value of %v is %d\n", jv.Value, i)
+		t.Error("Failed to Array array")
 	}
-}
-
-func TestFloatValue(test *testing.T) {
-	jv := newFloat(1.23)
-	if jv.Type != jsonFloat {
-		test.Errorf("Expecting type %d, actual is %d", jsonFloat, jv.Type)
-	} else {
-		fmt.Printf("%T\t%v %d\n", jv.Value, jv.Value, jv.Type)
-	}
-
-	f, ok := jv.GetFloat()
-	if !ok {
-		test.Error("Failed to get float")
-	} else {
-		fmt.Printf("Value of %v is %f\n", jv.Value, f)
-	}
-
-	i, ok := jv.GetInt()
-	if !ok {
-		test.Error("Failed to get int")
-	} else {
-		fmt.Printf("Value of %v is %d\n", jv.Value, i)
-	}
-
-	s, ok := jv.GetString()
-	if !ok {
-		test.Error("Failed to get string")
-	} else {
-		fmt.Printf("Value of %v is %s\n", jv.Value, s)
-	}
-}
-
-func TestBooleanValue(test *testing.T) {
-	jv := newBool(true)
-	if jv.Type != jsonBool {
-		test.Errorf("Expecting type %d, actual is %d", jsonBool, jv.Type)
-	} else {
-		fmt.Printf("%T\t%v %d\n", jv.Value, jv.Value, jv.Type)
-	}
-
-	b, ok := jv.GetBool()
-	if !ok {
-		test.Error("Failed to get bool")
-	} else {
-		fmt.Printf("Value of %v is %t\n", jv.Value, b)
+	s, ok = v.String()
+	fmt.Printf("%s\n", s)
+	if !ok || s != `["xyz"]` {
+		t.Error("Failed to String array")
 	}
 }

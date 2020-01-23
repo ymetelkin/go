@@ -86,12 +86,12 @@ func TestObjectRemove(t *testing.T) {
 	jo.AddString("name", "YM")
 
 	jo.Remove("id")
-	if len(jo.Properties) != 1 {
+	if len(jo.props) != 1 {
 		t.Error("Failed to remove")
 	}
 
 	jo.Remove("foo")
-	if len(jo.Properties) != 1 {
+	if len(jo.props) != 1 {
 		t.Error("Failed to remove")
 	}
 
