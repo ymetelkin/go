@@ -58,7 +58,7 @@ func (nd *Node) Node(name string) Node {
 
 //Attribute method finds attribute by name
 func (nd *Node) Attribute(name string) string {
-	if nd.Attributes != nil {
+	if len(nd.Attributes) > 0 {
 		for _, a := range nd.Attributes {
 			if a.Name == name {
 				return a.Value
@@ -160,7 +160,7 @@ func (nd *Node) InlineString() string {
 		sb.WriteByte('>')
 	} else {
 		sb.WriteString(nd.Name)
-		if nd.Attributes != nil {
+		if len(nd.Attributes) > 0 {
 			for _, a := range nd.Attributes {
 				sb.WriteByte(' ')
 				sb.WriteString(a.Name)
@@ -171,7 +171,7 @@ func (nd *Node) InlineString() string {
 			}
 		}
 		sb.WriteByte('>')
-		if nd.Nodes != nil {
+		if len(nd.Nodes) > 0 {
 			for _, n := range nd.Nodes {
 				s := n.InlineString()
 				sb.WriteString(s)
@@ -210,7 +210,7 @@ func (nd *Node) toString(level int) string {
 		sb.WriteByte('>')
 	} else {
 		sb.WriteString(nd.Name)
-		if nd.Attributes != nil {
+		if len(nd.Attributes) > 0 {
 			for _, a := range nd.Attributes {
 				sb.WriteByte(' ')
 				sb.WriteString(a.Name)
@@ -221,7 +221,7 @@ func (nd *Node) toString(level int) string {
 			}
 		}
 		sb.WriteString(">")
-		if nd.Nodes != nil {
+		if len(nd.Nodes) > 0 {
 			for _, n := range nd.Nodes {
 				sb.WriteByte('\n')
 				sb.WriteString(n.toString(level + 1))
