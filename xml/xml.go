@@ -89,13 +89,11 @@ func (nd *Node) Matches(other *Node) (match bool, s string) {
 		return
 	}
 
-	var lsize, rsize int
-	if nd.Attributes != nil {
+	var (
 		lsize = len(nd.Attributes)
-	}
-	if other.Attributes != nil {
 		rsize = len(other.Attributes)
-	}
+	)
+
 	if lsize != rsize {
 		s = fmt.Sprintf("Attribute count mismatch: [ %d ] vs [ %d ]", lsize, rsize)
 		return
@@ -114,14 +112,9 @@ func (nd *Node) Matches(other *Node) (match bool, s string) {
 		}
 	}
 
-	lsize = 0
-	if nd.Nodes != nil {
-		lsize = len(nd.Nodes)
-	}
-	rsize = 0
-	if other.Nodes != nil {
-		rsize = len(other.Nodes)
-	}
+	lsize = len(nd.Nodes)
+	rsize = len(other.Nodes)
+
 	if lsize != rsize {
 		s = fmt.Sprintf("Node count mismatch: [ %d ] vs [ %d ]", lsize, rsize)
 		return
