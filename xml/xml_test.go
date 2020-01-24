@@ -1,14 +1,14 @@
 package xml
 
 import (
+	"fmt"
 	"io/ioutil"
-	"strings"
 	"testing"
 )
 
 type fs struct {
 	Name string
-	Body string
+	Body []byte
 }
 
 var tests []fs
@@ -20,14 +20,14 @@ func init() {
 	}
 
 	for _, file := range files {
-		data, err := ioutil.ReadFile("tests/" + file.Name())
+		bs, err := ioutil.ReadFile("tests/" + file.Name())
 		if err != nil {
 			panic(err)
 		}
 
 		tests = append(tests, fs{
 			Name: file.Name(),
-			Body: strings.ReplaceAll(string(data), "ï", ""),
+			Body: bs,
 		})
 	}
 }
@@ -44,12 +44,24 @@ func Benchmark9(b *testing.B)  { benchmarkXML(b, 8) }
 func Benchmark10(b *testing.B) { benchmarkXML(b, 9) }
 func Benchmark11(b *testing.B) { benchmarkXML(b, 10) }
 func Benchmark12(b *testing.B) { benchmarkXML(b, 11) }
+func Benchmark13(b *testing.B) { benchmarkXML(b, 12) }
+func Benchmark14(b *testing.B) { benchmarkXML(b, 13) }
+func Benchmark15(b *testing.B) { benchmarkXML(b, 14) }
+func Benchmark16(b *testing.B) { benchmarkXML(b, 15) }
+func Benchmark17(b *testing.B) { benchmarkXML(b, 16) }
+func Benchmark18(b *testing.B) { benchmarkXML(b, 17) }
+func Benchmark19(b *testing.B) { benchmarkXML(b, 18) }
+func Benchmark20(b *testing.B) { benchmarkXML(b, 19) }
+func Benchmark21(b *testing.B) { benchmarkXML(b, 20) }
+func Benchmark22(b *testing.B) { benchmarkXML(b, 21) }
 
 func benchmarkXML(b *testing.B, idx int) {
 	f := tests[idx]
 	//fmt.Println(f.Name)
-	_, err := ParseString(f.Body)
+	nd, err := Parse(f.Body)
 	if err != nil {
+		fmt.Println(f.Name)
+		fmt.Println(nd.String())
 		b.Error(err.Error())
 	}
 }

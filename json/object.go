@@ -7,9 +7,10 @@ import (
 
 //Object represents JSON object
 type Object struct {
-	props  []Property
-	fields map[string]int
-	params map[string]int
+	Properties []Property
+	fields     map[string]int
+	size       int
+	params     map[string]int
 }
 
 //New creates new Object with properties
@@ -23,28 +24,28 @@ func New(props ...Property) (jo Object) {
 	return
 }
 
-//Properties return object properties
-func (jo *Object) Properties() []Property {
-	return jo.props
-}
-
 //Add adds new property. Returns false if field exists.
 func (jo *Object) Add(field string, value Value) bool {
-	jp := Property{
-		Field: field,
-		Value: value,
-	}
-
-	if len(jo.props) == 0 {
-		jo.props = []Property{jp}
-		jo.fields = make(map[string]int)
-		jo.fields[field] = 0
+	if jo.size == 0 {
+		jo.Properties = []Property{Property{
+			Field: field,
+			Value: value,
+		}}
+		jo.fields = map[string]int{
+			field: 0,
+		}
+		jo.size = 1
 	} else {
 		if _, ok := jo.fields[field]; ok {
 			return false
 		}
-		jo.fields[field] = len(jo.props)
-		jo.props = append(jo.props, jp)
+
+		jo.Properties = append(jo.Properties, Property{
+			Field: field,
+			Value: value,
+		})
+		jo.fields[field] = jo.size
+		jo.size++
 	}
 	return true
 }
@@ -129,16 +130,14 @@ func (jo *Object) AddArrayArray(field string, values []Array) bool {
 
 //Set adds new property. If field exists, overwrites its value.
 func (jo *Object) Set(field string, value Value) {
-	if len(jo.props) == 0 {
-		return
-	}
-
-	if i, ok := jo.fields[field]; ok {
-		jo.props[i] = Property{
-			Field: field,
-			Value: value,
+	if jo.size > 0 {
+		if i, ok := jo.fields[field]; ok {
+			jo.Properties[i] = Property{
+				Field: field,
+				Value: value,
+			}
+			return
 		}
-		return
 	}
 
 	jo.Add(field, value)
@@ -176,33 +175,33 @@ func (jo *Object) SetArray(field string, value Array) {
 
 //Remove removes property. Returns false if field doesn't exists.
 func (jo *Object) Remove(field string) bool {
-	sz := len(jo.props)
-	if sz == 0 {
+	if jo.size == 0 {
 		return false
 	}
 
 	if i, ok := jo.fields[field]; ok {
-		if sz == 1 {
-			jo.props = nil
+		if jo.size == 1 {
+			jo.Properties = nil
 			jo.fields = nil
+			jo.size = 0
 			return true
 		}
 
 		switch i {
 		case 0:
-			jo.props = jo.props[1:]
-		case sz - 1:
-			jo.props = jo.props[:i]
+			jo.Properties = jo.Properties[1:]
+		case jo.size - 1:
+			jo.Properties = jo.Properties[:i]
 		default:
-			jo.props = append(jo.props[:i], jo.props[i+1:]...)
+			jo.Properties = append(jo.Properties[:i], jo.Properties[i+1:]...)
 		}
 
 		delete(jo.fields, field)
+		jo.size--
 
-		for i, jp := range jo.props {
+		for i, jp := range jo.Properties {
 			jo.fields[jp.Field] = i
 		}
-
 		return true
 	}
 
@@ -211,12 +210,11 @@ func (jo *Object) Remove(field string) bool {
 
 //Get gets value. Returns false if field doesn't exist.
 func (jo *Object) Get(field string) (value Value, ok bool) {
-	if len(jo.props) == 0 {
-		return
-	}
-	if i, k := jo.fields[field]; k {
-		value = jo.props[i].Value
-		ok = true
+	if jo.size > 0 {
+		if i, k := jo.fields[field]; k {
+			value = jo.Properties[i].Value
+			ok = true
+		}
 	}
 	return
 }
@@ -277,12 +275,12 @@ func (jo *Object) GetArray(field string) (ja Array, ok bool) {
 
 //Map returns object properties as map[string]Value
 func (jo *Object) Map() (props map[string]Value) {
-	if len(jo.props) == 0 {
+	if jo.size == 0 {
 		return
 	}
 
 	props = make(map[string]Value)
-	for _, jp := range jo.props {
+	for _, jp := range jo.Properties {
 		props[jp.Field] = jp.Value
 	}
 
@@ -291,7 +289,7 @@ func (jo *Object) Map() (props map[string]Value) {
 
 //IsEmpty checks for properties presense
 func (jo *Object) IsEmpty() bool {
-	return len(jo.props) == 0
+	return jo.size == 0
 }
 
 //Matches compares two JSON objects
@@ -304,7 +302,7 @@ func (jo *Object) Matches(other *Object) (match bool, s string) {
 		s = "Right is nil"
 		return
 	}
-	if len(jo.props) != len(other.props) {
+	if jo.size != other.size {
 		s = "Property count mismatch"
 	}
 
@@ -314,8 +312,8 @@ func (jo *Object) Matches(other *Object) (match bool, s string) {
 		r, ok := other.fields[k]
 		if ok {
 			values[k] = []Value{
-				jo.props[l].Value,
-				other.props[r].Value,
+				jo.Properties[l].Value,
+				other.Properties[r].Value,
 			}
 		} else {
 			s = fmt.Sprintf("Extra property: %s", k)
@@ -356,7 +354,7 @@ func (jo *Object) InlineString() string {
 }
 
 func (jo *Object) string(pretty bool, level int) string {
-	if len(jo.props) == 0 {
+	if jo.size == 0 {
 		return "{}"
 	}
 
@@ -370,7 +368,7 @@ func (jo *Object) string(pretty bool, level int) string {
 
 	next := level + 1
 
-	for i, jp := range jo.props {
+	for i, jp := range jo.Properties {
 		if i > 0 {
 			sb.WriteByte(',')
 

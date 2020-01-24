@@ -8,7 +8,7 @@ import (
 
 //SetParams sets parameters
 func (jo *Object) SetParams(params map[string]Value, emptycheck map[string][]string) (modified bool) {
-	if jo.IsEmpty() || len(jo.params) == 0 {
+	if jo.IsEmpty() || len(jo.params) == 0{
 		return
 	}
 
@@ -30,7 +30,7 @@ func (jo *Object) SetParams(params map[string]Value, emptycheck map[string][]str
 		names  = make(map[string]string)
 	)
 
-	for _, jp := range jo.props {
+	for _, jp := range jo.Properties {
 		test, ok := jo.params[jp.Field]
 		if !ok {
 			continue
@@ -107,9 +107,9 @@ func (jo *Object) SetParams(params map[string]Value, emptycheck map[string][]str
 	for name, update := range names {
 		for f, i := range jo.fields {
 			if f == name {
-				jp := jo.props[i]
+				jp := jo.Properties[i]
 				jo.fields[update] = i
-				jo.props[i] = Property{
+				jo.Properties[i] = Property{
 					Field: update,
 					Value: jp.Value,
 				}
@@ -324,7 +324,7 @@ func (jo *Object) GetParams() (params map[string]Value) {
 
 	params = make(map[string]Value)
 
-	for _, jp := range jo.props {
+	for _, jp := range jo.Properties {
 		getParams(jp.Field, params)
 
 		switch jp.Value.Type {

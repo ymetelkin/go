@@ -1,9 +1,7 @@
 package xml
 
 import (
-	"errors"
 	"fmt"
-	"io"
 	"strings"
 )
 
@@ -13,8 +11,7 @@ type Node struct {
 	Nodes      []Node
 	Text       string
 	parent     *Node
-	attributes []Attribute
-	anames     map[string]int
+	Attributes []Attribute
 }
 
 //Attribute XML node attribute
@@ -23,31 +20,9 @@ type Attribute struct {
 	Value string
 }
 
-//Parse creates a new node from a io.ByteScanner
-func Parse(scanner io.ByteScanner) (Node, error) {
-	xp := &xParser{
-		r: scanner,
-	}
-
-	return xp.Parse()
-}
-
-//ParseString creates a new node from a string
-func ParseString(xml string) (Node, error) {
-	if xml == "" {
-		return Node{}, errors.New("Missing input")
-	}
-
-	xp := &xParser{
-		r: newReader(xml),
-	}
-
-	return xp.Parse()
-}
-
 //Node method finds first child node
 func (nd *Node) Node(name string) Node {
-	if nd.Nodes != nil {
+	if len(nd.Nodes) > 0 {
 		for _, n := range nd.Nodes {
 			if n.Name == name {
 				return n
@@ -57,45 +32,26 @@ func (nd *Node) Node(name string) Node {
 	return Node{}
 }
 
-//Attributes returns all node attributes
-func (nd *Node) Attributes() []Attribute {
-	return nd.attributes
-}
-
 //Attribute finds attribute by name
 func (nd *Node) Attribute(name string) (value string) {
-	if len(nd.anames) == 0 {
+	if len(nd.Attributes) == 0 {
 		return
 	}
-	i, ok := nd.anames[name]
-	if ok {
-		value = nd.attributes[i].Value
+	for _, a := range nd.Attributes {
+		if a.Name == name {
+			value = a.Value
+			break
+		}
 	}
 	return
 }
 
 //AddAttribute adds attribute to node
 func (nd *Node) AddAttribute(name string, value string) {
-	a := Attribute{
+	nd.Attributes = append(nd.Attributes, Attribute{
 		Name:  name,
 		Value: value,
-	}
-
-	if nd.anames == nil {
-		nd.anames = make(map[string]int)
-		nd.anames[name] = 0
-		nd.attributes = []Attribute{a}
-		return
-	}
-
-	i, ok := nd.anames[name]
-	if ok {
-		nd.attributes[i] = a
-		return
-	}
-
-	nd.anames[name] = len(nd.attributes)
-	nd.attributes = append(nd.attributes, a)
+	})
 }
 
 //Matches compares two nodes
@@ -120,8 +76,8 @@ func (nd *Node) Matches(other *Node) (match bool, s string) {
 	}
 
 	var (
-		lsize = len(nd.attributes)
-		rsize = len(other.attributes)
+		lsize = len(nd.Attributes)
+		rsize = len(other.Attributes)
 	)
 
 	if lsize != rsize {
@@ -129,8 +85,8 @@ func (nd *Node) Matches(other *Node) (match bool, s string) {
 		return
 	}
 	if lsize > 0 {
-		for i, la := range nd.attributes {
-			ra := other.attributes[i]
+		for i, la := range nd.Attributes {
+			ra := other.Attributes[i]
 			if la.Name != ra.Name {
 				s = fmt.Sprintf("Attribute names mismatch: [ %s ] vs [ %s ]", la.Name, ra.Name)
 				return
@@ -183,8 +139,8 @@ func (nd *Node) InlineString() string {
 		sb.WriteByte('>')
 	} else {
 		sb.WriteString(nd.Name)
-		if len(nd.attributes) > 0 {
-			for _, a := range nd.attributes {
+		if len(nd.Attributes) > 0 {
+			for _, a := range nd.Attributes {
 				sb.WriteByte(' ')
 				sb.WriteString(a.Name)
 				sb.WriteByte('=')
@@ -233,8 +189,8 @@ func (nd *Node) toString(level int) string {
 		sb.WriteByte('>')
 	} else {
 		sb.WriteString(nd.Name)
-		if len(nd.attributes) > 0 {
-			for _, a := range nd.attributes {
+		if len(nd.Attributes) > 0 {
+			for _, a := range nd.Attributes {
 				sb.WriteByte(' ')
 				sb.WriteString(a.Name)
 				sb.WriteByte('=')

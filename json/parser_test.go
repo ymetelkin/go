@@ -11,7 +11,7 @@ func TestParsing(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		for _, jp := range jo.props {
+		for _, jp := range jo.Properties {
 			fmt.Printf("%s: %#v\n", jp.Field, jp.Value.data)
 			_, ok := jo.Get(jp.Field)
 			if !ok {
