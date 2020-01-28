@@ -2,13 +2,12 @@ package json
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 )
 
 //SetParams sets parameters
 func (jo *Object) SetParams(params map[string]Value, emptycheck map[string][]string) (modified bool) {
-	if jo.IsEmpty() || len(jo.params) == 0{
+	if len(jo.Properties) == 0 || len(jo.params) == 0 {
 		return
 	}
 
@@ -31,27 +30,27 @@ func (jo *Object) SetParams(params map[string]Value, emptycheck map[string][]str
 	)
 
 	for _, jp := range jo.Properties {
-		test, ok := jo.params[jp.Field]
+		test, ok := jo.params[jp.Name]
 		if !ok {
 			continue
 		}
 
 		if test == 1 || test == 3 {
-			_, txt, ok := setTextParams(jp.Field, params)
+			_, txt, ok := setTextParams(jp.Name, params)
 			if ok {
 				modified = true
 				if txt == "" {
-					remove = append(remove, jp.Field)
+					remove = append(remove, jp.Name)
 					continue
 				} else {
-					names[jp.Field] = txt
+					names[jp.Name] = txt
 				}
 			}
 		}
 
 		if test > 1 {
-			switch jp.Value.Type {
-			case TypeString:
+			switch jp.Value.t() {
+			case tString:
 				s, ok := jp.Value.String()
 				if !ok {
 					continue
@@ -60,16 +59,16 @@ func (jo *Object) SetParams(params map[string]Value, emptycheck map[string][]str
 				if ok {
 					modified = true
 					if txt == "" {
-						if v.Type == TypeNull {
-							remove = append(remove, jp.Field)
+						if v == nil || v.t() == 0 {
+							remove = append(remove, jp.Name)
 						} else {
-							jo.Set(jp.Field, v)
+							jo.Set(jp.Name, v)
 						}
 					} else {
-						jo.Set(jp.Field, NewString(txt))
+						jo.Set(jp.Name, String(txt))
 					}
 				}
-			case TypeObject:
+			case tObject:
 				child, ok := jp.Value.Object()
 				if !ok {
 					continue
@@ -77,13 +76,13 @@ func (jo *Object) SetParams(params map[string]Value, emptycheck map[string][]str
 				ok = child.SetParams(params, emptycheck)
 				if ok {
 					modified = true
-					if isEmpty(jp.Field, &child, emptycheck) {
-						remove = append(remove, jp.Field)
+					if isEmpty(jp.Name, &child, emptycheck) {
+						remove = append(remove, jp.Name)
 					} else {
-						jo.SetObject(jp.Field, child)
+						jo.Set(jp.Name, O(child))
 					}
 				}
-			case TypeArray:
+			case tArray:
 				ja, ok := jp.Value.Array()
 				if !ok {
 					continue
@@ -91,9 +90,9 @@ func (jo *Object) SetParams(params map[string]Value, emptycheck map[string][]str
 				modified = ja.SetParams(params, emptycheck)
 				if modified {
 					if len(ja.Values) == 0 {
-						remove = append(remove, jp.Field)
+						remove = append(remove, jp.Name)
 					} else {
-						jo.SetArray(jp.Field, ja)
+						jo.Set(jp.Name, A(ja))
 					}
 				}
 			}
@@ -110,7 +109,7 @@ func (jo *Object) SetParams(params map[string]Value, emptycheck map[string][]str
 				jp := jo.Properties[i]
 				jo.fields[update] = i
 				jo.Properties[i] = Property{
-					Field: update,
+					Name:  update,
 					Value: jp.Value,
 				}
 				delete(jo.fields, name)
@@ -143,8 +142,8 @@ func (ja *Array) SetParams(params map[string]Value, emptycheck map[string][]stri
 			if i == idx {
 				add = true
 
-				switch jv.Type {
-				case TypeString:
+				switch jv.t() {
+				case tString:
 					s, ok := jv.String()
 					if !ok {
 						break
@@ -154,17 +153,14 @@ func (ja *Array) SetParams(params map[string]Value, emptycheck map[string][]stri
 					if ok {
 						modified = true
 						if txt == "" {
-							if v.Type > 0 && v.Type != TypeNull {
+							if v != nil && v.t() > 0 {
 								values = append(values, v)
 							}
 						} else {
-							values = append(values, Value{
-								Type: TypeString,
-								data: txt,
-							})
+							values = append(values, String(txt))
 						}
 					}
-				case TypeObject:
+				case tObject:
 					jo, ok := jv.Object()
 					if !ok {
 						continue
@@ -172,14 +168,11 @@ func (ja *Array) SetParams(params map[string]Value, emptycheck map[string][]stri
 					ok = jo.SetParams(params, emptycheck)
 					if ok {
 						modified = true
-						if !jo.IsEmpty() {
-							values = append(values, Value{
-								Type: TypeObject,
-								data: jo,
-							})
+						if len(jo.Properties) > 0 {
+							values = append(values, O(jo))
 						}
 					}
-				case TypeArray:
+				case tArray:
 					a, ok := jv.Array()
 					if !ok {
 						continue
@@ -187,10 +180,7 @@ func (ja *Array) SetParams(params map[string]Value, emptycheck map[string][]stri
 					modified = a.SetParams(params, emptycheck)
 					if modified {
 						if len(a.Values) > 0 {
-							values = append(values, Value{
-								Type: TypeArray,
-								data: a,
-							})
+							values = append(values, A(a))
 						}
 					}
 				}
@@ -232,9 +222,10 @@ func setTextParams(s string, params map[string]Value) (jv Value, text string, mo
 			v, ok := params[name]
 			if ok {
 				jv = v
-				sb.WriteString(fmt.Sprintf("%v", v.data))
+				s, _ := v.String()
+				sb.WriteString(s)
 			} else if def != "" {
-				jv = NewString(def)
+				jv = String(def)
 				sb.WriteString(def)
 			}
 		} else {
@@ -243,7 +234,7 @@ func setTextParams(s string, params map[string]Value) (jv Value, text string, mo
 		}
 	}
 
-	if modified && (multi || jv.Type == TypeString) {
+	if modified && (multi || (jv != nil && jv.t() == tString)) {
 		text = sb.String()
 	}
 
@@ -251,7 +242,7 @@ func setTextParams(s string, params map[string]Value) (jv Value, text string, mo
 }
 
 func isEmpty(name string, jo *Object, emptycheck map[string][]string) bool {
-	if jo.IsEmpty() {
+	if len(jo.Properties) == 0 {
 		return true
 	}
 
@@ -318,22 +309,22 @@ func (p *parser) ParseParam() (name string, def string, err error) {
 
 //GetParams gets object parameters
 func (jo *Object) GetParams() (params map[string]Value) {
-	if jo.IsEmpty() {
+	if len(jo.Properties) == 0 {
 		return
 	}
 
 	params = make(map[string]Value)
 
 	for _, jp := range jo.Properties {
-		getParams(jp.Field, params)
+		getParams(jp.Name, params)
 
-		switch jp.Value.Type {
-		case TypeString:
+		switch jp.Value.t() {
+		case tString:
 			s, ok := jp.Value.String()
 			if ok {
 				getParams(s, params)
 			}
-		case TypeObject:
+		case tObject:
 			o, ok := jp.Value.Object()
 			if ok {
 				temp := o.GetParams()
@@ -343,7 +334,7 @@ func (jo *Object) GetParams() (params map[string]Value) {
 					}
 				}
 			}
-		case TypeArray:
+		case tArray:
 			a, ok := jp.Value.Array()
 			if ok {
 				temp := a.GetParams()
@@ -367,13 +358,13 @@ func (ja *Array) GetParams() (params map[string]Value) {
 	params = make(map[string]Value)
 
 	for _, jv := range ja.Values {
-		switch jv.Type {
-		case TypeString:
+		switch jv.t() {
+		case tString:
 			s, ok := jv.String()
 			if ok {
 				getParams(s, params)
 			}
-		case TypeObject:
+		case tObject:
 			o, ok := jv.Object()
 			if ok {
 				temp := o.GetParams()
@@ -383,7 +374,7 @@ func (ja *Array) GetParams() (params map[string]Value) {
 					}
 				}
 			}
-		case TypeArray:
+		case tArray:
 			a, ok := jv.Array()
 			if ok {
 				temp := a.GetParams()
@@ -411,7 +402,7 @@ func getParams(s string, params map[string]Value) {
 		if c == '$' {
 			name, def, e := p.ParseParam()
 			if e == nil && name != "" {
-				params[name] = NewString(def)
+				params[name] = String(def)
 			}
 		}
 	}

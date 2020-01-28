@@ -5,95 +5,50 @@ import (
 	"testing"
 )
 
-func TestObjectAdd(t *testing.T) {
-	jo := Object{}
-	ok := jo.AddInt("id", 1)
+func TestObject(t *testing.T) {
+	jo := New(
+		Field("id", Int(1)),
+		Field("name", String("YM")),
+		Field("scores", Ints([]int{95, 98, 93, 100})),
+	)
+
+	if len(jo.Properties) != 3 {
+		t.Error("Failed to create object")
+	}
+
+	s, ok := jo.GetString("name")
 	if !ok {
-		t.Error("Failed to add int")
-	} else {
-		id, ok := jo.GetInt("id")
-		if !ok {
-			t.Error("Failed to get int")
-		} else {
-			fmt.Printf("id: %d\n", id)
-		}
+		t.Error("Failed to read name")
 	}
-
-	ok = jo.AddString("name", "YM")
+	fmt.Printf("%v %T\n", s, s)
+	s, ok = jo.GetString("id")
 	if !ok {
-		t.Error("Failed to add string")
-	} else {
-		name, ok := jo.GetString("name")
-		if !ok {
-			t.Error("Failed to get string")
-		} else {
-			fmt.Printf("name: %s\n", name)
-		}
+		t.Error("Failed to read id")
 	}
-
-	ok = jo.AddBool("cool", true)
+	fmt.Printf("%v %T\n", s, s)
+	i, ok := jo.GetInt("id")
 	if !ok {
-		t.Error("Failed to add bool")
-	} else {
-		cool, ok := jo.GetBool("cool")
-		if !ok {
-			t.Error("Failed to get bool")
-		} else {
-			fmt.Printf("cool: %t\n", cool)
-		}
+		t.Error("Failed to read id")
 	}
-
-	child := Object{}
-	child.AddString("a", "b")
-	ok = jo.AddObject("child", child)
+	fmt.Printf("%v %T\n", i, i)
+	f, ok := jo.GetFloat("id")
 	if !ok {
-		t.Error("Failed to add object")
-	} else {
-		c, ok := jo.GetObject("child")
-		if !ok {
-			t.Error("Failed to get object")
-		} else {
-			fmt.Printf("child: %s\n", c.InlineString())
-		}
+		t.Error("Failed to read id")
 	}
-
-	ja := Array{}
-	ja.AddInt(1)
-	ja.AddInt(2)
-	ok = jo.AddArray("products", ja)
+	fmt.Printf("%v %T\n", f, f)
+	b, ok := jo.GetBool("id")
 	if !ok {
-		t.Error("Failed to add array")
-	} else {
-		products, ok := jo.GetArray("products")
-		if !ok {
-			t.Error("Failed to get array")
-		} else {
-			fmt.Printf("products: %s\n", products.InlineString())
-		}
+		t.Error("Failed to read id")
 	}
-
-	fmt.Printf("Is empty: %t\n", jo.IsEmpty())
-	if jo.IsEmpty() {
-		t.Error("Must not be empty")
+	fmt.Printf("%v %T\n", b, b)
+	is, ok := jo.GetInts("scores")
+	if !ok {
+		t.Error("Failed to read scores")
 	}
-
-	fmt.Printf("%s\n", jo.String())
-}
-
-func TestObjectRemove(t *testing.T) {
-	jo := Object{}
-	jo.AddInt("id", 1)
-	jo.AddString("name", "YM")
-
-	jo.Remove("id")
-	if len(jo.Properties) != 1 {
-		t.Error("Failed to remove")
+	fmt.Printf("%v %T\n", is, is)
+	ss, ok := jo.GetStrings("scores")
+	if !ok {
+		t.Error("Failed to read scores")
 	}
-
-	jo.Remove("foo")
-	if len(jo.Properties) != 1 {
-		t.Error("Failed to remove")
-	}
-
-	fmt.Printf("%s\n", jo.String())
+	fmt.Printf("%v %T\n", ss, ss)
 }

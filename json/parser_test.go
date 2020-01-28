@@ -2,6 +2,7 @@ package json
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -12,8 +13,8 @@ func TestParsing(t *testing.T) {
 		t.Error(err.Error())
 	} else {
 		for _, jp := range jo.Properties {
-			fmt.Printf("%s: %#v\n", jp.Field, jp.Value.data)
-			_, ok := jo.Get(jp.Field)
+			fmt.Printf("%s: %#v\n", jp.Name, jp.Value)
+			_, ok := jo.GetValue(jp.Name)
 			if !ok {
 				t.Error("Failed to get value")
 			}
@@ -21,8 +22,8 @@ func TestParsing(t *testing.T) {
 
 		fmt.Printf("%s\n", jo.String())
 
-		jo.SetString("name", "SV")
-		jo.SetInt("id", 2)
+		jo.Set("name", String("SV"))
+		jo.Set("id", Int(2))
 		fmt.Printf("%s\n", jo.String())
 
 		jo.Remove("name")
@@ -47,7 +48,7 @@ func TestParsing(t *testing.T) {
 		t.Error(err.Error())
 	} else {
 		test := jo.InlineString()
-		if test != s {
+		if test != s && test != strings.ToLower(s) {
 			t.Error("Parsing failed")
 		}
 		fmt.Printf("%s\n", jo.String())

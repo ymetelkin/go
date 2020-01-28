@@ -1,309 +1,248 @@
 package json
 
 import (
-	"fmt"
 	"strings"
 )
 
-//Object represents JSON object
+//Object JSON object
 type Object struct {
 	Properties []Property
 	fields     map[string]int
-	size       int
 	params     map[string]int
 }
 
-//New creates new Object with properties
-func New(props ...Property) (jo Object) {
-	if len(props) == 0 {
+//New constucts Object
+func New(fields ...Property) (jo Object) {
+	if len(fields) == 0 {
 		return
 	}
-	for _, jp := range props {
-		jo.Add(jp.Field, jp.Value)
+	for _, f := range fields {
+		jo.Add(f.Name, f.Value)
 	}
 	return
 }
 
-//Add adds new property. Returns false if field exists.
+//Add adds field
 func (jo *Object) Add(field string, value Value) bool {
-	if jo.size == 0 {
-		jo.Properties = []Property{Property{
-			Field: field,
-			Value: value,
-		}}
-		jo.fields = map[string]int{
-			field: 0,
-		}
-		jo.size = 1
-	} else {
-		if _, ok := jo.fields[field]; ok {
-			return false
-		}
-
-		jo.Properties = append(jo.Properties, Property{
-			Field: field,
-			Value: value,
-		})
-		jo.fields[field] = jo.size
-		jo.size++
+	if value == nil || value.t() == 0 {
+		return false
 	}
+	jp := Property{
+		Name:  field,
+		Value: value,
+	}
+
+	if jo.fields == nil {
+		jo.fields = map[string]int{field: 0}
+		jo.Properties = []Property{jp}
+		return true
+	}
+
+	_, ok := jo.fields[field]
+	if ok {
+		return false
+	}
+
+	jo.fields[field] = len(jo.Properties)
+	jo.Properties = append(jo.Properties, jp)
 	return true
 }
 
-//AddString adds string property to parent object
-func (jo *Object) AddString(field string, value string) bool {
-	return jo.Add(field, NewString(value))
-}
-
-//AddInt adds int property to parent object
-func (jo *Object) AddInt(field string, value int) bool {
-	return jo.Add(field, NewInt(value))
-}
-
-//AddFloat adds float property to parent object
-func (jo *Object) AddFloat(field string, value float64) bool {
-	return jo.Add(field, NewFloat(value))
-}
-
-//AddBool adds bool property to parent object
-func (jo *Object) AddBool(field string, value bool) bool {
-	return jo.Add(field, NewBool(value))
-}
-
-//AddObject adds JSON object property to parent object
-func (jo *Object) AddObject(field string, value Object) bool {
-	return jo.Add(field, NewObject(value))
-}
-
-//AddArray adds JSON array property to parent object
-func (jo *Object) AddArray(field string, value Array) bool {
-	return jo.Add(field, NewArray(value))
-}
-
-//AddStringArray adds string array property to parent object
-func (jo *Object) AddStringArray(field string, values []string) bool {
-	if len(values) == 0 {
-		return false
+//Remove adds field
+func (jo *Object) Remove(field string) (ok bool) {
+	sz := len(jo.fields)
+	if sz == 0 {
+		return
 	}
-	return jo.Add(field, NewArray(NewStringArray(values)))
-}
 
-//AddIntArray adds int array property to parent object
-func (jo *Object) AddIntArray(field string, values []int) bool {
-	if len(values) == 0 {
-		return false
+	if sz == 1 {
+		_, ok = jo.fields[field]
+		if ok {
+			jo.fields = nil
+			jo.Properties = nil
+		}
+		return
 	}
-	return jo.Add(field, NewArray(NewIntArray(values)))
-}
 
-//AddFloatArray adds float64 array property to parent object
-func (jo *Object) AddFloatArray(field string, values []float64) bool {
-	if len(values) == 0 {
-		return false
-	}
-	return jo.Add(field, NewArray(NewFloatArray(values)))
-}
+	var (
+		fs     = make([]Property, sz-1)
+		fields = make(map[string]int)
+		i      int
+	)
 
-//AddBoolArray adds bool array property to parent object
-func (jo *Object) AddBoolArray(field string, values []bool) bool {
-	if len(values) == 0 {
-		return false
+	for _, jp := range jo.Properties {
+		if jp.Name == field {
+			ok = true
+			continue
+		}
+		fs[i] = jp
+		fields[jp.Name] = i
+		i++
 	}
-	return jo.Add(field, NewArray(NewBoolArray(values)))
-}
 
-//AddObjectArray adds Object array property to parent object
-func (jo *Object) AddObjectArray(field string, values []Object) bool {
-	if len(values) == 0 {
-		return false
-	}
-	return jo.Add(field, NewArray(NewObjectArray(values)))
-}
-
-//AddArrayArray adds Array array property to parent object
-func (jo *Object) AddArrayArray(field string, values []Array) bool {
-	if len(values) == 0 {
-		return false
-	}
-	return jo.Add(field, NewArray(NewArrayArray(values)))
+	jo.Properties = fs
+	jo.fields = fields
+	return
 }
 
 //Set adds new property. If field exists, overwrites its value.
 func (jo *Object) Set(field string, value Value) {
-	if jo.size > 0 {
+	if len(jo.fields) > 0 {
 		if i, ok := jo.fields[field]; ok {
 			jo.Properties[i] = Property{
-				Field: field,
+				Name:  field,
 				Value: value,
 			}
 			return
 		}
 	}
-
 	jo.Add(field, value)
 }
 
-//SetInt sets int value of named property
-func (jo *Object) SetInt(field string, value int) {
-	jo.Set(field, NewInt(value))
-}
-
-//SetFloat sets float value of named property
-func (jo *Object) SetFloat(field string, value float64) {
-	jo.Set(field, NewFloat(value))
-}
-
-//SetBool sets int value of named property
-func (jo *Object) SetBool(field string, value bool) {
-	jo.Set(field, NewBool(value))
-}
-
-//SetString sets string value of named property
-func (jo *Object) SetString(field string, value string) {
-	jo.Set(field, NewString(value))
-}
-
-//SetObject sets JSON object value of named property
-func (jo *Object) SetObject(field string, value Object) {
-	jo.Set(field, NewObject(value))
-}
-
-//SetArray sets JSON array value of named property
-func (jo *Object) SetArray(field string, value Array) {
-	jo.Set(field, NewArray(value))
-}
-
-//Remove removes property. Returns false if field doesn't exists.
-func (jo *Object) Remove(field string) bool {
-	if jo.size == 0 {
-		return false
+//GetValue value
+func (jo *Object) GetValue(field string) (v Value, ok bool) {
+	if len(jo.fields) == 0 {
+		return
 	}
 
-	if i, ok := jo.fields[field]; ok {
-		if jo.size == 1 {
-			jo.Properties = nil
-			jo.fields = nil
-			jo.size = 0
-			return true
-		}
-
-		switch i {
-		case 0:
-			jo.Properties = jo.Properties[1:]
-		case jo.size - 1:
-			jo.Properties = jo.Properties[:i]
-		default:
-			jo.Properties = append(jo.Properties[:i], jo.Properties[i+1:]...)
-		}
-
-		delete(jo.fields, field)
-		jo.size--
-
-		for i, jp := range jo.Properties {
-			jo.fields[jp.Field] = i
-		}
-		return true
+	var i int
+	i, ok = jo.fields[field]
+	if !ok {
+		return
 	}
 
-	return false
-}
-
-//Get gets value. Returns false if field doesn't exist.
-func (jo *Object) Get(field string) (value Value, ok bool) {
-	if jo.size > 0 {
-		if i, k := jo.fields[field]; k {
-			value = jo.Properties[i].Value
-			ok = true
-		}
-	}
+	v = jo.Properties[i].Value
 	return
 }
 
-//GetString returns string value of named property
-func (jo *Object) GetString(field string) (s string, ok bool) {
-	v, k := jo.Get(field)
-	if k {
-		s, ok = v.String()
+//GetString gets string value
+func (jo *Object) GetString(field string) (v string, ok bool) {
+	var jv Value
+	jv, ok = jo.GetValue(field)
+	if !ok {
+		return
 	}
-	return
+
+	return jv.String()
 }
 
-//GetInt returns string int of named property
-func (jo *Object) GetInt(field string) (i int, ok bool) {
-	v, k := jo.Get(field)
-	if k {
-		i, ok = v.Int()
+//GetStrings gets string values
+func (jo *Object) GetStrings(field string) (vs []string, ok bool) {
+	var ja Array
+	ja, ok = jo.GetArray(field)
+	if !ok {
+		return
 	}
-	return
+
+	return ja.GetStrings()
 }
 
-//GetFloat returns float value of named property
-func (jo *Object) GetFloat(field string) (f float64, ok bool) {
-	v, k := jo.Get(field)
-	if k {
-		f, ok = v.Float()
+//GetInt gets int value
+func (jo *Object) GetInt(field string) (v int, ok bool) {
+	var jv Value
+	jv, ok = jo.GetValue(field)
+	if !ok {
+		return
 	}
-	return
+
+	return jv.Int()
 }
 
-//GetBool returns bool value of named property
-func (jo *Object) GetBool(field string) (b bool, ok bool) {
-	v, k := jo.Get(field)
-	if k {
-		b, ok = v.Bool()
+//GetInts gets int values
+func (jo *Object) GetInts(field string) (vs []int, ok bool) {
+	var ja Array
+	ja, ok = jo.GetArray(field)
+	if !ok {
+		return
 	}
-	return
+
+	return ja.GetInts()
 }
 
-//GetObject returns JSON object value of named property
-func (jo *Object) GetObject(field string) (o Object, ok bool) {
-	v, k := jo.Get(field)
-	if k {
-		o, ok = v.Object()
+//GetFloat gets float64 value
+func (jo *Object) GetFloat(field string) (v float64, ok bool) {
+	var jv Value
+	jv, ok = jo.GetValue(field)
+	if !ok {
+		return
 	}
-	return
+
+	return jv.Float()
 }
 
-//GetArray returns JSON array value of named property
-func (jo *Object) GetArray(field string) (ja Array, ok bool) {
-	v, k := jo.Get(field)
-	if k {
-		ja, ok = v.Array()
+//GetFloats gets float64 values
+func (jo *Object) GetFloats(field string) (vs []float64, ok bool) {
+	var ja Array
+	ja, ok = jo.GetArray(field)
+	if !ok {
+		return
 	}
-	return
+
+	return ja.GetFloats()
+}
+
+//GetBool gets bool value
+func (jo *Object) GetBool(field string) (v bool, ok bool) {
+	var jv Value
+	jv, ok = jo.GetValue(field)
+	if !ok {
+		return
+	}
+
+	return jv.Bool()
+}
+
+//GetObject gets Object value
+func (jo *Object) GetObject(field string) (v Object, ok bool) {
+	var jv Value
+	jv, ok = jo.GetValue(field)
+	if !ok {
+		return
+	}
+
+	return jv.Object()
+}
+
+//GetObjects gets Object values
+func (jo *Object) GetObjects(field string) (vs []Object, ok bool) {
+	var ja Array
+	ja, ok = jo.GetArray(field)
+	if !ok {
+		return
+	}
+
+	return ja.GetObjects()
+}
+
+//GetArray gets Object value
+func (jo *Object) GetArray(field string) (v Array, ok bool) {
+	var jv Value
+	jv, ok = jo.GetValue(field)
+	if !ok {
+		return
+	}
+
+	return jv.Array()
 }
 
 //Map returns object properties as map[string]Value
 func (jo *Object) Map() (props map[string]Value) {
-	if jo.size == 0 {
+	if len(jo.Properties) == 0 {
 		return
 	}
 
 	props = make(map[string]Value)
 	for _, jp := range jo.Properties {
-		props[jp.Field] = jp.Value
+		props[jp.Name] = jp.Value
 	}
 
 	return
 }
 
-//IsEmpty checks for properties presense
-func (jo *Object) IsEmpty() bool {
-	return jo.size == 0
-}
-
-//Matches compares two JSON objects
-func (jo *Object) Matches(other *Object) (match bool, s string) {
-	if jo == nil {
-		s = "Left is nil"
-		return
-	}
-	if other == nil {
-		s = "Right is nil"
-		return
-	}
-	if jo.size != other.size {
-		s = "Property count mismatch"
+//Equals compares two JSON objects
+func (jo *Object) Equals(other *Object) bool {
+	if jo == nil || other == nil || len(jo.Properties) != len(other.Properties) {
+		return false
 	}
 
 	values := make(map[string][]Value)
@@ -316,31 +255,25 @@ func (jo *Object) Matches(other *Object) (match bool, s string) {
 				other.Properties[r].Value,
 			}
 		} else {
-			s = fmt.Sprintf("Extra property: %s", k)
-			return
+			return false
 		}
 	}
 
 	for k := range other.fields {
-		_, ok := jo.fields[k]
-		if !ok {
-			s = fmt.Sprintf("Missing property: %s", k)
-			return
+		if _, ok := jo.fields[k]; !ok {
+			return false
 		}
 	}
 
-	for k, v := range values {
-		l := &v[0]
-		r := &v[1]
-		match, s = l.Matches(r)
-		if !match {
-			s = fmt.Sprintf("Mismatched property \"%s\": %s", k, s)
-			return
+	for _, v := range values {
+		l := v[0]
+		r := v[1]
+		if !compare(l, r) {
+			return false
 		}
 	}
 
-	match = true
-	return
+	return true
 }
 
 //String returns pretty serialization
@@ -354,7 +287,7 @@ func (jo *Object) InlineString() string {
 }
 
 func (jo *Object) string(pretty bool, level int) string {
-	if jo.size == 0 {
+	if len(jo.Properties) == 0 {
 		return "{}"
 	}
 
@@ -388,7 +321,7 @@ func (jo *Object) string(pretty bool, level int) string {
 		}
 
 		sb.WriteByte('"')
-		sb.WriteString(jp.Field)
+		sb.WriteString(jp.Name)
 		sb.WriteByte('"')
 		sb.WriteByte(':')
 		if pretty {

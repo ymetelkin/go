@@ -89,13 +89,13 @@ func (p *parser) Parse() (jv Value, params bool, err error) {
 		jo, ps, err := p.ParseObject()
 		if err == nil {
 			params = ps
-			jv = NewObject(jo)
+			jv = O(jo)
 		}
 	} else if c == '[' {
 		ja, ps, err := p.ParseArray()
 		if err == nil {
 			params = ps
-			jv = NewArray(ja)
+			jv = A(ja)
 		}
 	} else {
 		err = fmt.Errorf("Expected '{' or '[', found '%c'", c)
@@ -108,7 +108,7 @@ func (p *parser) ParseObject() (jo Object, params bool, err error) {
 	var ps bool
 
 	ps, err = p.AddProperty(&jo)
-	if err != nil || jo.IsEmpty() {
+	if err != nil || len(jo.Properties) == 0 {
 		return
 	}
 	if ps {
@@ -175,7 +175,7 @@ func (p *parser) AddProperty(jo *Object) (params bool, err error) {
 			return
 		}
 
-		if jv.data != nil {
+		if jv != nil && jv.t() > 0 {
 			if ps {
 				params = true
 
@@ -293,7 +293,7 @@ func (p *parser) ParseValue() (jv Value, params bool, err error) {
 					sb.WriteByte('\\')
 				}
 			} else if c == '"' {
-				jv = NewString(sb.String())
+				jv = String(sb.String())
 				return
 			} else {
 				if isParam(c) {
@@ -308,7 +308,7 @@ func (p *parser) ParseValue() (jv Value, params bool, err error) {
 		jo, ps, e := p.ParseObject()
 		if e == nil {
 			params = ps
-			jv = NewObject(jo)
+			jv = O(jo)
 		} else {
 			err = e
 		}
@@ -319,7 +319,7 @@ func (p *parser) ParseValue() (jv Value, params bool, err error) {
 		ja, ps, e := p.ParseArray()
 		if e == nil {
 			params = ps
-			jv = NewArray(ja)
+			jv = A(ja)
 		} else {
 			err = e
 		}
@@ -329,24 +329,19 @@ func (p *parser) ParseValue() (jv Value, params bool, err error) {
 	if c == 't' {
 		c, ok = p.SkipString("rue")
 		if ok {
-			jv = NewBool(true)
-			jv.text = "true"
+			jv = Bool(true)
 		}
 		p.Move(-1)
 	} else if c == 'f' {
 		c, ok = p.SkipString("alse")
 		if ok {
-			jv = NewBool(false)
-			jv.text = "false"
+			jv = Bool(false)
 		}
 		p.Move(-1)
 	} else if c == 'n' {
 		c, ok = p.SkipString("ull")
 		if ok {
-			jv = Value{
-				Type: TypeNull,
-			}
-			jv.text = "null"
+			jv = Null()
 		}
 		p.Move(-1)
 	} else if (c >= '0' && c <= '9') || c == '-' {
@@ -376,21 +371,13 @@ func (p *parser) ParseValue() (jv Value, params bool, err error) {
 				if float {
 					f, e := strconv.ParseFloat(s, 64)
 					if e == nil {
-						jv = Value{
-							Type: TypeFloat,
-							data: f,
-						}
-						jv.text = s
+						jv = Float(f)
 						return
 					}
 				} else {
 					i, e := strconv.Atoi(s)
 					if e == nil {
-						jv = Value{
-							Type: TypeInt,
-							data: i,
-						}
-						jv.text = s
+						jv = Int(i)
 						return
 					}
 				}
@@ -446,7 +433,7 @@ func (p *parser) AddArrayValue(ja *Array) (params bool, err error) {
 	var jv Value
 
 	jv, params, err = p.ParseValue()
-	if err == nil && jv.data != nil {
+	if err == nil && jv != nil && jv.t() > 0 {
 		ja.Values = append(ja.Values, jv)
 
 		if params {
