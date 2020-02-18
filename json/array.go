@@ -67,6 +67,9 @@ func NewObjectArray(vs []Object) (ja Array) {
 
 //Add adds value to array
 func (ja *Array) Add(v Value) {
+	if v == nil {
+		return
+	}
 	ja.Values = append(ja.Values, v)
 }
 

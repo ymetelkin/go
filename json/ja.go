@@ -6,9 +6,6 @@ type vArray struct {
 
 //A constructs Array value
 func A(v Array) Value {
-	if len(v.Values) == 0 {
-		return nil
-	}
 	return vArray{v: v}
 }
 
