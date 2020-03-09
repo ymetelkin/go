@@ -118,7 +118,7 @@ func (jo *Object) SetParams(params map[string]Value, emptycheck map[string][]str
 		}
 	}
 
-	jo.fields = nil
+	//jo.fields = nil
 
 	return modified
 }
