@@ -20,7 +20,7 @@ func (s vString) t() int {
 
 func (s vString) string(pretty bool, level int) string {
 	if s.v == "" {
-		return ""
+		return "\"\""
 	}
 
 	var (
