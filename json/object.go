@@ -239,6 +239,37 @@ func (jo *Object) Map() (props map[string]Value) {
 	return
 }
 
+//Copy copies Object
+func (jo *Object) Copy() Object {
+	var copy Object
+
+	if len(jo.Properties) > 0 {
+		copy.Properties = make([]Property, len(jo.Properties))
+		for i, jp := range jo.Properties {
+			copy.Properties[i] = Property{
+				Name:  jp.Name,
+				Value: jp.Value.Copy(),
+			}
+		}
+	}
+
+	if len(jo.fields) > 0 {
+		copy.fields = make(map[string]int, len(jo.fields))
+		for k, v := range jo.fields {
+			copy.fields[k] = v
+		}
+	}
+
+	if len(jo.params) > 0 {
+		copy.params = make(map[string]int, len(jo.params))
+		for k, v := range jo.params {
+			copy.params[k] = v
+		}
+	}
+
+	return copy
+}
+
 //Equals compares two JSON objects
 func (jo *Object) Equals(other *Object) bool {
 	if jo == nil || other == nil || len(jo.Properties) != len(other.Properties) {

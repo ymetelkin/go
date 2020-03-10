@@ -125,6 +125,27 @@ func (ja *Array) GetObjects() ([]Object, bool) {
 	return vs, true
 }
 
+//Copy copies Object
+func (ja *Array) Copy() Array {
+	var copy Array
+
+	if len(ja.Values) > 0 {
+		copy.Values = make([]Value, len(ja.Values))
+		for i, jv := range ja.Values {
+			copy.Values[i] = jv.Copy()
+		}
+	}
+
+	if len(ja.params) > 0 {
+		copy.params = make([]int, len(ja.params))
+		for i, v := range ja.params {
+			copy.params[i] = v
+		}
+	}
+
+	return copy
+}
+
 //Equals compares two arrays
 func (ja *Array) Equals(other *Array) bool {
 	if ja.Values == nil || other.Values == nil || len(ja.Values) != len(other.Values) {

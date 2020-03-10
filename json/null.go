@@ -39,3 +39,7 @@ func (s vNull) Object() (Object, bool) {
 func (s vNull) Array() (Array, bool) {
 	return Array{}, false
 }
+
+func (s vNull) Copy() Value {
+	return Null()
+}

@@ -52,3 +52,7 @@ func (b vBool) Object() (Object, bool) {
 func (b vBool) Array() (Array, bool) {
 	return Array{}, false
 }
+
+func (b vBool) Copy() Value {
+	return Bool(b.v)
+}

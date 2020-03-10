@@ -72,3 +72,7 @@ func (ja vArray) Object() (Object, bool) {
 func (ja vArray) Array() (Array, bool) {
 	return ja.v, true
 }
+
+func (ja vArray) Copy() Value {
+	return A(ja.v.Copy())
+}

@@ -48,3 +48,7 @@ func (i vInt) Object() (Object, bool) {
 func (i vInt) Array() (Array, bool) {
 	return Array{}, false
 }
+
+func (i vInt) Copy() Value {
+	return Int(i.v)
+}

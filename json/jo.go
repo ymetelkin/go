@@ -40,3 +40,7 @@ func (jo vObject) Object() (Object, bool) {
 func (jo vObject) Array() (Array, bool) {
 	return Array{}, false
 }
+
+func (jo vObject) Copy() Value {
+	return O(jo.v.Copy())
+}

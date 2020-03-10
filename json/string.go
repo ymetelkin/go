@@ -95,3 +95,7 @@ func (s vString) Object() (Object, bool) {
 func (s vString) Array() (Array, bool) {
 	return Array{}, false
 }
+
+func (s vString) Copy() Value {
+	return String(s.v)
+}

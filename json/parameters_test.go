@@ -303,4 +303,22 @@ func TestJSONObjectWithParametersParsing(t *testing.T) {
 		t.Error("Doesn't match!")
 		fmt.Println(test)
 	}
+
+	input = `{"query":{"query_string":{"query":"${query}","fields":"${fields}"}}}`
+	expected = `{"query":{"query_string":{"query":"title:putin","fields":["body"]}}}`
+	jo, err = ParseObject([]byte(input))
+	if err != nil {
+		t.Error(err.Error())
+	}
+	tmp, _ = ParseObject([]byte(`{"query":"title:putin","fields":["body"]}`))
+	params = tmp.Map()
+	empty = map[string][]string{"query_string": []string{"query"}}
+	copy := jo.Copy()
+	copy.SetParams(params, empty)
+	test = copy.InlineString()
+	fmt.Println(test)
+	if test != expected {
+		t.Error("Doesn't match!")
+		fmt.Println(test)
+	}
 }

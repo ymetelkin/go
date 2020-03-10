@@ -50,3 +50,7 @@ func (f vFloat) Object() (Object, bool) {
 func (f vFloat) Array() (Array, bool) {
 	return Array{}, false
 }
+
+func (f vFloat) Copy() Value {
+	return Float(f.v)
+}

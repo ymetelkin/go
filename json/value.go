@@ -19,6 +19,7 @@ type Value interface {
 	Bool() (bool, bool)
 	Object() (Object, bool)
 	Array() (Array, bool)
+	Copy() Value
 }
 
 func compare(left Value, right Value) bool {
