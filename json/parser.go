@@ -395,7 +395,7 @@ func (p *parser) ParseArray() (ja Array, params bool, err error) {
 	var ps bool
 
 	ps, err = p.AddArrayValue(&ja)
-	if err != nil || len(ja.Values) == 0 {
+	if err != nil {
 		return
 	}
 	if ps {
@@ -433,7 +433,11 @@ func (p *parser) AddArrayValue(ja *Array) (params bool, err error) {
 	var jv Value
 
 	jv, params, err = p.ParseValue()
-	if err == nil && jv != nil && jv.t() > 0 {
+	if jv == nil {
+		p.Move(-1)
+		return
+	}
+	if err == nil && jv.t() > 0 {
 		ja.Values = append(ja.Values, jv)
 
 		if params {

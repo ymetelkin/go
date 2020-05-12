@@ -101,4 +101,16 @@ func TestParsing(t *testing.T) {
 		}
 		fmt.Printf("%s\n", jo.String())
 	}
+
+	s = `{"a":[null]}`
+	jo, err = ParseObject([]byte(s))
+	if err != nil {
+		t.Error(err.Error())
+	} else {
+		test := jo.InlineString()
+		if test != s {
+			t.Error("Parsing failed")
+		}
+		fmt.Printf("%s\n", jo.String())
+	}
 }
