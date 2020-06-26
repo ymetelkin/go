@@ -108,7 +108,7 @@ func TestParsing(t *testing.T) {
 		t.Error(err.Error())
 	} else {
 		test := jo.InlineString()
-		if test != s {
+		if test != `{"a":[]}` {
 			t.Error("Parsing failed")
 		}
 		fmt.Printf("%s\n", jo.String())
