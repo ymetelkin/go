@@ -105,10 +105,10 @@ func (p *parser) Parse() (jv Value, params bool, err error) {
 }
 
 func (p *parser) ParseObject() (jo Object, params bool, err error) {
-	var ps bool
+	var ps, eoo bool
 
-	ps, err = p.AddProperty(&jo)
-	if err != nil || len(jo.Properties) == 0 {
+	ps, eoo, err = p.AddProperty(&jo)
+	if err != nil || eoo {
 		return
 	}
 	if ps {
@@ -123,12 +123,16 @@ func (p *parser) ParseObject() (jo Object, params bool, err error) {
 		}
 
 		if c == ',' {
-			ps, err = p.AddProperty(&jo)
+			ps, eoo, err = p.AddProperty(&jo)
 			if err != nil {
+				fmt.Println(string(p.buf[p.i-100:]))
 				return
 			}
 			if ps {
 				params = true
+			}
+			if eoo {
+				break
 			}
 		} else if c == '}' {
 			break
@@ -141,7 +145,7 @@ func (p *parser) ParseObject() (jo Object, params bool, err error) {
 	return
 }
 
-func (p *parser) AddProperty(jo *Object) (params bool, err error) {
+func (p *parser) AddProperty(jo *Object) (params bool, eoo bool, err error) {
 	c, ok := p.SkipWS()
 	if !ok {
 		err = errors.New("Expected '}' or field name, found EOF")
@@ -188,7 +192,9 @@ func (p *parser) AddProperty(jo *Object) (params bool, err error) {
 
 			jo.Add(name, jv)
 		}
-	} else if c != '}' {
+	} else if c == '}' {
+		eoo = true
+	} else {
 		err = fmt.Errorf("Expected '}', found '%c'", c)
 	}
 
