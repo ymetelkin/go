@@ -125,7 +125,6 @@ func (p *parser) ParseObject() (jo Object, params bool, err error) {
 		if c == ',' {
 			ps, eoo, err = p.AddProperty(&jo)
 			if err != nil {
-				fmt.Println(string(p.buf[p.i-100:]))
 				return
 			}
 			if ps {
