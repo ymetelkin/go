@@ -214,7 +214,8 @@ func (p *parser) ParsePropertyName() (name string, params bool, err error) {
 		}
 
 		if c == '"' {
-			c, ok = p.Read()
+			//c, ok = p.Read()
+			c, ok := p.SkipWS()
 			if !ok {
 				err = errors.New("Expected ':', found EOF")
 				return
