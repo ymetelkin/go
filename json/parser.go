@@ -263,7 +263,7 @@ func (p *parser) ParseValue() (jv Value, params bool, err error) {
 	}
 
 	if c == '"' {
-		var sb strings.Builder
+		i := p.i - 1
 
 		for {
 			c, ok := p.Read()
@@ -271,41 +271,20 @@ func (p *parser) ParseValue() (jv Value, params bool, err error) {
 				err = errors.New("Expected field string value, found EOF")
 				return
 			}
-
-			if c == '\\' {
-				c, ok = p.Read()
-				if !ok {
-					err = errors.New("Expected escaped character, found EOF")
+			if c == '"' {
+				if p.buf[p.i-2] == '\\' { //escaped quote is ignored
+					continue
+				}
+				q := string(p.buf[i:p.i])
+				uq, e := strconv.Unquote(q)
+				if e != nil {
+					err = e
 					return
 				}
-
-				if c == 'r' {
-					sb.WriteByte('\r')
-				} else if c == 'n' {
-					sb.WriteByte('\n')
-				} else if c == 't' {
-					sb.WriteByte('\t')
-				} else if c == 'b' {
-					sb.WriteByte('\b')
-				} else if c == 'f' {
-					sb.WriteByte('\f')
-				} else if c == 'a' {
-					sb.WriteByte('\a')
-				} else if c == 'v' {
-					sb.WriteByte('\v')
-				} else if c == '"' {
-					sb.WriteByte('"')
-				} else if c == '\\' {
-					sb.WriteByte('\\')
-				}
-			} else if c == '"' {
-				jv = String(sb.String())
+				jv = String(uq)
 				return
-			} else {
-				if isParam(c) {
-					params = true
-				}
-				sb.WriteByte(c)
+			} else if isParam(c) {
+				params = true
 			}
 		}
 	}

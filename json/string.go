@@ -2,7 +2,6 @@ package json
 
 import (
 	"strconv"
-	"strings"
 )
 
 type vString struct {
@@ -23,45 +22,7 @@ func (s vString) string(pretty bool, level int) string {
 		return "\"\""
 	}
 
-	var (
-		bs = []byte(s.v)
-		sb strings.Builder
-	)
-
-	sb.WriteByte('"')
-
-	for _, c := range bs {
-		switch c {
-		case '"':
-			sb.WriteByte('\\')
-			sb.WriteByte('"')
-		case '\\':
-			sb.WriteByte('\\')
-			sb.WriteByte('\\')
-		case '\r':
-			sb.WriteByte('\\')
-			sb.WriteByte('r')
-		case '\n':
-			sb.WriteByte('\\')
-			sb.WriteByte('n')
-		case '\t':
-			sb.WriteByte('\\')
-			sb.WriteByte('t')
-		case '\b':
-			sb.WriteByte('\\')
-			sb.WriteByte('b')
-		case '\f':
-			sb.WriteByte('\\')
-			sb.WriteByte('f')
-		case '\v':
-			sb.WriteByte(' ')
-		default:
-			sb.WriteByte(c)
-		}
-	}
-
-	sb.WriteByte('"')
-	return sb.String()
+	return strconv.Quote(s.v)
 }
 
 func (s vString) String() (string, bool) {
