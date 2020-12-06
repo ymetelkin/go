@@ -278,8 +278,12 @@ func (p *parser) ParseValue() (jv Value, params bool, err error) {
 				q := string(p.buf[i:p.i])
 				uq, e := strconv.Unquote(q)
 				if e != nil {
-					err = e
-					return
+					q = strings.ReplaceAll(q, "\\/", "/") //weird escaping of /
+					uq, e = strconv.Unquote(q)
+					if e != nil {
+						err = e
+						return
+					}
 				}
 				jv = String(uq)
 				return
