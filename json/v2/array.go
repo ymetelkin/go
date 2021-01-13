@@ -321,7 +321,7 @@ func (p *byteParser) ParseArray(parameterized bool) (Array, error) {
 		v, pms, err := p.ParseValue(parameterized)
 		if err != nil {
 			if p.Byte == ']' {
-				return Array{}, nil
+				break
 			}
 			return Array{}, fmt.Errorf("parsing array at %d: %s", idx, err.Error())
 		}
