@@ -13,11 +13,11 @@ var resultV1 v1.Object
 var resultGo map[string]interface{}
 
 func benchmarkParsing(b *testing.B, data []byte) {
-	var jo Object
+	var jo *Object
 	for x := 0; x < b.N; x++ {
 		jo, _ = ParseObject(data)
 	}
-	result = &jo
+	result = jo
 }
 
 func benchmarkParsingV1(b *testing.B, data []byte) {

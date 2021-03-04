@@ -25,23 +25,23 @@ func New(fields ...Property) *Object {
 }
 
 //ParseObject parses JSON object
-func ParseObject(data []byte) (Object, error) {
+func ParseObject(data []byte) (*Object, error) {
 	return parseObject(data, false)
 }
 
 //ParseObjectWithParameters parses parameterized JSON object
-func ParseObjectWithParameters(data []byte) (Object, error) {
+func ParseObjectWithParameters(data []byte) (*Object, error) {
 	return parseObject(data, true)
 }
 
-func parseObject(data []byte, parameterized bool) (Object, error) {
+func parseObject(data []byte, parameterized bool) (*Object, error) {
 	p := newParser(data)
 	err := p.SkipWS()
 	if err != nil {
-		return Object{}, err
+		return nil, err
 	}
 	if p.Byte != '{' {
-		return Object{}, fmt.Errorf("parsing JSON object; expect '{', found '%s'", string(p.Byte))
+		return nil, fmt.Errorf("parsing JSON object; expect '{', found '%s'", string(p.Byte))
 	}
 	return p.ParseObject(parameterized)
 }
@@ -296,7 +296,7 @@ func (jo *Object) Equals(other *Object) bool {
 }
 
 //SetParameters replaces parameter placeholders with values
-func (jo *Object) SetParameters(params *Object) Object {
+func (jo *Object) SetParameters(params *Object) *Object {
 	var set Object
 
 	for _, jp := range jo.Properties {
@@ -335,7 +335,7 @@ func (jo *Object) SetParameters(params *Object) Object {
 		set.Add(name, value)
 	}
 
-	return set
+	return &set
 }
 
 //GetParameters retrieves paramaters from Object
@@ -403,23 +403,23 @@ type indexprop struct {
 }
 
 //used when a first byte is '{'
-func (p *byteParser) ParseObject(parameterized bool) (Object, error) {
+func (p *byteParser) ParseObject(parameterized bool) (*Object, error) {
 	var jo Object
 
 	for {
 		err := p.SkipWS()
 		if err != nil {
-			return jo, err
+			return nil, err
 		}
 		if p.Byte != '"' {
 			if p.Byte == '}' {
 				break
 			}
-			return jo, fmt.Errorf("parsing object at %d: expected [ \" ], found %s", p.Index, string(p.Byte))
+			return nil, fmt.Errorf("parsing object at %d: expected [ \" ], found %s", p.Index, string(p.Byte))
 		}
 		jp, err := p.ParseProperty(parameterized)
 		if err != nil {
-			return jo, err
+			return nil, err
 		}
 
 		if len(jp.valuep) > 0 || len(jp.namep) > 0 {
@@ -442,5 +442,5 @@ func (p *byteParser) ParseObject(parameterized bool) (Object, error) {
 		err = nil
 	}
 
-	return jo, err
+	return &jo, err
 }

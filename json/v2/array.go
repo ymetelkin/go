@@ -13,23 +13,23 @@ type Array struct {
 }
 
 //ParseArray parses JSON array
-func ParseArray(data []byte) (Array, error) {
+func ParseArray(data []byte) (*Array, error) {
 	return parseArray(data, false)
 }
 
 //ParseArrayWithParameters parses parameterized JSON array
-func ParseArrayWithParameters(data []byte) (Array, error) {
+func ParseArrayWithParameters(data []byte) (*Array, error) {
 	return parseArray(data, true)
 }
 
-func parseArray(data []byte, parameterized bool) (Array, error) {
+func parseArray(data []byte, parameterized bool) (*Array, error) {
 	p := newParser(data)
 	err := p.SkipWS()
 	if err != nil {
-		return Array{}, err
+		return nil, err
 	}
 	if p.Byte != '[' {
-		return Array{}, fmt.Errorf("parsing JSON array; expect '[', found '%s'", string(p.Byte))
+		return nil, fmt.Errorf("parsing JSON array; expect '[', found '%s'", string(p.Byte))
 	}
 	return p.ParseArray(parameterized)
 }
@@ -223,7 +223,7 @@ func (ja *Array) Equals(other *Array) bool {
 }
 
 //SetParameters replaces parameter placeholders with values
-func (ja *Array) SetParameters(params *Object) Array {
+func (ja *Array) SetParameters(params *Object) *Array {
 	var set Array
 
 	for i, v := range ja.Values {
@@ -251,7 +251,7 @@ func (ja *Array) SetParameters(params *Object) Array {
 		set.Values = append(set.Values, v)
 	}
 
-	return set
+	return &set
 }
 
 //GetParameters retrieves paramaters from Array
@@ -311,7 +311,7 @@ func (ja *Array) String() string {
 }
 
 //used when a first byte is '['
-func (p *byteParser) ParseArray(parameterized bool) (Array, error) {
+func (p *byteParser) ParseArray(parameterized bool) (*Array, error) {
 	var (
 		params map[int][]Parameter
 		values []Value
@@ -323,7 +323,7 @@ func (p *byteParser) ParseArray(parameterized bool) (Array, error) {
 			if p.Byte == ']' {
 				break
 			}
-			return Array{}, fmt.Errorf("parsing array at %d: %s", idx, err.Error())
+			return nil, fmt.Errorf("parsing array at %d: %s", idx, err.Error())
 		}
 
 		if len(pms) > 0 {
@@ -344,7 +344,7 @@ func (p *byteParser) ParseArray(parameterized bool) (Array, error) {
 		}
 
 	}
-	return Array{
+	return &Array{
 		Values: values,
 		params: params,
 	}, p.SkipWS()

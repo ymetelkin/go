@@ -22,7 +22,7 @@ func TestParameters(t *testing.T) {
 		t.Error("Failed to parse parameter value")
 	}
 	params, _ := ParseObject([]byte(`{"name":"YM"}`))
-	s2, v := setStringParameters(s, pms, &params)
+	s2, v := setStringParameters(s, pms, params)
 	if s2 != `"YM"` || v.Type() != StringType || v.String() != `"YM"` {
 		t.Error("Failed to set string parameters")
 	}
@@ -49,7 +49,7 @@ func TestParameters(t *testing.T) {
 	}
 	fmt.Printf("%s -> %s\n", s, s2)
 	params, _ = ParseObject([]byte(`{"name":"SV"}`))
-	s2, v = setStringParameters(s, pms, &params)
+	s2, v = setStringParameters(s, pms, params)
 	if s2 != `"SV"` || v.Type() != StringType || v.String() != `"SV"` {
 		t.Error("Failed to set string parameters")
 	}
@@ -71,7 +71,7 @@ func TestParameters(t *testing.T) {
 		t.Error("Failed to parse parameter value")
 	}
 	params, _ = ParseObject([]byte(`{"a":"a","num":1}`))
-	s2, v = setStringParameters(s, pms, &params)
+	s2, v = setStringParameters(s, pms, params)
 	if s2 != `"name1"` || v.Type() != StringType || v.String() != `"name1"` {
 		fmt.Println(v.String())
 		t.Error("Failed to set string parameters")
@@ -100,7 +100,7 @@ func TestParameters(t *testing.T) {
 	}
 	fmt.Printf("%s -> %s\n", s, s2)
 	params, _ = ParseObject([]byte(`{"f":0.666}`))
-	s2, v = setStringParameters(s, pms, &params)
+	s2, v = setStringParameters(s, pms, params)
 	if s2 != "0.666" || v.Type() != FloatType || v.Value() != 0.666 {
 		fmt.Println(v.Value())
 		t.Error("Failed to set float parameters")
@@ -129,7 +129,7 @@ func TestParameters(t *testing.T) {
 	}
 	fmt.Printf("%s -> %s\n", s, s2)
 	params, _ = ParseObject([]byte(`{"o":{"name":"SV"}}`))
-	s2, v = setStringParameters(s, pms, &params)
+	s2, v = setStringParameters(s, pms, params)
 	if s2 != `{"name":"SV"}` || v.Type() != ObjectType || v.String() != `{"name":"SV"}` {
 		fmt.Println(v.String())
 		t.Error("Failed to set object parameters")
@@ -144,7 +144,7 @@ func TestObjectParameters(t *testing.T) {
 		t.Error(err.Error())
 	}
 	params, _ := ParseObject([]byte(`{"name":"SV", "age":27, "salary": 80000, "id":"xyz", "p2":"c"}`))
-	jo = jo.SetParameters(&params)
+	jo = jo.SetParameters(params)
 	fmt.Println(jo.String())
 
 	s = `{ "index": "${index?appl}", "query": "${query:object}", "size": "${size:int?10}", "sort": "${sort:array}"}`
@@ -153,7 +153,7 @@ func TestObjectParameters(t *testing.T) {
 		t.Error(err.Error())
 	}
 	params, _ = ParseObject([]byte(`{"index":"appl-thirty", "query":{"query_string":{"query":"test"}}, "size":40, "sort": [{"arrivaldatetime":"desc"}]}`))
-	jo = jo.SetParameters(&params)
+	jo = jo.SetParameters(params)
 	fmt.Println(jo.String())
 
 	s = `{ "index": "${index?appl}", "query": {"query_string":{"query":"${query}","fields":"${fields:array}"}}, "size": "${size:int?10}", "sort": [{"${sort_field}":"${sort_direction}"}]}`
@@ -162,7 +162,7 @@ func TestObjectParameters(t *testing.T) {
 		t.Error(err.Error())
 	}
 	params, _ = ParseObject([]byte(`{"query":"test", "fields":["type","headline"], "sort_field": "arrivaldatetime", "sort_direction":"desc"}`))
-	jo = jo.SetParameters(&params)
+	jo = jo.SetParameters(params)
 	fmt.Println(jo.String())
 }
 
@@ -178,7 +178,7 @@ func TestV1Parsing(t *testing.T) {
 		fmt.Printf("%s\t%s\n", p.Name, p.Value.String())
 	}
 	params, _ := ParseObject([]byte(`{"id":1,"name":"YM"}`))
-	jo = jo.SetParameters(&params)
+	jo = jo.SetParameters(params)
 	test := jo.String()
 	fmt.Println(test)
 	if test != expected {
@@ -197,7 +197,7 @@ func TestV1Parsing(t *testing.T) {
 		fmt.Printf("%s\t%s\n", p.Name, p.Value.String())
 	}
 	params, _ = ParseObject([]byte(`{"name":"YM"}`))
-	jo = jo.SetParameters(&params)
+	jo = jo.SetParameters(params)
 	test = jo.String()
 	fmt.Println(test)
 	if test != expected {
@@ -217,7 +217,7 @@ func TestV1Parsing(t *testing.T) {
 		fmt.Printf("%s\t%s\n", p.Name, p.Value.String())
 	}
 	params, _ = ParseObject([]byte(`{"id":1,"name":"YM","index":"appl","size":20,"p1":1,"p2":2}`))
-	jo = jo.SetParameters(&params)
+	jo = jo.SetParameters(params)
 	test = jo.String()
 	fmt.Println(test)
 	if test != expected {
@@ -236,7 +236,7 @@ func TestV1Parsing(t *testing.T) {
 		fmt.Printf("%s\t%s\n", p.Name, p.Value.String())
 	}
 	params, _ = ParseObject([]byte(`{"id":1,"name":"YM","age":13,"extra_field":"nick","extra_value":"Gusyonok"}`))
-	jo = jo.SetParameters(&params)
+	jo = jo.SetParameters(params)
 	test = jo.String()
 	fmt.Println(test)
 	if test != expected {
@@ -255,7 +255,7 @@ func TestV1Parsing(t *testing.T) {
 		fmt.Printf("%s\t%s\n", p.Name, p.Value.String())
 	}
 	params, _ = ParseObject([]byte(`{"id":1,"name":"YM"}`))
-	jo = jo.SetParameters(&params)
+	jo = jo.SetParameters(params)
 	test = jo.String()
 	fmt.Println(test)
 	if test != expected {
@@ -275,7 +275,7 @@ func TestV1Parsing(t *testing.T) {
 		fmt.Printf("%s\t%s\n", p.Name, p.Value.String())
 	}
 	params, _ = ParseObject([]byte(`{"id_prefix":"user","id":1,"name":"YM"}`))
-	jo = jo.SetParameters(&params)
+	jo = jo.SetParameters(params)
 	test = jo.String()
 	fmt.Println(test)
 	if test != expected {
@@ -294,7 +294,7 @@ func TestV1Parsing(t *testing.T) {
 		fmt.Printf("%s\t%s\n", p.Name, p.Value.String())
 	}
 	params, _ = ParseObject([]byte(`{"id_prefix1":"user","id":1,"name":"YM"}`))
-	jo = jo.SetParameters(&params)
+	jo = jo.SetParameters(params)
 	test = jo.String()
 	fmt.Println(test)
 	if test != expected {
@@ -313,7 +313,7 @@ func TestV1Parsing(t *testing.T) {
 		fmt.Printf("%s\t%s\n", p.Name, p.Value.String())
 	}
 	params, _ = ParseObject([]byte(`{"query":"test","fields":["head","body"]}`))
-	jo = jo.SetParameters(&params)
+	jo = jo.SetParameters(params)
 	test = jo.String()
 	fmt.Println(test)
 	if test != expected {
@@ -332,7 +332,7 @@ func TestV1Parsing(t *testing.T) {
 		fmt.Printf("%s\t%s\n", p.Name, p.Value.String())
 	}
 	params, _ = ParseObject([]byte(`{"field1":"type","field2":"date"}`))
-	jo = jo.SetParameters(&params)
+	jo = jo.SetParameters(params)
 	test = jo.String()
 	fmt.Println(test)
 	if test != expected {
@@ -351,7 +351,7 @@ func TestV1Parsing(t *testing.T) {
 		fmt.Printf("%s\t%s\n", p.Name, p.Value.String())
 	}
 	params, _ = ParseObject([]byte(`{"last_name":"Metelkin"}`))
-	jo = jo.SetParameters(&params)
+	jo = jo.SetParameters(params)
 	test = jo.String()
 	fmt.Println(test)
 	if test != expected {
@@ -370,7 +370,7 @@ func TestV1Parsing(t *testing.T) {
 		fmt.Printf("%s\t%s\n", p.Name, p.Value.String())
 	}
 	params, _ = ParseObject([]byte(`{"last_name":"Metelkin"}`))
-	jo = jo.SetParameters(&params)
+	jo = jo.SetParameters(params)
 	test = jo.String()
 	fmt.Println(test)
 	if test != expected {
@@ -389,7 +389,7 @@ func TestV1Parsing(t *testing.T) {
 		fmt.Printf("%s\t%s\n", p.Name, p.Value.String())
 	}
 	params, _ = ParseObject([]byte(`{"field1":"type","field2":"date"}`))
-	jo = jo.SetParameters(&params)
+	jo = jo.SetParameters(params)
 	test = jo.String()
 	fmt.Println(test)
 	if test != expected {
@@ -408,7 +408,7 @@ func TestV1Parsing(t *testing.T) {
 		fmt.Printf("%s\t%s\n", p.Name, p.Value.String())
 	}
 	params, _ = ParseObject([]byte(`{"query":"ap","media_types":["audio"],"include_products":[1,2], "exclude_products":[3]}`))
-	jo = jo.SetParameters(&params)
+	jo = jo.SetParameters(params)
 	test = jo.String()
 	fmt.Println(test)
 	if test != expected {
@@ -423,7 +423,7 @@ func TestV1Parsing(t *testing.T) {
 		t.Error(err.Error())
 	}
 	params, _ = ParseObject([]byte(`{"query":"ap","media_types":["audio"]}`))
-	jo = jo.SetParameters(&params)
+	jo = jo.SetParameters(params)
 	test = jo.String()
 	fmt.Println(test)
 	if test != expected {

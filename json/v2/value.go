@@ -40,10 +40,10 @@ func (p *byteParser) ParseValue(parameterized bool) (Value, []Parameter, error) 
 		return v, nil, err
 	case '{':
 		jo, err := p.ParseObject(parameterized)
-		return &jo, nil, err
+		return jo, nil, err
 	case '[':
 		ja, err := p.ParseArray(parameterized)
-		return &ja, nil, err
+		return ja, nil, err
 	case 't':
 		v, err := p.ParseTrue()
 		return v, nil, err

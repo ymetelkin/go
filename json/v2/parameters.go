@@ -110,7 +110,7 @@ func (p *byteParser) ParseParameter(start int) (Parameter, error) {
 				} else {
 					val = strings.ReplaceAll(val, "\\\"", "\"")
 					jo, e := ParseObject([]byte(val))
-					param.Value = &jo
+					param.Value = jo
 					err = e
 				}
 			case "array":
@@ -119,7 +119,7 @@ func (p *byteParser) ParseParameter(start int) (Parameter, error) {
 				} else {
 					val = strings.ReplaceAll(val, "\\\"", "\"")
 					ja, e := ParseArray([]byte(val))
-					param.Value = &ja
+					param.Value = ja
 					err = e
 				}
 			}
@@ -195,14 +195,12 @@ func setValueParameters(v Value, pms []Parameter, params *Object) Value {
 	case ObjectType:
 		jo, ok := v.(*Object)
 		if ok {
-			o := jo.SetParameters(params)
-			return &o
+			return jo.SetParameters(params)
 		}
 	case ArrayType:
 		ja, ok := v.(*Array)
 		if ok {
-			a := ja.SetParameters(params)
-			return &a
+			return ja.SetParameters(params)
 		}
 	}
 	return v
