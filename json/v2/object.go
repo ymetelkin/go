@@ -382,6 +382,10 @@ func (jo *Object) Type() ValueType {
 
 //String Value interface
 func (jo *Object) String() string {
+	if jo == nil {
+		return "{}"
+	}
+
 	if jo.text == "" {
 		sz := len(jo.Properties)
 		if sz == 0 {

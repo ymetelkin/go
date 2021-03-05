@@ -295,6 +295,10 @@ func (ja *Array) Type() ValueType {
 
 //String Value interface
 func (ja *Array) String() string {
+	if ja == nil {
+		return "[]"
+	}
+
 	if ja.text == "" {
 		sz := len(ja.Values)
 		if sz == 0 {
