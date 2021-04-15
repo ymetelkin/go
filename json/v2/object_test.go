@@ -20,7 +20,38 @@ func TestObjectParse(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
+
 	fmt.Println(v.String())
+}
+
+func TestEnsureJSON(t *testing.T) {
+	s := `  ï » ¿{ "text": "abc"} ï » ¿ `
+	jo, err := ParseObjectSafe([]byte(s))
+	if err != nil {
+		t.Error(err.Error())
+	}
+	fmt.Println(jo.String())
+
+	s = ` ï » ¿<text>abc</text>`
+	_, err = ParseObjectSafe([]byte(s))
+	if err == nil {
+		t.Error("Must not parse it")
+	}
+	fmt.Println(err.Error())
+
+	s = `{ "text": "abc"]`
+	_, err = ParseObjectSafe([]byte(s))
+	if err == nil {
+		t.Error("Must not parse it")
+	}
+	fmt.Println(err.Error())
+
+	s = `  ï » ¿[{ "text": "abc"}] ï » ¿ `
+	ja, err := ParseArraySafe([]byte(s))
+	if err != nil {
+		t.Error(err.Error())
+	}
+	fmt.Println(ja.String())
 }
 
 func TestObjectPointers(t *testing.T) {
@@ -48,8 +79,8 @@ func TestGraph(t *testing.T) {
 		target, _ := o.GetInt("target")
 		weight, _ := o.GetFloat("weight")
 		count, _ := o.GetInt("doc_count")
-		v, _ := vertices[source]
-		c, _ := vertices[target]
+		v := vertices[source]
+		c := vertices[target]
 		v.Connections = append(v.Connections, graphConnection{
 			Name:   c.Name,
 			Weight: weight,

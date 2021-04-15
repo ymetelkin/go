@@ -1,5 +1,6 @@
 package v2
 
+/*
 import (
 	"encoding/json"
 	"io/ioutil"
@@ -90,3 +91,4 @@ func BenchmarkSearchGo(b *testing.B) {
 	b.ResetTimer()
 	benchmarkParsingGo(b, data)
 }
+*/

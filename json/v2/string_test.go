@@ -45,7 +45,7 @@ func TestStringParse(t *testing.T) {
 	s = `"\\\\"`
 	p = newParser([]byte(s))
 	p.SkipWS()
-	v, params, err = p.ParseString(false)
+	_, _, err = p.ParseString(false)
 	if err != errEOF {
 		t.Error("Failed to parse [ \\ ]")
 	}

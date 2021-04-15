@@ -26,17 +26,30 @@ func New(fields ...Property) *Object {
 
 //ParseObject parses JSON object
 func ParseObject(data []byte) (*Object, error) {
-	return parseObject(data, false)
+	return parseObject(data, false, false)
+}
+
+//ParseObjectSafe parses JSON object ignoring prefix non-ASCII characters
+func ParseObjectSafe(data []byte) (*Object, error) {
+	return parseObject(data, false, true)
 }
 
 //ParseObjectWithParameters parses parameterized JSON object
 func ParseObjectWithParameters(data []byte) (*Object, error) {
-	return parseObject(data, true)
+	return parseObject(data, true, false)
 }
 
-func parseObject(data []byte, parameterized bool) (*Object, error) {
-	p := newParser(data)
-	err := p.SkipWS()
+func parseObject(data []byte, parameterized bool, safe bool) (*Object, error) {
+	var (
+		p   = newParser(data)
+		err error
+	)
+
+	if safe {
+		err = p.EnsureJSON()
+	} else {
+		err = p.SkipWS()
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -399,11 +412,6 @@ func (jo *Object) String() string {
 		}
 	}
 	return jo.text
-}
-
-type indexprop struct {
-	i int
-	p Property
 }
 
 //used when a first byte is '{'

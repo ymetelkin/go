@@ -14,17 +14,30 @@ type Array struct {
 
 //ParseArray parses JSON array
 func ParseArray(data []byte) (*Array, error) {
-	return parseArray(data, false)
+	return parseArray(data, false, false)
 }
 
 //ParseArrayWithParameters parses parameterized JSON array
 func ParseArrayWithParameters(data []byte) (*Array, error) {
-	return parseArray(data, true)
+	return parseArray(data, true, false)
 }
 
-func parseArray(data []byte, parameterized bool) (*Array, error) {
-	p := newParser(data)
-	err := p.SkipWS()
+//ParseArraySafe parses JSON array ignoring prefix non-ASCII characters
+func ParseArraySafe(data []byte) (*Array, error) {
+	return parseArray(data, false, true)
+}
+
+func parseArray(data []byte, parameterized bool, safe bool) (*Array, error) {
+	var (
+		p   = newParser(data)
+		err error
+	)
+
+	if safe {
+		err = p.EnsureJSON()
+	} else {
+		err = p.SkipWS()
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +240,7 @@ func (ja *Array) SetParameters(params *Object) *Array {
 	var set Array
 
 	for i, v := range ja.Values {
-		pms, _ := ja.params[i]
+		pms := ja.params[i]
 		v = setValueParameters(v, pms, params)
 		if v == nil {
 			continue
@@ -348,8 +361,14 @@ func (p *byteParser) ParseArray(parameterized bool) (*Array, error) {
 		}
 
 	}
+
+	err := p.SkipWS()
+	if err == errEOF {
+		err = nil
+	}
+
 	return &Array{
 		Values: values,
 		params: params,
-	}, p.SkipWS()
+	}, err
 }
