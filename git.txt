@@ -1,9 +1,0 @@
-git add appl/*.go
-git add apql/*.go
-git add json/*.go
-git add lambda/*.go
-git add rest/*.go
-git add xml/*.go
-git add git.txt
-git commit -m "Work in progress"
-git push origin master
